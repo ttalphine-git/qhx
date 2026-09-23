@@ -1,0 +1,17 @@
+ALTER TABLE companies
+    ADD COLUMN contact_name VARCHAR(255),
+    ADD COLUMN contact_designation VARCHAR(255),
+    ADD COLUMN employee_count INTEGER,
+    ADD COLUMN latitude VARCHAR(50),
+    ADD COLUMN longitude VARCHAR(50),
+    ADD COLUMN license_no VARCHAR(100),
+    ADD COLUMN license_expiry DATE,
+    ADD COLUMN issuing_authority VARCHAR(255),
+    ADD COLUMN license_file_name VARCHAR(255),
+    ADD COLUMN license_file_size BIGINT,
+    ADD COLUMN license_file_data TEXT,
+    ADD COLUMN vat_no VARCHAR(100),
+    ADD COLUMN sst_no VARCHAR(100),
+    ADD COLUMN vat_file_name VARCHAR(255),
+    ADD COLUMN vat_file_size BIGINT,
+    ADD COLUMN vat_file_data TEXT;

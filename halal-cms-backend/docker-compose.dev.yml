@@ -1,0 +1,120 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: halalcms-postgres
+    environment:
+      POSTGRES_USER: halalcms
+      POSTGRES_PASSWORD: halalcms
+      POSTGRES_DB: halalcms_auth
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U halalcms"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  create-dbs:
+    image: postgres:16-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    environment:
+      PGPASSWORD: halalcms
+    command: >
+      sh -c "
+        psql -h postgres -U halalcms -d halalcms_auth -c 'CREATE DATABASE halalcms_companies;' 2>/dev/null || true &&
+        psql -h postgres -U halalcms -d halalcms_auth -c 'CREATE DATABASE halalcms_applications;' 2>/dev/null || true &&
+        psql -h postgres -U halalcms -d halalcms_auth -c 'CREATE DATABASE halalcms_certificates;' 2>/dev/null || true &&
+        psql -h postgres -U halalcms -d halalcms_auth -c 'CREATE DATABASE halalcms_inspections;' 2>/dev/null || true &&
+        psql -h postgres -U halalcms -d halalcms_auth -c 'CREATE DATABASE halalcms_notifications;' 2>/dev/null || true &&
+        echo 'All databases ready.'
+      "
+
+  auth-service:
+    image: eclipse-temurin:17-jre-alpine
+    container_name: halalcms-auth
+    depends_on:
+      create-dbs:
+        condition: service_completed_successfully
+    volumes:
+      - D:/QHXSASS/halal-cms-backend/auth-service/target/auth-service-1.0.0-SNAPSHOT.jar:/app/app.jar
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/halalcms_auth
+      DB_USER: halalcms
+      DB_PASSWORD: halalcms
+      JWT_SECRET: dev-secret-key-change-in-production-32chars
+    ports:
+      - "8081:8081"
+    command: ["java", "-jar", "/app/app.jar"]
+
+  company-service:
+    image: eclipse-temurin:17-jre-alpine
+    container_name: halalcms-company
+    depends_on:
+      create-dbs:
+        condition: service_completed_successfully
+    volumes:
+      - D:/QHXSASS/halal-cms-backend/company-service/target/company-service-1.0.0-SNAPSHOT.jar:/app/app.jar
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/halalcms_companies
+      DB_USER: halalcms
+      DB_PASSWORD: halalcms
+      JWT_SECRET: dev-secret-key-change-in-production-32chars
+    ports:
+      - "8083:8083"
+    command: ["java", "-jar", "/app/app.jar"]
+
+  application-service:
+    image: eclipse-temurin:17-jre-alpine
+    container_name: halalcms-application
+    depends_on:
+      create-dbs:
+        condition: service_completed_successfully
+    volumes:
+      - D:/QHXSASS/halal-cms-backend/application-service/target/application-service-1.0.0-SNAPSHOT.jar:/app/app.jar
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/halalcms_applications
+      DB_USER: halalcms
+      DB_PASSWORD: halalcms
+      JWT_SECRET: dev-secret-key-change-in-production-32chars
+    ports:
+      - "8082:8082"
+    command: ["java", "-jar", "/app/app.jar"]
+
+  inspection-service:
+    image: eclipse-temurin:17-jre-alpine
+    container_name: halalcms-inspection
+    depends_on:
+      create-dbs:
+        condition: service_completed_successfully
+    volumes:
+      - D:/QHXSASS/halal-cms-backend/inspection-service/target/inspection-service-1.0.0-SNAPSHOT.jar:/app/app.jar
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/halalcms_inspections
+      DB_USER: halalcms
+      DB_PASSWORD: halalcms
+      JWT_SECRET: dev-secret-key-change-in-production-32chars
+    ports:
+      - "8084:8084"
+    command: ["java", "-jar", "/app/app.jar"]
+
+  certificate-service:
+    image: eclipse-temurin:17-jre-alpine
+    container_name: halalcms-certificate
+    depends_on:
+      create-dbs:
+        condition: service_completed_successfully
+    volumes:
+      - D:/QHXSASS/halal-cms-backend/certificate-service/target/certificate-service-1.0.0-SNAPSHOT.jar:/app/app.jar
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/halalcms_certificates
+      DB_USER: halalcms
+      DB_PASSWORD: halalcms
+      JWT_SECRET: dev-secret-key-change-in-production-32chars
+    ports:
+      - "8085:8085"
+    command: ["java", "-jar", "/app/app.jar"]

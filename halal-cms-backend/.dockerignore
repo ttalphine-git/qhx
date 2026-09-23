@@ -1,0 +1,10 @@
+.git
+.github
+**/.mvn
+**/node_modules
+docker-compose*.yml
+Makefile
+*.md
+.env
+.env.*
+!.env.example

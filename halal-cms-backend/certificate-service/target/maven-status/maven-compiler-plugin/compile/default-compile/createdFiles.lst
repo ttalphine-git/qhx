@@ -1,0 +1,13 @@
+com\halalcms\certificateservice\model\Certificate.class
+com\halalcms\certificateservice\config\SecurityConfig.class
+com\halalcms\certificateservice\dto\CertificatesPageableDTO$CertificatesPageableDTOBuilder.class
+com\halalcms\certificateservice\security\JwtAuthFilter.class
+com\halalcms\certificateservice\CertificateServiceApplication.class
+com\halalcms\certificateservice\model\Certificate$CertificateBuilder.class
+com\halalcms\certificateservice\dto\CertificateDto.class
+com\halalcms\certificateservice\dto\CertificateDto$CertificateDtoBuilder.class
+com\halalcms\certificateservice\service\CertificateService.class
+com\halalcms\certificateservice\repository\CertificateRepository.class
+com\halalcms\certificateservice\controller\CertificateController.class
+com\halalcms\certificateservice\dto\CreateCertificateRequest.class
+com\halalcms\certificateservice\dto\CertificatesPageableDTO.class

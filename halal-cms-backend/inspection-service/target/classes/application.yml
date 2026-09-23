@@ -1,0 +1,36 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: inspection-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/halalcms_inspections}
+    username: ${DB_USER:halalcms}
+    password: ${DB_PASSWORD:halalcms}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:noreply@halalcertificationboard.com}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+app:
+  email:
+    signature: "Halal Certification Board"
+jwt:
+  secret: ${JWT_SECRET:changeme-use-256-bit-secret-in-production}
+eureka:
+  client:
+    enabled: false

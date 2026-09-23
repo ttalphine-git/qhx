@@ -1,0 +1,4 @@
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS id_doc_name VARCHAR(500),
+    ADD COLUMN IF NOT EXISTS id_doc_data TEXT,
+    ADD COLUMN IF NOT EXISTS photo_data  TEXT;

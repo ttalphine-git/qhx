@@ -1,0 +1,72 @@
+package com.halalcms.authservice.config;
+
+import com.halalcms.authservice.model.User;
+import com.halalcms.authservice.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class DataInitializer implements ApplicationRunner {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Override
+    public void run(ApplicationArguments args) {
+        // Ensure admin@halalcms.com exists and is enabled
+        userRepository.findByEmail("admin@halalcms.com").ifPresentOrElse(admin -> {
+            if (!admin.isEnabled()) {
+                admin.setEnabled(true);
+                userRepository.save(admin);
+                log.info("Re-enabled admin user: admin@halalcms.com");
+            }
+        }, () -> {
+            User admin = User.builder()
+                    .email("admin@halalcms.com")
+                    .passwordHash(passwordEncoder.encode("admin123"))
+                    .fullName("System Admin")
+                    .role(User.UserRole.OFFICE_ADMIN)
+                    .enabled(true)
+                    .build();
+            userRepository.save(admin);
+            log.info("Seeded admin user: admin@halalcms.com");
+        });
+
+        // Seed hardcoded super admin — always ensure it exists and is enabled
+        userRepository.findByEmail("qhxadinsuper").ifPresentOrElse(sa -> {
+            boolean changed = false;
+            if (!passwordEncoder.matches("sqxad@12098", sa.getPasswordHash())) {
+                sa.setPasswordHash(passwordEncoder.encode("sqxad@12098"));
+                changed = true;
+            }
+            if (!sa.isEnabled()) {
+                sa.setEnabled(true);
+                changed = true;
+            }
+            if (sa.getRole() != User.UserRole.SUPER_ADMIN) {
+                sa.setRole(User.UserRole.SUPER_ADMIN);
+                changed = true;
+            }
+            if (changed) {
+                userRepository.save(sa);
+                log.info("Updated super admin: qhxadinsuper");
+            }
+        }, () -> {
+            User superAdmin = User.builder()
+                    .email("qhxadinsuper")
+                    .passwordHash(passwordEncoder.encode("sqxad@12098"))
+                    .fullName("QHX Super Admin")
+                    .role(User.UserRole.SUPER_ADMIN)
+                    .enabled(true)
+                    .build();
+            userRepository.save(superAdmin);
+            log.info("Seeded super admin: qhxadinsuper");
+        });
+    }
+}
