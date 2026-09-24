@@ -57,7 +57,7 @@ public class CertificateGenerationService {
             "/audits/" + auditId + "/certificate");
 
         emailService.sendEmail("admin@hcb.com", "Certificate Ready for Review",
-            "CERTIFICATE_GENERATED", auditId, applicationId);
+            "CERTIFICATE_GENERATED", auditId);
 
         workflowLogService.logAction(applicationId, "CERTIFICATE", saved.getId(), "GENERATED",
             "Certificate generated with number: " + certificateNumber, null, "PENDING", "GENERATED");

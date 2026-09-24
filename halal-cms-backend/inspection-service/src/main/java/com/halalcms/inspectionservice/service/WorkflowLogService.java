@@ -27,7 +27,7 @@ public class WorkflowLogService {
 
     public void logAction(Long applicationId, String entityType, Long entityId, String action, String description,
                          Long performedBy, String oldStatus, String newStatus) {
-        WorkflowLog log = WorkflowLog.builder()
+        WorkflowLog workflowLog = WorkflowLog.builder()
             .applicationId(applicationId)
             .entityType(entityType)
             .entityId(entityId)
@@ -39,7 +39,7 @@ public class WorkflowLogService {
             .createdAt(LocalDateTime.now())
             .build();
 
-        workflowLogRepository.save(log);
+        workflowLogRepository.save(workflowLog);
         log.debug("Workflow action logged - App: {}, Entity: {}, Action: {} by User: {}",
             applicationId, entityType, action, performedBy);
     }
