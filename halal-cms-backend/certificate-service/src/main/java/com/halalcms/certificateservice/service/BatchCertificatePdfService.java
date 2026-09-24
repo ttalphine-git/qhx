@@ -26,8 +26,6 @@ public class BatchCertificatePdfService {
     private static final float MARGIN = 40;
     private static final float Y_START = 750;
     private static final float LINE_HEIGHT = 15;
-    private static final PDFont FONT_REGULAR = PDType1Font.HELVETICA;
-    private static final PDFont FONT_BOLD = PDType1Font.HELVETICA_BOLD;
 
     public byte[] generateCertificatePdf(BatchCertificateRequest request) {
         try {
@@ -85,7 +83,7 @@ public class BatchCertificatePdfService {
     }
 
     private float addHeader(PDPageContentStream contentStream, PDPage page, float yPosition) throws IOException {
-        contentStream.setFont(FONT_BOLD, 24);
+        contentStream.setFont(PDType1Font.TIMES_BOLD, 24);
         contentStream.beginText();
         contentStream.newLineAtOffset(MARGIN + 150, yPosition);
         contentStream.showText("BATCH CERTIFICATE");
@@ -93,7 +91,7 @@ public class BatchCertificatePdfService {
 
         yPosition -= LINE_HEIGHT * 1.5f;
 
-        contentStream.setFont(FONT_REGULAR, 12);
+        contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
         contentStream.beginText();
         contentStream.newLineAtOffset(MARGIN + 100, yPosition);
         contentStream.showText("Halal Slaughtering & Quality Control Certificate");
@@ -128,7 +126,7 @@ public class BatchCertificatePdfService {
     }
 
     private float addProducerInformation(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
-        contentStream.setFont(FONT_BOLD, 12);
+        contentStream.setFont(PDType1Font.TIMES_BOLD, 12);
         contentStream.beginText();
         contentStream.newLineAtOffset(MARGIN, yPosition);
         contentStream.showText("PRODUCER INFORMATION");
@@ -136,7 +134,7 @@ public class BatchCertificatePdfService {
 
         yPosition -= LINE_HEIGHT * 1.5f;
 
-        contentStream.setFont(FONT_REGULAR, 10);
+        contentStream.setFont(PDType1Font.TIMES_ROMAN, 10);
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Producer Name:", request.getProducerName());
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Phone:", request.getProducerPhone() != null ? request.getProducerPhone() : "-");
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Email:", request.getProducerEmail() != null ? request.getProducerEmail() : "-");
@@ -146,7 +144,7 @@ public class BatchCertificatePdfService {
     }
 
     private float addImporterInformation(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
-        contentStream.setFont(FONT_BOLD, 12);
+        contentStream.setFont(PDType1Font.TIMES_BOLD, 12);
         contentStream.beginText();
         contentStream.newLineAtOffset(MARGIN, yPosition);
         contentStream.showText("IMPORTER INFORMATION");
@@ -154,7 +152,7 @@ public class BatchCertificatePdfService {
 
         yPosition -= LINE_HEIGHT * 1.5f;
 
-        contentStream.setFont(FONT_REGULAR, 10);
+        contentStream.setFont(PDType1Font.TIMES_ROMAN, 10);
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Importer Name:", request.getImporterName());
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Country:", request.getImporterCountry() != null ? request.getImporterCountry() : "-");
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Contact:", request.getImporterContact() != null ? request.getImporterContact() : "-");
@@ -163,7 +161,7 @@ public class BatchCertificatePdfService {
     }
 
     private float addExporterInformation(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
-        contentStream.setFont(FONT_BOLD, 12);
+        contentStream.setFont(PDType1Font.TIMES_BOLD, 12);
         contentStream.beginText();
         contentStream.newLineAtOffset(MARGIN, yPosition);
         contentStream.showText("EXPORTER INFORMATION");
@@ -171,7 +169,7 @@ public class BatchCertificatePdfService {
 
         yPosition -= LINE_HEIGHT * 1.5f;
 
-        contentStream.setFont(FONT_REGULAR, 10);
+        contentStream.setFont(PDType1Font.TIMES_ROMAN, 10);
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Exporter Name:", request.getExporterName());
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Country:", request.getExporterCountry() != null ? request.getExporterCountry() : "-");
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Contact:", request.getExporterContact() != null ? request.getExporterContact() : "-");
@@ -180,7 +178,7 @@ public class BatchCertificatePdfService {
     }
 
     private float addShipmentDetails(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
-        contentStream.setFont(FONT_BOLD, 12);
+        contentStream.setFont(PDType1Font.TIMES_BOLD, 12);
         contentStream.beginText();
         contentStream.newLineAtOffset(MARGIN, yPosition);
         contentStream.showText("SHIPMENT DETAILS");
@@ -188,7 +186,7 @@ public class BatchCertificatePdfService {
 
         yPosition -= LINE_HEIGHT * 1.5f;
 
-        contentStream.setFont(FONT_REGULAR, 10);
+        contentStream.setFont(PDType1Font.TIMES_ROMAN, 10);
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Shipment Date:", request.getShipmentDate().toString());
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Shipment Reference:", request.getShipmentReference() != null ? request.getShipmentReference() : "-");
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Origin Country:", request.getOriginCountry());
@@ -198,7 +196,7 @@ public class BatchCertificatePdfService {
     }
 
     private float addProductsTable(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
-        contentStream.setFont(FONT_BOLD, 12);
+        contentStream.setFont(PDType1Font.TIMES_BOLD, 12);
         contentStream.beginText();
         contentStream.newLineAtOffset(MARGIN, yPosition);
         contentStream.showText("PRODUCTS");
@@ -206,7 +204,7 @@ public class BatchCertificatePdfService {
 
         yPosition -= LINE_HEIGHT * 1.5f;
 
-        contentStream.setFont(FONT_REGULAR, 10);
+        contentStream.setFont(PDType1Font.TIMES_ROMAN, 10);
         float col1 = MARGIN;
         float col2 = MARGIN + 100;
         float col3 = MARGIN + 250;
@@ -240,7 +238,7 @@ public class BatchCertificatePdfService {
     }
 
     private float addFeeInformation(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
-        contentStream.setFont(FONT_BOLD, 12);
+        contentStream.setFont(PDType1Font.TIMES_BOLD, 12);
         contentStream.beginText();
         contentStream.newLineAtOffset(MARGIN, yPosition);
         contentStream.showText("FEE INFORMATION");
@@ -248,7 +246,7 @@ public class BatchCertificatePdfService {
 
         yPosition -= LINE_HEIGHT * 1.5f;
 
-        contentStream.setFont(FONT_REGULAR, 10);
+        contentStream.setFont(PDType1Font.TIMES_ROMAN, 10);
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Total Weight:", request.getTotalWeightKg() + " kg");
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Unit Price:", request.getCurrency() + " " + request.getUnitPricePerKg() + "/kg");
         yPosition = addTableRow(contentStream, MARGIN, yPosition, "Total Fee:", request.getCurrency() + " " + request.getTotalFee());
@@ -258,7 +256,7 @@ public class BatchCertificatePdfService {
     }
 
     private float addQRCodeAndFooter(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request, BufferedImage qrImage, PDDocument document) throws IOException {
-        contentStream.setFont(FONT_REGULAR, 9);
+        contentStream.setFont(PDType1Font.TIMES_ROMAN, 9);
         contentStream.beginText();
         contentStream.newLineAtOffset(MARGIN, yPosition);
         contentStream.showText("This certificate verifies that the shipment has been inspected and approved as per Halal requirements.");
