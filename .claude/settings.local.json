@@ -224,7 +224,15 @@
       "PowerShell(docker rm halalcms-postgres -ErrorAction SilentlyContinue)",
       "PowerShell(docker stop halalcms-postgres 2>$null)",
       "PowerShell(docker rm halalcms-postgres 2>$null)",
-      "PowerShell(Start-Service postgresql-x64-16 2>&1)"
+      "PowerShell(Start-Service postgresql-x64-16 2>&1)",
+      "PowerShell(Test-NetConnection github.com -Port 443 -WarningAction SilentlyContinue)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jdk-21.0.12.101-hotspot\"; $env:Path = \"$env:JAVA_HOME\\\\bin;$env:Path\"; java -version)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jdk-21.0.12.101-hotspot\"; cd \"d:\\\\QHXSASS\\\\halal-cms-backend\"; mvn clean compile -q 2>&1 | head -30)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jdk-21.0.12.101-hotspot\"; cd \"d:\\\\QHXSASS\\\\halal-cms-backend\"; .\\\\mvnw.cmd clean compile -q 2>&1 | tail -20)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jdk-21.0.12.101-hotspot\"; cd \"d:\\\\QHXSASS\\\\halal-cms-backend\"; .\\\\mvnw.cmd clean compile 2>&1 | Select-Object -Last 30)",
+      "Bash(git remote *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'feat: complete halal-cms production-ready codebase with security hardening *)"
     ]
   }
 }

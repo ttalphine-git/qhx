@@ -26,6 +26,9 @@ public class CertificateWorkflow {
     @Column(unique = true, length = 50)
     private String certificateNumber;
 
+    @Column(columnDefinition = "TEXT")
+    private String qrCodeData;
+
     private Long templateId;
 
     @Column(nullable = false, length = 30)

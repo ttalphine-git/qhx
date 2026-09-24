@@ -2,6 +2,7 @@ package com.halalcms.inspectionservice.service;
 
 import com.halalcms.inspectionservice.model.CertificateWorkflow;
 import com.halalcms.inspectionservice.repository.CertificateWorkflowRepository;
+import com.halalcms.inspectionservice.util.QRCodeGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class CertificateGenerationService {
     private final NotificationService notificationService;
     private final EmailService emailService;
     private final WorkflowLogService workflowLogService;
+    private final QRCodeGenerator qrCodeGenerator;
 
     public CertificateWorkflow generateCertificate(Long auditId, Long applicationId) {
         log.info("Generating certificate for audit {}", auditId);
@@ -38,6 +40,14 @@ public class CertificateGenerationService {
             .validFrom(validFrom)
             .validTo(validTo)
             .build();
+
+        try {
+            String qrCode = qrCodeGenerator.generateQRCode(certificateNumber, "https://halalcms.com/verify", 200, 200);
+            certificate.setQrCodeData(qrCode);
+            log.info("QR code generated for certificate: {}", certificateNumber);
+        } catch (Exception e) {
+            log.warn("Failed to generate QR code for certificate: {}", certificateNumber, e);
+        }
 
         CertificateWorkflow saved = certificateRepository.save(certificate);
         log.info("Certificate generated - Cert ID: {}, Number: {}", saved.getId(), certificateNumber);

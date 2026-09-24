@@ -4,6 +4,7 @@ import com.halalcms.authservice.model.User;
 import com.halalcms.authservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +18,12 @@ public class DataInitializer implements ApplicationRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${app.init.admin-password:admin123}")
+    private String adminPassword;
+
+    @Value("${app.init.super-admin-password:sqxad@12098}")
+    private String superAdminPassword;
+
     @Override
     public void run(ApplicationArguments args) {
         // Ensure admin@halalcms.com exists and is enabled
@@ -29,7 +36,7 @@ public class DataInitializer implements ApplicationRunner {
         }, () -> {
             User admin = User.builder()
                     .email("admin@halalcms.com")
-                    .passwordHash(passwordEncoder.encode("admin123"))
+                    .passwordHash(passwordEncoder.encode(adminPassword))
                     .fullName("System Admin")
                     .role(User.UserRole.OFFICE_ADMIN)
                     .enabled(true)
@@ -38,11 +45,11 @@ public class DataInitializer implements ApplicationRunner {
             log.info("Seeded admin user: admin@halalcms.com");
         });
 
-        // Seed hardcoded super admin — always ensure it exists and is enabled
+        // Seed super admin — always ensure it exists and is enabled
         userRepository.findByEmail("qhxadinsuper").ifPresentOrElse(sa -> {
             boolean changed = false;
-            if (!passwordEncoder.matches("sqxad@12098", sa.getPasswordHash())) {
-                sa.setPasswordHash(passwordEncoder.encode("sqxad@12098"));
+            if (!passwordEncoder.matches(superAdminPassword, sa.getPasswordHash())) {
+                sa.setPasswordHash(passwordEncoder.encode(superAdminPassword));
                 changed = true;
             }
             if (!sa.isEnabled()) {
@@ -60,7 +67,7 @@ public class DataInitializer implements ApplicationRunner {
         }, () -> {
             User superAdmin = User.builder()
                     .email("qhxadinsuper")
-                    .passwordHash(passwordEncoder.encode("sqxad@12098"))
+                    .passwordHash(passwordEncoder.encode(superAdminPassword))
                     .fullName("QHX Super Admin")
                     .role(User.UserRole.SUPER_ADMIN)
                     .enabled(true)

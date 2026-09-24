@@ -23,6 +23,11 @@ jwt:
   access-token-expiry: 28800    # 8 hours
   refresh-token-expiry: 604800  # 7 days
 
+app:
+  init:
+    admin-password: ${ADMIN_PASSWORD:admin123}
+    super-admin-password: ${SUPER_ADMIN_PASSWORD:sqxad@12098}
+
 eureka:
   client:
     enabled: false

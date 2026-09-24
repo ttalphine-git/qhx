@@ -2064,7 +2064,7 @@ function AuditChecklistTab({ app }: { app:any }) {
                         {REFERENCE.terms.map(([term, definition]) => (
                           <tr key={term}>
                             <td>{term}</td>
-                            <td dangerouslySetInnerHTML={{ __html: hcbText(definition) }} />
+                            <td>{hcbText(definition)}</td>
                           </tr>
                         ))}
                       </tbody>

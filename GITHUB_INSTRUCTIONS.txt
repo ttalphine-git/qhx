@@ -1,0 +1,47 @@
+﻿# 🔗 GITHUB SETUP - FOLLOW THESE STEPS
+
+## STEP 1: Create Backend Repository
+1. Go to: https://github.com/new
+2. Repository name: halal-cms-backend
+3. Description: HalalCMS Backend - Spring Boot Microservices
+4. Choose: Public (or Private if you prefer)
+5. DO NOT check "Initialize with README"
+6. Click "Create repository"
+7. You''ll get instructions - copy the HTTPS URL
+
+## STEP 2: Create Frontend Repository  
+1. Go to: https://github.com/new
+2. Repository name: halal-cms-frontend
+3. Description: HalalCMS Frontend - React/Vite
+4. Choose: Public (or Private if you prefer)
+5. DO NOT check "Initialize with README"
+6. Click "Create repository"
+7. You''ll get instructions - copy the HTTPS URL
+
+## STEP 3: Push Backend (Copy & Paste)
+Run this with YOUR_USERNAME and GITHUB_TOKEN:
+
+cd D:\QHXSASS\halal-cms-backend
+git remote add origin https://github.com/YOUR_USERNAME/halal-cms-backend.git
+git branch -M main
+git push -u origin main
+
+## STEP 4: Push Frontend (Copy & Paste)
+Run this with YOUR_USERNAME and GITHUB_TOKEN:
+
+cd D:\QHXSASS\halal-cms-frontend
+git remote add origin https://github.com/YOUR_USERNAME/halal-cms-frontend.git
+git branch -M main
+git push -u origin main
+
+## For HTTPS (Will ask for password):
+Use your GitHub Personal Access Token instead of password
+Create token at: https://github.com/settings/tokens/new
+Scopes needed: repo (full control)
+
+─────────────────────────────────────────────────────────────
+READY? Let me know:
+1. Your GitHub username
+2. Whether repos are created
+3. Then I''ll push the code for you
+─────────────────────────────────────────────────────────────

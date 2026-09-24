@@ -16,8 +16,8 @@ export interface AuditLogEntry {
   category: AuditCategory
 }
 
-const KEY = 'hcs_audit_logs'
-const MAX = 2000
+const STORAGE_KEY = 'hcs_audit_logs'
+const MAX_LOGS = 2000
 
 export function getAuditLogs(): AuditLogEntry[] {
   try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] }

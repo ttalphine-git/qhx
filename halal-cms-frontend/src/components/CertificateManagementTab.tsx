@@ -14,6 +14,7 @@ interface Certificate {
   validFrom: string
   validTo: string
   status: "GENERATED" | "APPROVED" | "SENT"
+  qrCodeData?: string
   approvedBy?: string
   approvedAt?: string
   sentToCustomerAt?: string
@@ -275,6 +276,18 @@ export const CertificateManagementTab: React.FC<CertificateManagementTabProps> =
             </p>
           </div>
         </div>
+
+        {certificate.qrCodeData && (
+          <div style={{ marginBottom: 20, padding: "16px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, textAlign: "center" }}>
+            <p style={{ margin: "0 0 12px", fontSize: "0.7rem", fontWeight: 600, color: "#64748b", fontFamily: F }}>
+              🔍 QR Code for Verification
+            </p>
+            <img src={certificate.qrCodeData} alt="Certificate QR Code" style={{ width: "150px", height: "150px", border: "1px solid #d1d5db", borderRadius: 4 }} />
+            <p style={{ margin: "12px 0 0", fontSize: "0.7rem", color: "#94a3b8", fontFamily: F }}>
+              Scan to verify certificate authenticity
+            </p>
+          </div>
+        )}
 
         {showPreview && (
           <div

@@ -1,0 +1,20 @@
+﻿# 🚀 MANUAL PUSH INSTRUCTIONS
+
+## For GitHub (ttalphine-git/qhx):
+
+1. Generate GitHub Personal Access Token:
+   - Go to: https://github.com/settings/tokens
+   - Create token with "repo" scope
+   - Copy token
+
+2. Push code:
+   cd D:\QHXSASS
+   git remote set-url origin https://<YOUR_TOKEN>@github.com/ttalphine-git/qhx.git
+   git push -u origin main
+
+3. Verify at: https://github.com/ttalphine-git/qhx
+
+───────────────────────────────────────────────────────────
+IMPORTANT: Never commit tokens to Git!
+Use environment variables or command-line prompts instead.
+───────────────────────────────────────────────────────────
