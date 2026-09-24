@@ -29,25 +29,31 @@ export default function OfficeBatchCertificatesPage() {
   const [page, setPage] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
   const [status, setStatus] = useState<string>("")
+  const [paymentStatus, setPaymentStatus] = useState<string>("")
   const [stats, setStats] = useState({
     pendingApproval: 0,
     approvedThisMonth: 0,
     totalFeesThisMonth: 0,
+    pendingPayments: 0,
+    totalPendingAmount: 0,
+    paidThisMonth: 0,
   })
 
   useEffect(() => {
     loadRequests()
     loadStats()
-  }, [status, page])
+  }, [status, paymentStatus, page])
 
   async function loadRequests() {
     try {
       setLoading(true)
-      const statusParam = status ? `status=${status}` : ""
-      const resp = await fetch(
-        `/batch-certificates/admin/requests?${statusParam}&page=${page}&size=20`
-      )
+      const params = new URLSearchParams()
+      if (status) params.append("status", status)
+      if (paymentStatus) params.append("paymentStatus", paymentStatus)
+      params.append("page", page.toString())
+      params.append("size", "20")
 
+      const resp = await fetch(`/batch-certificates/admin/requests?${params.toString()}`)
       if (resp.ok) {
         const data = await resp.json()
         setRequests(data.content || [])
@@ -67,12 +73,19 @@ export default function OfficeBatchCertificatesPage() {
         const data = await resp.json()
         const allRequests = data.content || []
 
+        const pendingPayments = allRequests.filter((r: any) => r.paymentStatus === "PENDING")
+        const totalPendingAmount = pendingPayments.reduce((sum: number, r: any) => sum + (r.totalFee || 0), 0)
+        const paidRequests = allRequests.filter((r: any) => r.paymentStatus === "PAID")
+
         setStats({
           pendingApproval: allRequests.filter((r: any) => r.status === "PENDING").length,
           approvedThisMonth: allRequests.filter((r: any) => r.status === "APPROVED").length,
           totalFeesThisMonth: allRequests
             .filter((r: any) => r.status === "APPROVED")
             .reduce((sum: number, r: any) => sum + (r.totalFee || 0), 0),
+          pendingPayments: pendingPayments.length,
+          totalPendingAmount: totalPendingAmount,
+          paidThisMonth: paidRequests.length,
         })
       }
     } catch (err) {
@@ -106,6 +119,19 @@ export default function OfficeBatchCertificatesPage() {
     }
   }
 
+  function getPaymentStatusColor(status: string) {
+    switch (status) {
+      case "PENDING":
+        return "bg-yellow-50 text-yellow-700 border-yellow-200"
+      case "PAID":
+        return "bg-green-50 text-green-700 border-green-200"
+      case "CANCELLED":
+        return "bg-red-50 text-red-700 border-red-200"
+      default:
+        return "bg-gray-50 text-gray-700 border-gray-200"
+    }
+  }
+
   const totalPages = Math.ceil(totalElements / 20)
 
   return (
@@ -115,7 +141,7 @@ export default function OfficeBatchCertificatesPage() {
           <h1 className="text-3xl font-bold mb-4">Batch Certificate Management</h1>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <div className="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
               <p className="text-sm text-gray-600">Pending Approval</p>
               <p className="text-3xl font-bold text-orange-600">{stats.pendingApproval}</p>
@@ -128,11 +154,23 @@ export default function OfficeBatchCertificatesPage() {
               <p className="text-sm text-gray-600">Total Fees Collected</p>
               <p className="text-3xl font-bold text-blue-600">RM {stats.totalFeesThisMonth.toFixed(2)}</p>
             </div>
+            <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
+              <p className="text-sm text-gray-600">Pending Payments</p>
+              <p className="text-3xl font-bold text-red-600">{stats.pendingPayments}</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
+              <p className="text-sm text-gray-600">Pending Amount</p>
+              <p className="text-3xl font-bold text-purple-600">RM {stats.totalPendingAmount.toFixed(2)}</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow border-l-4 border-teal-500">
+              <p className="text-sm text-gray-600">Paid This Month</p>
+              <p className="text-3xl font-bold text-teal-600">{stats.paidThisMonth}</p>
+            </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-lg shadow mb-6 flex gap-4">
+        <div className="bg-white p-4 rounded-lg shadow mb-6 flex gap-4 flex-wrap">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
             <select
@@ -147,6 +185,22 @@ export default function OfficeBatchCertificatesPage() {
               <option value="PENDING">Pending</option>
               <option value="APPROVED">Approved</option>
               <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Payment Status</label>
+            <select
+              value={paymentStatus}
+              onChange={e => {
+                setPaymentStatus(e.target.value)
+                setPage(0)
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Payment Statuses</option>
+              <option value="PENDING">Pending Payment</option>
+              <option value="PAID">Paid</option>
+              <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
         </div>
@@ -171,6 +225,7 @@ export default function OfficeBatchCertificatesPage() {
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Weight</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Fee</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Payment</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Submitted</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
                 </tr>
@@ -190,6 +245,11 @@ export default function OfficeBatchCertificatesPage() {
                     <td className="px-6 py-3">
                       <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(req.status)}`}>
                         {req.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getPaymentStatusColor(req.paymentStatus)}`}>
+                        {req.paymentStatus}
                       </span>
                     </td>
                     <td className="px-6 py-3 text-sm text-gray-600">
