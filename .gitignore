@@ -1,40 +1,39 @@
-gradle
-gradle/
-target
-target/
-bin
-bin/
-build
+# Build & dependency outputs (matches anywhere in repo)
+**/target/
+**/build/
+**/bin/
+**/.gradle/
+**/node_modules/
+
+# Maven Wrapper
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+# JVM Crash & Replay Dumps
+hs_err_pid*.log
+replay_pid*.log
 
-### IntelliJ IDEA ###
-.idea
+# IDE & Editor files
+.idea/
 *.iws
 *.iml
 *.ipr
-
-### NetBeans ###
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache
+.vscode/
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
-.gradle
-.gradle/
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
