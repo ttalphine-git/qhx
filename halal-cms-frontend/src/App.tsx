@@ -16,6 +16,11 @@ import CustomerApplyPage from "./pages/customer/CustomerApplyPage"
 import CustomerFactoriesPage from "./pages/customer/CustomerFactoriesPage";
 import CustomerProductsPage from "./pages/customer/CustomerProductsPage";
 import CustomerProfilePage from "./pages/customer/CustomerProfilePage";
+import CustomerBatchCertificatesPage from "./pages/customer/CustomerBatchCertificatesPage";
+import CustomerBatchCertificateFormPage from "./pages/customer/CustomerBatchCertificateFormPage";
+import CustomerBatchCertificateDetailPage from "./pages/customer/CustomerBatchCertificateDetailPage";
+import OfficeBatchCertificatesPage from "./pages/office/OfficeBatchCertificatesPage";
+import OfficeBatchCertificateDetailPage from "./pages/office/OfficeBatchCertificateDetailPage";
 import AuditTrailPage from "./pages/office/AuditTrailPage";
 import AuditsPage from "./pages/office/AuditsPage";
 import CertificateDesignerPage from "./pages/office/CertificateDesignerPage";
@@ -30,6 +35,8 @@ export default function App() {
         <Route path="/office/dashboard" element={<OfficeDashboard />} />
         <Route path="/office/applications" element={<ApplicationsPage />} />
         <Route path="/office/applications/:id" element={<ApplicationDetailPage />} />
+        <Route path="/office/batch-certificates" element={<OfficeBatchCertificatesPage />} />
+        <Route path="/office/batch-certificates/:id" element={<OfficeBatchCertificateDetailPage />} />
         <Route path="/office/users" element={<UsersPage />} />
         <Route path="/office/customers" element={<CustomerManagementPage />} />
         <Route path="/office/customers/:id" element={<OfficeCustomerDetailPage />} />
@@ -44,6 +51,9 @@ export default function App() {
         <Route path="/customer/applications" element={<CustomerApplicationsPage />} />
         <Route path="/customer/applications/:id" element={<Navigate to="/customer/applications" replace />} />
         <Route path="/customer/certificates" element={<CustomerCertificatesPage />} />
+        <Route path="/customer/batch-certificates" element={<CustomerBatchCertificatesPage />} />
+        <Route path="/customer/batch-certificates/new" element={<CustomerBatchCertificateFormPage />} />
+        <Route path="/customer/batch-certificates/:id" element={<CustomerBatchCertificateDetailPage />} />
         <Route path="/customer/apply" element={<CustomerApplyPage />} />
         <Route path="/customer/factories" element={<CustomerFactoriesPage />} />
         <Route path="/customer/products" element={<CustomerProductsPage />} />

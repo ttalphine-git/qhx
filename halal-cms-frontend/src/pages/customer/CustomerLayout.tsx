@@ -8,6 +8,7 @@ import { getNotifications, markRead, markAllRead, clearNotifications, type AppNo
 const NAV_ITEMS = [
   { label: "Dashboard",       path: "/customer/dashboard"    },
   { label: "My Applications", path: "/customer/applications" },
+  { label: "Batch Certificates", path: "/customer/batch-certificates" },
   { label: "My Factories",    path: "/customer/factories"    },
 ]
 
