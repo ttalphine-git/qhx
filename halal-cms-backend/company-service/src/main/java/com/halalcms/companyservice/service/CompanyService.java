@@ -118,6 +118,43 @@ public class CompanyService {
         return toResponse(companyRepository.save(company));
     }
 
+    public CompanyResponse partialUpdate(UUID id, CompanyRequest req) {
+        Company company = findOrThrow(id);
+        if (req.getName() != null) company.setName(req.getName());
+        if (req.getBusinessType() != null) company.setBusinessType(req.getBusinessType());
+        if (req.getAddress() != null) company.setAddress(req.getAddress());
+        if (req.getAddressLine1() != null) company.setAddressLine1(req.getAddressLine1());
+        if (req.getAddressLine2() != null) company.setAddressLine2(req.getAddressLine2());
+        if (req.getCity() != null) company.setCity(req.getCity());
+        if (req.getState() != null) company.setState(req.getState());
+        if (req.getPostcode() != null) company.setPostcode(req.getPostcode());
+        if (req.getCountry() != null) company.setCountry(req.getCountry());
+        if (req.getPhone() != null) company.setPhone(req.getPhone());
+        if (req.getEmail() != null) company.setEmail(req.getEmail());
+        if (req.getWebsite() != null) company.setWebsite(req.getWebsite());
+        if (req.getActivityCategory() != null) company.setActivityCategory(req.getActivityCategory());
+        if (req.getSpecificActivities() != null) company.setSpecificActivities(req.getSpecificActivities());
+        if (req.getDescription() != null) company.setDescription(req.getDescription());
+        if (req.getIncorporationDate() != null) company.setIncorporationDate(req.getIncorporationDate());
+        if (req.getContactName() != null) company.setContactName(req.getContactName());
+        if (req.getContactDesignation() != null) company.setContactDesignation(req.getContactDesignation());
+        if (req.getEmployeeCount() != null) company.setEmployeeCount(req.getEmployeeCount());
+        if (req.getLatitude() != null) company.setLatitude(req.getLatitude());
+        if (req.getLongitude() != null) company.setLongitude(req.getLongitude());
+        if (req.getLicenseNo() != null) company.setLicenseNo(req.getLicenseNo());
+        if (req.getLicenseExpiry() != null) company.setLicenseExpiry(req.getLicenseExpiry());
+        if (req.getIssuingAuthority() != null) company.setIssuingAuthority(req.getIssuingAuthority());
+        if (req.getLicenseFileName() != null) company.setLicenseFileName(req.getLicenseFileName());
+        if (req.getLicenseFileSize() != null) company.setLicenseFileSize(req.getLicenseFileSize());
+        if (req.getLicenseFileData() != null) company.setLicenseFileData(req.getLicenseFileData());
+        if (req.getVatNo() != null) company.setVatNo(req.getVatNo());
+        if (req.getSstNo() != null) company.setSstNo(req.getSstNo());
+        if (req.getVatFileName() != null) company.setVatFileName(req.getVatFileName());
+        if (req.getVatFileSize() != null) company.setVatFileSize(req.getVatFileSize());
+        if (req.getVatFileData() != null) company.setVatFileData(req.getVatFileData());
+        return toResponse(companyRepository.save(company));
+    }
+
     public void delete(UUID id) {
         companyRepository.delete(findOrThrow(id));
     }
