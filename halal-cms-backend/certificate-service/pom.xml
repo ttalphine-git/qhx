@@ -89,9 +89,9 @@
         </dependency>
         <!-- PDF Generation -->
         <dependency>
-            <groupId>com.itextpdf</groupId>
-            <artifactId>itext-core</artifactId>
-            <version>8.0.5</version>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.0</version>
         </dependency>
         <!-- Email Support -->
         <dependency>

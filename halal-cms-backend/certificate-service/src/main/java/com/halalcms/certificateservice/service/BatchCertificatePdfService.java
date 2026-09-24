@@ -1,19 +1,13 @@
 package com.halalcms.certificateservice.service;
 
 import com.halalcms.certificateservice.model.BatchCertificateRequest;
-import com.halalcms.certificateservice.model.BatchCertificateTemplate;
-import com.itextpdf.kernel.font.PdfFont;
-import com.itextpdf.kernel.font.PdfFontFactory;
-import com.itextpdf.kernel.geom.PageSize;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
-import com.itextpdf.layout.properties.TextAlignment;
-import com.itextpdf.layout.properties.VerticalAlignment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.stereotype.Service;
 
 import java.awt.image.BufferedImage;
@@ -27,21 +21,46 @@ import java.time.format.DateTimeFormatter;
 public class BatchCertificatePdfService {
 
     private final QRCodeService qrCodeService;
+    private static final float MARGIN = 40;
+    private static final float Y_START = 750;
+    private static final float LINE_HEIGHT = 15;
 
     public byte[] generateCertificatePdf(BatchCertificateRequest request) {
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            PdfWriter writer = new PdfWriter(baos);
-            PdfDocument pdfDoc = new PdfDocument(writer);
-            Document document = new Document(pdfDoc, PageSize.A4);
+            PDDocument document = new PDDocument();
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+
+            PDPageContentStream contentStream = new PDPageContentStream(document, page);
 
             // Generate QR code
             BufferedImage qrImage = generateQRCode(request);
 
             // Build certificate content
-            buildCertificateContent(document, request, qrImage);
+            float yPosition = Y_START;
+            yPosition = addHeader(contentStream, page, yPosition);
+            yPosition = addCertificateNumber(contentStream, page, yPosition, request);
+            yPosition = addProducerInformation(contentStream, page, yPosition, request);
 
+            if (request.getImporterName() != null) {
+                yPosition = addImporterInformation(contentStream, page, yPosition, request);
+            }
+
+            if (request.getExporterName() != null) {
+                yPosition = addExporterInformation(contentStream, page, yPosition, request);
+            }
+
+            yPosition = addShipmentDetails(contentStream, page, yPosition, request);
+            yPosition = addProductsTable(contentStream, page, yPosition, request);
+            yPosition = addFeeInformation(contentStream, page, yPosition, request);
+            yPosition = addQRCodeAndFooter(contentStream, page, yPosition, request, qrImage, document);
+
+            contentStream.close();
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            document.save(baos);
             document.close();
+
             return baos.toByteArray();
         } catch (Exception e) {
             log.error("Failed to generate PDF for batch request {}", request.getRequestNumber(), e);
@@ -61,217 +80,208 @@ public class BatchCertificatePdfService {
         return qrCodeService.generateQRCodeImage(qrData);
     }
 
-    private void buildCertificateContent(Document document, BatchCertificateRequest request, BufferedImage qrImage)
-            throws IOException {
+    private float addHeader(PDPageContentStream contentStream, PDPage page, float yPosition) throws IOException {
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_BOLD, 24);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN + 150, yPosition);
+        contentStream.showText("BATCH CERTIFICATE");
+        contentStream.endText();
 
-        // Header
-        addHeader(document, request);
+        yPosition -= LINE_HEIGHT * 1.5f;
 
-        // Certificate Number
-        addCertificateNumber(document, request);
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA, 12);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN + 100, yPosition);
+        contentStream.showText("Halal Slaughtering & Quality Control Certificate");
+        contentStream.endText();
 
-        // Producer Information
-        addProducerInformation(document, request);
-
-        // Importer/Exporter Information
-        if (request.getImporterName() != null) {
-            addImporterInformation(document, request);
-        }
-
-        if (request.getExporterName() != null) {
-            addExporterInformation(document, request);
-        }
-
-        // Shipment Details
-        addShipmentDetails(document, request);
-
-        // Products Table
-        addProductsTable(document, request);
-
-        // Fee Information
-        addFeeInformation(document, request);
-
-        // QR Code and Footer
-        addQRCodeAndFooter(document, qrImage, request);
+        return yPosition - LINE_HEIGHT * 2;
     }
 
-    private void addHeader(Document document, BatchCertificateRequest request) {
-        Paragraph header = new Paragraph("BATCH CERTIFICATE")
-                .setFontSize(24)
-                .setBold()
-                .setTextAlignment(TextAlignment.CENTER);
-        document.add(header);
+    private float addCertificateNumber(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_BOLD, 11);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("Certificate Number: " + request.getCertificateNumber());
+        contentStream.endText();
 
-        Paragraph subheader = new Paragraph("Halal Slaughtering & Quality Control Certificate")
-                .setFontSize(12)
-                .setTextAlignment(TextAlignment.CENTER);
-        document.add(subheader);
+        yPosition -= LINE_HEIGHT;
 
-        document.add(new Paragraph("\n"));
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA, 11);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("Request Number: " + request.getRequestNumber());
+        contentStream.endText();
+
+        yPosition -= LINE_HEIGHT;
+
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("Issue Date: " + request.getApprovedAt().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy")));
+        contentStream.endText();
+
+        return yPosition - LINE_HEIGHT * 1.5f;
     }
 
-    private void addCertificateNumber(Document document, BatchCertificateRequest request) {
-        Paragraph cert = new Paragraph()
-                .add("Certificate Number: ")
-                .add(request.getCertificateNumber())
-                .setBold()
-                .setFontSize(11);
-        document.add(cert);
+    private float addProducerInformation(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_BOLD, 12);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("PRODUCER INFORMATION");
+        contentStream.endText();
 
-        Paragraph req = new Paragraph()
-                .add("Request Number: ")
-                .add(request.getRequestNumber())
-                .setFontSize(11);
-        document.add(req);
+        yPosition -= LINE_HEIGHT * 1.5f;
 
-        Paragraph date = new Paragraph()
-                .add("Issue Date: ")
-                .add(request.getApprovedAt().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy")))
-                .setFontSize(11);
-        document.add(date);
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA, 10);
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Producer Name:", request.getProducerName());
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Phone:", request.getProducerPhone() != null ? request.getProducerPhone() : "-");
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Email:", request.getProducerEmail() != null ? request.getProducerEmail() : "-");
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Contact Person:", request.getProducerContact() != null ? request.getProducerContact() : "-");
 
-        document.add(new Paragraph("\n"));
+        return yPosition - LINE_HEIGHT;
     }
 
-    private void addProducerInformation(Document document, BatchCertificateRequest request) {
-        Paragraph heading = new Paragraph("PRODUCER INFORMATION")
-                .setBold()
-                .setFontSize(12)
-                .setUnderline();
-        document.add(heading);
+    private float addImporterInformation(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_BOLD, 12);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("IMPORTER INFORMATION");
+        contentStream.endText();
 
-        Table table = new Table(2);
-        table.addCell("Producer Name");
-        table.addCell(request.getProducerName());
-        table.addCell("Phone");
-        table.addCell(request.getProducerPhone() != null ? request.getProducerPhone() : "-");
-        table.addCell("Email");
-        table.addCell(request.getProducerEmail() != null ? request.getProducerEmail() : "-");
-        table.addCell("Contact Person");
-        table.addCell(request.getProducerContact() != null ? request.getProducerContact() : "-");
+        yPosition -= LINE_HEIGHT * 1.5f;
 
-        document.add(table);
-        document.add(new Paragraph("\n"));
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA, 10);
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Importer Name:", request.getImporterName());
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Country:", request.getImporterCountry() != null ? request.getImporterCountry() : "-");
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Contact:", request.getImporterContact() != null ? request.getImporterContact() : "-");
+
+        return yPosition - LINE_HEIGHT;
     }
 
-    private void addImporterInformation(Document document, BatchCertificateRequest request) {
-        Paragraph heading = new Paragraph("IMPORTER INFORMATION")
-                .setBold()
-                .setFontSize(12)
-                .setUnderline();
-        document.add(heading);
+    private float addExporterInformation(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_BOLD, 12);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("EXPORTER INFORMATION");
+        contentStream.endText();
 
-        Table table = new Table(2);
-        table.addCell("Importer Name");
-        table.addCell(request.getImporterName());
-        table.addCell("Country");
-        table.addCell(request.getImporterCountry() != null ? request.getImporterCountry() : "-");
-        table.addCell("Contact");
-        table.addCell(request.getImporterContact() != null ? request.getImporterContact() : "-");
+        yPosition -= LINE_HEIGHT * 1.5f;
 
-        document.add(table);
-        document.add(new Paragraph("\n"));
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA, 10);
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Exporter Name:", request.getExporterName());
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Country:", request.getExporterCountry() != null ? request.getExporterCountry() : "-");
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Contact:", request.getExporterContact() != null ? request.getExporterContact() : "-");
+
+        return yPosition - LINE_HEIGHT;
     }
 
-    private void addExporterInformation(Document document, BatchCertificateRequest request) {
-        Paragraph heading = new Paragraph("EXPORTER INFORMATION")
-                .setBold()
-                .setFontSize(12)
-                .setUnderline();
-        document.add(heading);
+    private float addShipmentDetails(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_BOLD, 12);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("SHIPMENT DETAILS");
+        contentStream.endText();
 
-        Table table = new Table(2);
-        table.addCell("Exporter Name");
-        table.addCell(request.getExporterName());
-        table.addCell("Country");
-        table.addCell(request.getExporterCountry() != null ? request.getExporterCountry() : "-");
-        table.addCell("Contact");
-        table.addCell(request.getExporterContact() != null ? request.getExporterContact() : "-");
+        yPosition -= LINE_HEIGHT * 1.5f;
 
-        document.add(table);
-        document.add(new Paragraph("\n"));
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA, 10);
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Shipment Date:", request.getShipmentDate().toString());
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Shipment Reference:", request.getShipmentReference() != null ? request.getShipmentReference() : "-");
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Origin Country:", request.getOriginCountry());
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Destination Country:", request.getDestinationCountry());
+
+        return yPosition - LINE_HEIGHT;
     }
 
-    private void addShipmentDetails(Document document, BatchCertificateRequest request) {
-        Paragraph heading = new Paragraph("SHIPMENT DETAILS")
-                .setBold()
-                .setFontSize(12)
-                .setUnderline();
-        document.add(heading);
+    private float addProductsTable(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_BOLD, 12);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("PRODUCTS");
+        contentStream.endText();
 
-        Table table = new Table(2);
-        table.addCell("Shipment Date");
-        table.addCell(request.getShipmentDate().toString());
-        table.addCell("Shipment Reference");
-        table.addCell(request.getShipmentReference() != null ? request.getShipmentReference() : "-");
-        table.addCell("Origin Country");
-        table.addCell(request.getOriginCountry());
-        table.addCell("Destination Country");
-        table.addCell(request.getDestinationCountry());
+        yPosition -= LINE_HEIGHT * 1.5f;
 
-        document.add(table);
-        document.add(new Paragraph("\n"));
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA, 10);
+        float col1 = MARGIN;
+        float col2 = MARGIN + 100;
+        float col3 = MARGIN + 250;
+        float col4 = MARGIN + 350;
+
+        contentStream.beginText();
+        contentStream.newLineAtOffset(col1, yPosition);
+        contentStream.showText("SKU");
+        contentStream.newLineAtOffset(col2 - col1, 0);
+        contentStream.showText("Product Name");
+        contentStream.newLineAtOffset(col3 - col2, 0);
+        contentStream.showText("Weight (kg)");
+        contentStream.newLineAtOffset(col4 - col3, 0);
+        contentStream.showText("Unit");
+        contentStream.endText();
+
+        yPosition -= LINE_HEIGHT;
+
+        contentStream.beginText();
+        contentStream.newLineAtOffset(col1, yPosition);
+        contentStream.showText(request.getRequestNumber());
+        contentStream.newLineAtOffset(col2 - col1, 0);
+        contentStream.showText("Halal Shipment");
+        contentStream.newLineAtOffset(col3 - col2, 0);
+        contentStream.showText(request.getTotalWeightKg().toString());
+        contentStream.newLineAtOffset(col4 - col3, 0);
+        contentStream.showText("kg");
+        contentStream.endText();
+
+        return yPosition - LINE_HEIGHT * 1.5f;
     }
 
-    private void addProductsTable(Document document, BatchCertificateRequest request) {
-        Paragraph heading = new Paragraph("PRODUCTS")
-                .setBold()
-                .setFontSize(12)
-                .setUnderline();
-        document.add(heading);
+    private float addFeeInformation(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request) throws IOException {
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_BOLD, 12);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("FEE INFORMATION");
+        contentStream.endText();
 
-        Table table = new Table(4);
-        table.addCell("SKU");
-        table.addCell("Product Name");
-        table.addCell("Weight (kg)");
-        table.addCell("Unit");
+        yPosition -= LINE_HEIGHT * 1.5f;
 
-        // Parse products JSON - simplified for now
-        table.addCell(request.getRequestNumber());
-        table.addCell("Halal Shipment");
-        table.addCell(request.getTotalWeightKg().toString());
-        table.addCell("kg");
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA, 10);
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Total Weight:", request.getTotalWeightKg() + " kg");
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Unit Price:", request.getCurrency() + " " + request.getUnitPricePerKg() + "/kg");
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Total Fee:", request.getCurrency() + " " + request.getTotalFee());
+        yPosition = addTableRow(contentStream, MARGIN, yPosition, "Payment Status:", request.getPaymentStatus());
 
-        document.add(table);
-        document.add(new Paragraph("\n"));
+        return yPosition - LINE_HEIGHT;
     }
 
-    private void addFeeInformation(Document document, BatchCertificateRequest request) {
-        Paragraph heading = new Paragraph("FEE INFORMATION")
-                .setBold()
-                .setFontSize(12)
-                .setUnderline();
-        document.add(heading);
+    private float addQRCodeAndFooter(PDPageContentStream contentStream, PDPage page, float yPosition, BatchCertificateRequest request, BufferedImage qrImage, PDDocument document) throws IOException {
+        contentStream.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA, 9);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("This certificate verifies that the shipment has been inspected and approved as per Halal requirements.");
+        contentStream.endText();
 
-        Table table = new Table(2);
-        table.addCell("Total Weight");
-        table.addCell(request.getTotalWeightKg() + " kg");
-        table.addCell("Unit Price");
-        table.addCell(request.getCurrency() + " " + request.getUnitPricePerKg() + "/kg");
-        table.addCell("Total Fee");
-        table.addCell(request.getCurrency() + " " + request.getTotalFee());
-        table.addCell("Payment Status");
-        table.addCell(request.getPaymentStatus());
+        yPosition -= LINE_HEIGHT;
 
-        document.add(table);
-        document.add(new Paragraph("\n"));
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("Approved By: " + (request.getApprovedBy() != null ? request.getApprovedBy() : "HalalCMS Administrator"));
+        contentStream.endText();
+
+        yPosition -= LINE_HEIGHT;
+
+        contentStream.beginText();
+        contentStream.newLineAtOffset(MARGIN, yPosition);
+        contentStream.showText("Verification URL: https://halal-cms.example.com/verify/" + request.getCertificateNumber());
+        contentStream.endText();
+
+        return yPosition - LINE_HEIGHT;
     }
 
-    private void addQRCodeAndFooter(Document document, BufferedImage qrImage, BatchCertificateRequest request)
-            throws IOException {
-
-        Paragraph footer = new Paragraph()
-                .add("This certificate verifies that the shipment has been inspected and approved as per Halal requirements.\n")
-                .add("QR Code: Scan to verify certificate details.\n")
-                .add("Approved By: ")
-                .add(request.getApprovedBy() != null ? request.getApprovedBy() : "HalalCMS Administrator")
-                .setFontSize(9)
-                .setTextAlignment(TextAlignment.CENTER);
-
-        document.add(footer);
-        document.add(new Paragraph("\n"));
-        document.add(new Paragraph("Verification URL: https://halal-cms.example.com/verify/" + request.getCertificateNumber())
-                .setFontSize(9)
-                .setTextAlignment(TextAlignment.CENTER));
+    private float addTableRow(PDPageContentStream contentStream, float x, float y, String label, String value) throws IOException {
+        contentStream.beginText();
+        contentStream.newLineAtOffset(x, y);
+        contentStream.showText(label + " " + value);
+        contentStream.endText();
+        return y - LINE_HEIGHT;
     }
 }
