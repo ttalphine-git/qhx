@@ -4,9 +4,6 @@ on:
   push:
     branches: [ "main" ]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -15,9 +12,13 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend }}
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      # fetch-depth: 0 ensures full git history is available for accurate diffing
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
 
-      - name: Detect changes
+      - name: Detect Changes
         uses: dorny/paths-filter@v3.0.2
         id: filter
         with:
@@ -25,7 +26,7 @@ jobs:
             backend:
               - 'halal-cms-backend/**'
             frontend:
-              - 'halal-cms-frontend**'
+              - 'halal-cms-frontend/**'
 
   deploy-backend:
     needs: detect-changes
