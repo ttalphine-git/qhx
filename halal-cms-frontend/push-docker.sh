@@ -3,12 +3,16 @@ set -e
 set -o pipefail
 
 echo "🔑 Logging into Container Registry..."
-DO_API_TOKEN="dop_v1_93c5a071467a213a921884c026c2bd9fc7d0ce07ab24cfae8936b973203e8b13"
 
-echo "$DO_API_TOKEN" | docker login \
-  registry.digitalocean.com \
-  -u "$DO_API_TOKEN" \
-  --password-stdin
+# Check if DO_API_TOKEN is provided in the environment
+if [ -z "$DO_API_TOKEN" ]; then
+  echo "❌ Error: DO_API_TOKEN environment variable is not set."
+  echo "Please export DO_API_TOKEN before running this script."
+  exit 1
+fi
+
+# DigitalOcean registry uses 'doctl' as the username with the token passed as password
+echo "$DO_API_TOKEN" | docker login registry.digitalocean.com -u doctl --password-stdin
 
 container_registry="registry.digitalocean.com"
 container_image_owner="rzct"
