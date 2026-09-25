@@ -10,15 +10,12 @@ jobs:
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
-
     steps:
-      # fetch-depth: 0 ensures full git history is available for accurate diffing
-      - name: Checkout Repository
-        uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
 
-      - name: Detect Changes
+      - name: Detect changes
         uses: dorny/paths-filter@v3.0.2
         id: filter
         with:
@@ -36,9 +33,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4.2.2
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Log in to DigitalOcean Container Registry
+        run: |
+          echo "${{ secrets.DO_API_TOKEN }}" | docker login registry.digitalocean.com -u doctl --password-stdin
+
       - name: Make script executable
         run: chmod +x halal-cms-backend/compile.sh
 
+      # If this step exits with an error code, GitHub Actions halts immediately
       - name: Build & Push Backend
         env:
           DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
@@ -48,6 +57,8 @@ jobs:
 
       - name: Deploy Backend on Server
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
@@ -58,8 +69,6 @@ jobs:
             cd /home/dev-ahdaah/qhx
             chmod +x service.sh
             ./service.sh
-        env:
-          DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
 
   deploy-frontend:
     needs: detect-changes
@@ -69,9 +78,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4.2.2
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Log in to DigitalOcean Container Registry
+        run: |
+          echo "${{ secrets.DO_API_TOKEN }}" | docker login registry.digitalocean.com -u doctl --password-stdin
+
       - name: Make script executable
         run: chmod +x halal-cms-frontend/push-docker.sh
 
+      # If frontend build fails, halts immediately
       - name: Build & Push Frontend
         env:
           DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
@@ -81,6 +100,8 @@ jobs:
 
       - name: Deploy Frontend on Server
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
@@ -91,5 +112,3 @@ jobs:
             cd /home/dev-ahdaah/qhx
             chmod +x qhx-frontend.sh
             ./qhx-frontend.sh
-        env:
-          DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}

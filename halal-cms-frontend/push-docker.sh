@@ -1,5 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 set -e
+set -o pipefail
+
 echo "🔑 Logging into Container Registry..."
 DO_API_TOKEN="dop_v1_38ebefd764b5edbad51f404d19838b7d8a7dd5166868c3787de35213660b3e61"
 
