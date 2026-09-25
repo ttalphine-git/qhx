@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 echo "🔑 Logging into Container Registry..."
-DO_API_TOKEN="dop_v1_b5d030aa2ee476587e381085e89e8ea9cb7215083d8f0b2ed5c4e2f20ba5652f"
+DO_API_TOKEN="dop_v1_38ebefd764b5edbad51f404d19838b7d8a7dd5166868c3787de35213660b3e61"
 
 echo "$DO_API_TOKEN" | docker login \
   registry.digitalocean.com \
