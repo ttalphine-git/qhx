@@ -107,5 +107,24 @@ public class DataInitializer implements ApplicationRunner {
             userRepository.save(testCustomer);
             log.info("Seeded test customer: test@factory.com with password: " + testCustomerPassword);
         });
+
+        // Seed additional super admin
+        userRepository.findByEmail("superadmin@halalcms.com").ifPresentOrElse(sa -> {
+            if (!sa.isEnabled()) {
+                sa.setEnabled(true);
+                userRepository.save(sa);
+                log.info("Re-enabled super admin: superadmin@halalcms.com");
+            }
+        }, () -> {
+            User superAdmin2 = User.builder()
+                    .email("superadmin@halalcms.com")
+                    .passwordHash(passwordEncoder.encode(superAdminPassword))
+                    .fullName("QHX Super Admin 2")
+                    .role(User.UserRole.SUPER_ADMIN)
+                    .enabled(true)
+                    .build();
+            userRepository.save(superAdmin2);
+            log.info("Seeded super admin: superadmin@halalcms.com");
+        });
     }
 }
