@@ -1,5 +1,5 @@
+#!/bin/bash
 mvn clean package -DskipTests
-
 cd application-service/ && sh push-docker.sh || true
 cd ../inspection-service/ && sh push-docker.sh || true
 cd ../auth-service/ && sh push-docker.sh || true
