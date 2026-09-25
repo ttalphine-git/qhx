@@ -24,6 +24,9 @@ public class DataInitializer implements ApplicationRunner {
     @Value("${app.init.super-admin-password:sqxad@12098}")
     private String superAdminPassword;
 
+    @Value("${app.init.test-customer-password:test123}")
+    private String testCustomerPassword;
+
     @Override
     public void run(ApplicationArguments args) {
         // Ensure admin@halalcms.com exists and is enabled
@@ -74,6 +77,34 @@ public class DataInitializer implements ApplicationRunner {
                     .build();
             userRepository.save(superAdmin);
             log.info("Seeded super admin: qhxadinsuper");
+        });
+
+        // Seed test customer for testing
+        userRepository.findByEmail("test@factory.com").ifPresentOrElse(customer -> {
+            boolean changed = false;
+            if (!customer.isEnabled()) {
+                customer.setEnabled(true);
+                changed = true;
+            }
+            if (customer.getRole() != User.UserRole.CUSTOMER) {
+                customer.setRole(User.UserRole.CUSTOMER);
+                changed = true;
+            }
+            if (changed) {
+                userRepository.save(customer);
+                log.info("Updated test customer: test@factory.com");
+            }
+        }, () -> {
+            User testCustomer = User.builder()
+                    .email("test@factory.com")
+                    .passwordHash(passwordEncoder.encode(testCustomerPassword))
+                    .fullName("Test Factory")
+                    .role(User.UserRole.CUSTOMER)
+                    .enabled(true)
+                    .emailVerified(true)
+                    .build();
+            userRepository.save(testCustomer);
+            log.info("Seeded test customer: test@factory.com with password: " + testCustomerPassword);
         });
     }
 }
