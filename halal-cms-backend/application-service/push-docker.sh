@@ -15,6 +15,7 @@ image_tag="latest"
 Dockerfile="Dockerfile"
 
 FULL_IMAGE="$container_registry/$contianer_image_owner/$image_name:$image_tag"
+
 echo "Logging into DigitalOcean Container Registry..."
 docker login "$container_registry"
 
