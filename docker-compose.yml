@@ -44,10 +44,10 @@ services:
     image: registry.digitalocean.com/rzct/qhx-application:latest
     container_name: qhx-application-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/halalcms
-      SPRING_DATASOURCE_USERNAME: halal_user
-      SPRING_DATASOURCE_PASSWORD: halal@secure123
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      DB_URL: jdbc:postgresql://postgres:5432/halalcms
+      DB_USER: halal_user
+      DB_PASSWORD: halal@secure123
+      JWT_SECRET: ${JWT_SECRET:changeme-use-256-bit-secret-in-production}
       SERVER_PORT: 8082
     ports:
       - "8082:8082"
