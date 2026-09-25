@@ -8,6 +8,7 @@ echo "$DO_API_TOKEN" | docker login \
   -u doctl \
   --password-stdin
 
+
 container_registry="registry.digitalocean.com"
 contianer_image_owner="rzct"
 image_name="qhx-application"
