@@ -8,6 +8,7 @@ services:
       POSTGRES_USER: halal_user
       POSTGRES_PASSWORD: halal@secure123
       POSTGRES_DB: halalcms
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -24,10 +25,11 @@ services:
     image: registry.digitalocean.com/rzct/qhx-auth:latest
     container_name: qhx-auth-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/halalcms
-      SPRING_DATASOURCE_USERNAME: halal_user
-      SPRING_DATASOURCE_PASSWORD: halal@secure123
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      DB_URL: jdbc:postgresql://postgres:5432/halalcms
+      DB_USER: halal_user
+      DB_PASSWORD: halal@secure123
+      ADMIN_PASSWORD: admin123
+      SUPER_ADMIN_PASSWORD: sqxad@12098
       SERVER_PORT: 8081
     ports:
       - "8081:8081"
