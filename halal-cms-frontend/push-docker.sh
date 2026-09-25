@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/bash
+set -e
+set -o pipefail
+
 echo "🔑 Logging into Container Registry..."
 
 if [ -z "$DO_API_TOKEN" ]; then
@@ -11,21 +14,18 @@ fi
 echo "$DO_API_TOKEN" | docker login registry.digitalocean.com -u doctl --password-stdin
 
 container_registry="registry.digitalocean.com"
-contianer_image_owner="rzct"
-image_name="qhx-certificate"
+container_image_owner="rzct"
+image_name="qhx-frontend"
 image_tag="latest"
 Dockerfile="Dockerfile"
 
-FULL_IMAGE="$container_registry/$contianer_image_owner/$image_name:$image_tag"
+FULL_IMAGE="$container_registry/$container_image_owner/$image_name:$image_tag"
 
-echo "Logging into DigitalOcean Container Registry..."
-docker login "$container_registry"
-
-echo "Building image from parent backend context..."
+echo "Building image..."
 docker build -f "$Dockerfile" -t "$FULL_IMAGE" .
 
 echo "Pushing image..."
 docker push "$FULL_IMAGE"
 
-echo "✅ Created and pushed image:"
+echo "Created and pushed image:"
 echo "$FULL_IMAGE"
