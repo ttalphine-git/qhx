@@ -3,7 +3,7 @@ set -e
 set -o pipefail
 
 echo "🔑 Logging into Container Registry..."
-DO_API_TOKEN="dop_v1_38ebefd764b5edbad51f404d19838b7d8a7dd5166868c3787de35213660b3e61"
+DO_API_TOKEN="dop_v1_93c5a071467a213a921884c026c2bd9fc7d0ce07ab24cfae8936b973203e8b13"
 
 echo "$DO_API_TOKEN" | docker login \
   registry.digitalocean.com \
