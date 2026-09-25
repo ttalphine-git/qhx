@@ -4,7 +4,6 @@ set -o pipefail
 
 echo "🔑 Logging into Container Registry..."
 
-# Check if DO_API_TOKEN is provided in the environment
 if [ -z "$DO_API_TOKEN" ]; then
   echo "❌ Error: DO_API_TOKEN environment variable is not set."
   echo "Please export DO_API_TOKEN before running this script."
