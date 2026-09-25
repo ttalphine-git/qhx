@@ -1,5 +1,6 @@
 package com.halalcms.authservice.config;
 
+// Deployment trigger: docker-compose and service.sh are now available for deployment
 import com.halalcms.authservice.model.User;
 import com.halalcms.authservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
