@@ -201,30 +201,6 @@ export default function OfficeLogin() {
               }
             </button>
 
-            <button type="button" onClick={async () => {
-                try {
-                  const data = await loginUser({ email: "qhxadinsuper", password: "sqxad@12098" })
-                  setAuth(data.accessToken, {
-                    id: data.userId,
-                    email: data.email,
-                    name: data.fullName,
-                    role: data.role,
-                    status: "ACTIVE",
-                    createdAt: new Date().toISOString(),
-                  })
-                } catch (err: unknown) {
-                  // Backend unavailable — local UI-only session (API-backed features won't work)
-                  const axErr = err as { response?: { data?: { message?: string } }; message?: string }
-                  setError(axErr?.response?.data?.message ?? axErr?.message ?? "Superadmin login failed. Check that auth-service is running.")
-                  return
-                }
-                navigate("/office/dashboard")
-              }}
-              style={{ width: "100%", height: 34, border: "1px dashed rgba(255,255,255,0.2)", borderRadius: 8, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}
-              onMouseOver={e => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
-              onMouseOut={e => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
-            >Virtual Support — Quick Sign In</button>
-
           </form>
 
           <div style={{ margin: "1.5rem 0 1rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
