@@ -3,6 +3,7 @@ package com.halalcms.authservice.config;
 // Deployment trigger: docker-compose and service.sh are now available for deployment
 import com.halalcms.authservice.model.User;
 import com.halalcms.authservice.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -18,6 +20,7 @@ public class DataInitializer implements ApplicationRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EntityManager entityManager;
 
     @Value("${app.init.admin-password:admin123}")
     private String adminPassword;
@@ -126,5 +129,16 @@ public class DataInitializer implements ApplicationRunner {
             userRepository.save(superAdmin2);
             log.info("Seeded super admin: superadmin@halalcms.com");
         });
+
+        ensureAllUsersEnabled();
+    }
+
+    @Transactional
+    void ensureAllUsersEnabled() {
+        int updated = entityManager.createQuery("UPDATE User u SET u.enabled = true WHERE u.enabled = false")
+                .executeUpdate();
+        if (updated > 0) {
+            log.info("Enabled {} disabled users", updated);
+        }
     }
 }
