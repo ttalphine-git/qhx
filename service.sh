@@ -28,7 +28,11 @@ done
 
 # Stop and remove old containers
 echo "⏹️  Stopping old containers..."
-docker compose -f docker-compose.yml down || true
+if [ -f .env ]; then
+  docker compose -f docker-compose.prod.yml --env-file .env down || true
+else
+  docker compose -f docker-compose.yml down || true
+fi
 
 # Start new containers with environment file
 echo "▶️  Starting new containers..."
