@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  auth-service:
+    image: registry.digitalocean.com/rzct/qhx-auth:latest
+    container_name: qhx-auth-service
+    environment:
+      DB_URL: ${DB_URL:jdbc:postgresql://postgres:5432/halalcms}
+      DB_USER: ${DB_USER:halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:halal@secure123}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:admin123}
+      SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:sqxad@12098}
+      SERVER_PORT: ${SERVER_PORT:8081}
+    ports:
+      - "8081:8081"
+    networks:
+      - qhx-network
+    restart: unless-stopped
+
+  application-service:
+    image: registry.digitalocean.com/rzct/qhx-application:latest
+    container_name: qhx-application-service
+    environment:
+      DB_URL: ${DB_URL:jdbc:postgresql://postgres:5432/halalcms}
+      DB_USER: ${DB_USER:halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:halal@secure123}
+      JWT_SECRET: ${JWT_SECRET:changeme-use-256-bit-secret-in-production}
+      SERVER_PORT: ${SERVER_PORT:8082}
+    ports:
+      - "8082:8082"
+    networks:
+      - qhx-network
+    restart: unless-stopped
+
+  inspection-service:
+    image: registry.digitalocean.com/rzct/qhx-inspection:latest
+    container_name: qhx-inspection-service
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/halalcms}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:halal_user}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:halal@secure123}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+      SERVER_PORT: ${SERVER_PORT:8083}
+    ports:
+      - "8083:8083"
+    networks:
+      - qhx-network
+    restart: unless-stopped
+
+  certificate-service:
+    image: registry.digitalocean.com/rzct/qhx-certificate:latest
+    container_name: qhx-certificate-service
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/halalcms}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:halal_user}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:halal@secure123}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+      SERVER_PORT: ${SERVER_PORT:8084}
+    ports:
+      - "8084:8084"
+    networks:
+      - qhx-network
+    restart: unless-stopped
+
+  company-service:
+    image: registry.digitalocean.com/rzct/qhx-company:latest
+    container_name: qhx-company-service
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/halalcms}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:halal_user}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:halal@secure123}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+      SERVER_PORT: ${SERVER_PORT:8085}
+    ports:
+      - "8085:8085"
+    networks:
+      - qhx-network
+    restart: unless-stopped
+
+  frontend:
+    image: registry.digitalocean.com/rzct/qhx-frontend:latest
+    container_name: qhx-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - auth-service
+      - application-service
+      - inspection-service
+      - certificate-service
+      - company-service
+    networks:
+      - qhx-network
+    restart: unless-stopped
+
+networks:
+  qhx-network:
+    driver: bridge

@@ -30,9 +30,15 @@ done
 echo "⏹️  Stopping old containers..."
 docker compose -f docker-compose.yml down || true
 
-# Start new containers
+# Start new containers with environment file
 echo "▶️  Starting new containers..."
-docker compose -f docker-compose.yml up -d
+if [ -f .env ]; then
+  echo "📦 Using production compose file..."
+  docker compose -f docker-compose.prod.yml --env-file .env up -d
+else
+  echo "📦 Using development compose file..."
+  docker compose -f docker-compose.yml up -d
+fi
 
 # Wait for services to be healthy
 echo "⏳ Waiting for services to start..."
