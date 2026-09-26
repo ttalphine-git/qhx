@@ -23,6 +23,9 @@ services:
     restart: unless-stopped
 
   auth-service:
+    build:
+      context: ./halal-cms-backend/auth-service
+      dockerfile: Dockerfile
     image: registry.digitalocean.com/rzct/qhx-auth:latest
     container_name: qhx-auth-service
     environment:
@@ -42,6 +45,9 @@ services:
     restart: unless-stopped
 
   application-service:
+    build:
+      context: ./halal-cms-backend/application-service
+      dockerfile: Dockerfile
     image: registry.digitalocean.com/rzct/qhx-application:latest
     container_name: qhx-application-service
     environment:
@@ -60,6 +66,9 @@ services:
     restart: unless-stopped
 
   inspection-service:
+    build:
+      context: ./halal-cms-backend/inspection-service
+      dockerfile: Dockerfile
     image: registry.digitalocean.com/rzct/qhx-inspection:latest
     container_name: qhx-inspection-service
     environment:
@@ -78,6 +87,9 @@ services:
     restart: unless-stopped
 
   certificate-service:
+    build:
+      context: ./halal-cms-backend/certificate-service
+      dockerfile: Dockerfile
     image: registry.digitalocean.com/rzct/qhx-certificate:latest
     container_name: qhx-certificate-service
     environment:
@@ -96,6 +108,9 @@ services:
     restart: unless-stopped
 
   company-service:
+    build:
+      context: ./halal-cms-backend/company-service
+      dockerfile: Dockerfile
     image: registry.digitalocean.com/rzct/qhx-company:latest
     container_name: qhx-company-service
     environment:
@@ -114,6 +129,9 @@ services:
     restart: unless-stopped
 
   frontend:
+    build:
+      context: ./halal-cms-frontend
+      dockerfile: Dockerfile
     image: registry.digitalocean.com/rzct/qhx-frontend:latest
     container_name: qhx-frontend
     ports:
