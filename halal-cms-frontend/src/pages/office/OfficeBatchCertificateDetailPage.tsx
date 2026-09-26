@@ -35,6 +35,7 @@ interface BatchRequestDetail {
   approvedBy?: string
   rejectionReason?: string
   rejectedAt?: string
+  rejectedBy?: string
   submittedAt: string
 }
 
@@ -59,7 +60,7 @@ export default function OfficeBatchCertificateDetailPage() {
   async function loadRequest() {
     try {
       setLoading(true)
-      const resp = await fetch(`/batch-certificates/requests/${id}`)
+      const resp = await fetch(`/api/batch-certificates/requests/${id}`)
       if (resp.ok) {
         const data = await resp.json()
         setRequest(data)
@@ -79,7 +80,7 @@ export default function OfficeBatchCertificateDetailPage() {
 
     try {
       setApproving(true)
-      const resp = await fetch(`/batch-certificates/admin/requests/${id}/approve`, {
+      const resp = await fetch(`/api/batch-certificates/admin/requests/${id}/approve`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes: approvalNotes }),
@@ -110,7 +111,7 @@ export default function OfficeBatchCertificateDetailPage() {
 
     try {
       setRejecting(true)
-      const resp = await fetch(`/batch-certificates/admin/requests/${id}/reject`, {
+      const resp = await fetch(`/api/batch-certificates/admin/requests/${id}/reject`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: rejectionReason }),

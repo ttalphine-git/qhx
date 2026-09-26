@@ -36,6 +36,7 @@ interface BatchRequestDetail {
   approvedBy?: string
   rejectionReason?: string
   rejectedAt?: string
+  rejectedBy?: string
   submittedAt: string
   createdAt: string
 }
@@ -56,7 +57,7 @@ export default function CustomerBatchCertificateDetailPage() {
   async function loadRequest() {
     try {
       setLoading(true)
-      const resp = await fetch(`/batch-certificates/requests/${id}`)
+      const resp = await fetch(`/api/batch-certificates/requests/${id}`)
       if (resp.ok) {
         const data = await resp.json()
         setRequest(data)

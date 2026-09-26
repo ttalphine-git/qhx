@@ -47,7 +47,7 @@ export default function CustomerBatchCertificatesPaymentPage() {
       params.append("page", page.toString())
       params.append("size", "20")
 
-      const resp = await fetch(`/batch-certificates/my-requests?${params.toString()}`)
+      const resp = await fetch(`/api/batch-certificates/my-requests?${params.toString()}`)
       if (resp.ok) {
         const data = await resp.json()
         setRequests(data.content || [])
@@ -62,7 +62,7 @@ export default function CustomerBatchCertificatesPaymentPage() {
 
   async function loadStats() {
     try {
-      const resp = await fetch("/batch-certificates/my-requests/stats")
+      const resp = await fetch("/api/batch-certificates/my-requests/stats")
       if (resp.ok) {
         const data = await resp.json()
         setStats(data)

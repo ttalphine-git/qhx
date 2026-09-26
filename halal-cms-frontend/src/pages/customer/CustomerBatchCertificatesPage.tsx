@@ -50,7 +50,7 @@ export default function CustomerBatchCertificatesPage() {
       }
 
       const resp = await fetch(
-        `/batch-certificates/requests?status=${statusMap[activeTab]}&page=${page}&size=20`
+        `/api/batch-certificates/requests?status=${statusMap[activeTab]}&page=${page}&size=20`
       )
 
       if (resp.ok) {
@@ -67,7 +67,7 @@ export default function CustomerBatchCertificatesPage() {
 
   async function loadStats() {
     try {
-      const resp = await fetch("/batch-certificates/requests?page=0&size=1000")
+      const resp = await fetch("/api/batch-certificates/requests?page=0&size=1000")
       if (resp.ok) {
         const data = await resp.json()
         const allRequests = data.content || []

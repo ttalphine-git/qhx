@@ -18,7 +18,7 @@ export default defineConfig({
       },
       // company-service (port 8083 via Docker) – strip /api prefix before forwarding
       '/api/companies': {
-        target: 'http://localhost:8083',
+        target: 'http://localhost:8085',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
@@ -47,18 +47,43 @@ export default defineConfig({
       },
       // inspection-service (port 8084) – /api/audits, /api/audit-plans
       '/api/audits': {
-        target: 'http://localhost:8084',
+        target: 'http://localhost:8083',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/api/audit-plans': {
-        target: 'http://localhost:8084',
+        target: 'http://localhost:8083',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       // certificate-service (port 8085) – /api/certificates
+      '/api/nc': {
+        target: 'http://localhost:8083',
+        changeOrigin: true,
+      },
+      '/api/audit-summary': {
+        target: 'http://localhost:8083',
+        changeOrigin: true,
+      },
+      '/api/decisions': {
+        target: 'http://localhost:8083',
+        changeOrigin: true,
+      },
+      '/api/certificates/generate': {
+        target: 'http://localhost:8083',
+        changeOrigin: true,
+      },
+      '^/api/certificates/[^/]+/(approve|send)$': {
+        target: 'http://localhost:8083',
+        changeOrigin: true,
+      },
+      '/api/batch-certificates': {
+        target: 'http://localhost:8084',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
       '/api/certificates': {
-        target: 'http://localhost:8085',
+        target: 'http://localhost:8084',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },

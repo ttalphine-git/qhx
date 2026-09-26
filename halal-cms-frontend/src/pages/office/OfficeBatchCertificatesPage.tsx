@@ -53,7 +53,7 @@ export default function OfficeBatchCertificatesPage() {
       params.append("page", page.toString())
       params.append("size", "20")
 
-      const resp = await fetch(`/batch-certificates/admin/requests?${params.toString()}`)
+      const resp = await fetch(`/api/batch-certificates/admin/requests?${params.toString()}`)
       if (resp.ok) {
         const data = await resp.json()
         setRequests(data.content || [])
@@ -68,7 +68,7 @@ export default function OfficeBatchCertificatesPage() {
 
   async function loadStats() {
     try {
-      const resp = await fetch("/batch-certificates/admin/requests?page=0&size=1000")
+      const resp = await fetch("/api/batch-certificates/admin/requests?page=0&size=1000")
       if (resp.ok) {
         const data = await resp.json()
         const allRequests = data.content || []

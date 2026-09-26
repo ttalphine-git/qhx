@@ -90,11 +90,11 @@ export default function CustomerBatchCertificateFormPage() {
       const factoriesData = await getFactories(company.id)
       const certData = await getCertificates()
 
-      setFactories((factoriesData as any).content || factoriesData as Factory[])
+      setFactories(factoriesData.content)
       setCertificates((certData as any).content || [])
 
       // Fetch batch settings for unit price
-      const settingsResp = await fetch("/batch-certificates/settings")
+      const settingsResp = await fetch("/api/batch-certificates/settings")
       if (settingsResp.ok) {
         const settings = await settingsResp.json()
         setUnitPrice(parseFloat(settings.unitPricePerKg))
@@ -217,7 +217,7 @@ export default function CustomerBatchCertificateFormPage() {
         totalWeightKg: form.totalWeightKg,
       }
 
-      const resp = await fetch("/batch-certificates/request", {
+      const resp = await fetch("/api/batch-certificates/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

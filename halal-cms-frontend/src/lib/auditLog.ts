@@ -20,7 +20,7 @@ const STORAGE_KEY = 'hcs_audit_logs'
 const MAX_LOGS = 2000
 
 export function getAuditLogs(): AuditLogEntry[] {
-  try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch { return [] }
 }
 
 export function addAuditLog(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): AuditLogEntry {
@@ -30,7 +30,7 @@ export function addAuditLog(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): Aud
     timestamp: new Date().toISOString(),
   }
   const all = getAuditLogs()
-  localStorage.setItem(KEY, JSON.stringify([log, ...all].slice(0, MAX)))
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([log, ...all].slice(0, MAX_LOGS)))
   return log
 }
 
@@ -39,5 +39,5 @@ export function getLogsForApp(applicationId: string): AuditLogEntry[] {
 }
 
 export function clearAuditLogs() {
-  localStorage.removeItem(KEY)
+  localStorage.removeItem(STORAGE_KEY)
 }
