@@ -12,7 +12,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.annotation.Propagation;
 
 @Component
 @RequiredArgsConstructor
@@ -33,6 +32,7 @@ public class DataInitializer implements ApplicationRunner {
     private String testCustomerPassword;
 
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
         // Ensure admin@halalcms.com exists and is enabled
         userRepository.findByEmail("admin@halalcms.com").ifPresentOrElse(admin -> {
@@ -134,7 +134,7 @@ public class DataInitializer implements ApplicationRunner {
        // ensureAllUsersEnabled();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     void ensureAllUsersEnabled() {
         int updated = entityManager.createQuery("UPDATE User u SET u.enabled = true WHERE u.enabled = false")
                 .executeUpdate();
