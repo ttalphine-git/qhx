@@ -7,7 +7,19 @@ echo "==> Updating apt metadata"
 apt-get update
 
 echo "==> Installing required packages"
-apt-get install -y git maven docker.io docker-compose-plugin
+apt-get install -y git maven
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "==> Docker is not installed; installing Ubuntu Docker packages"
+  apt-get install -y docker.io docker-compose-plugin
+fi
+
+if ! docker compose version >/dev/null 2>&1; then
+  echo "==> Docker Compose plugin is missing; installing compose plugin"
+  apt-get install -y docker-compose-plugin
+fi
+
+systemctl enable --now docker || true
 
 if ! command -v javac >/dev/null 2>&1 || ! javac -version 2>&1 | grep -q '21'; then
   echo "==> Installing JDK 21"
