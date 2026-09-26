@@ -12,6 +12,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 @Component
 @RequiredArgsConstructor
@@ -133,7 +134,7 @@ public class DataInitializer implements ApplicationRunner {
         ensureAllUsersEnabled();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void ensureAllUsersEnabled() {
         int updated = entityManager.createQuery("UPDATE User u SET u.enabled = true WHERE u.enabled = false")
                 .executeUpdate();
