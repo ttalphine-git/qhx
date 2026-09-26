@@ -66,7 +66,7 @@ jobs:
           envs: DO_API_TOKEN
           script: |
             echo "$DO_API_TOKEN" | docker login registry.digitalocean.com -u doctl --password-stdin
-            cd /home/dev-ahdaah/qhx
+            cd /root/qhx
             git reset --hard origin/main
             git pull origin main
             chmod +x service.sh
@@ -111,7 +111,7 @@ jobs:
           envs: DO_API_TOKEN
           script: |
             echo "$DO_API_TOKEN" | docker login registry.digitalocean.com -u doctl --password-stdin
-            cd /home/dev-ahdaah/qhx
+            cd /root/qhx
             git reset --hard origin/main
             git pull origin main
             chmod +x qhx-frontend.sh
