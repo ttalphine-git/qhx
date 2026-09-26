@@ -3,6 +3,16 @@ set -e
 
 echo "🚀 Starting QHX Deployment..."
 
+# Load environment variables from .env file if it exists
+if [ -f .env ]; then
+  echo "📝 Loading environment variables from .env..."
+  set -a
+  source .env
+  set +a
+else
+  echo "⚠️  .env file not found - using defaults from docker-compose.yml"
+fi
+
 REGISTRY="registry.digitalocean.com/rzct"
 SERVICES=("qhx-auth" "qhx-application" "qhx-inspection" "qhx-certificate" "qhx-company" "qhx-frontend")
 
