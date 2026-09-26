@@ -51,8 +51,11 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String photoData;
 
+    @Column(nullable = false, columnDefinition = "boolean DEFAULT true")
     @Builder.Default
     private boolean enabled = true;
+
+    @Column(nullable = false, columnDefinition = "boolean DEFAULT false")
     @Builder.Default
     private boolean emailVerified = false;
 
