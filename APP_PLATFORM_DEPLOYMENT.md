@@ -49,13 +49,18 @@ For the full frontend + five backend services, create the app from the spec:
 doctl apps create --spec .do/app.yaml
 ```
 
+Login requires the `auth-service` component to exist in the same App Platform app
+as the frontend. If the app only contains the auto-detected root Node/frontend
+component, `/api/auth/login` fails because the frontend cannot resolve
+`auth-service` on the private network.
+
 ## UI Path
 
 1. Push these files to GitHub.
 2. In DigitalOcean, create an App from GitHub repo `ttalphine-git/qhx`.
 3. Choose branch `main`.
 4. If the UI says "No components detected", make sure the latest commit with root `package.json` is selected.
-5. Use the detected root component only to get past detection, then review/edit the app spec or manually add components using the source directories listed above.
+5. Use the detected root component only to get past detection, then review/edit the app spec or manually add all backend components using the source directories listed above.
 6. Give DigitalOcean permission to read the repository if prompted.
 7. Review the generated components and secrets.
 8. Deploy.

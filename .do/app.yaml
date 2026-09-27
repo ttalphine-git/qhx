@@ -32,6 +32,22 @@ services:
     http_port: 80
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: AUTH_SERVICE_URL
+        value: ${auth-service.PRIVATE_URL}
+        scope: RUN_TIME
+      - key: APPLICATION_SERVICE_URL
+        value: ${application-service.PRIVATE_URL}
+        scope: RUN_TIME
+      - key: INSPECTION_SERVICE_URL
+        value: ${inspection-service.PRIVATE_URL}
+        scope: RUN_TIME
+      - key: CERTIFICATE_SERVICE_URL
+        value: ${certificate-service.PRIVATE_URL}
+        scope: RUN_TIME
+      - key: COMPANY_SERVICE_URL
+        value: ${company-service.PRIVATE_URL}
+        scope: RUN_TIME
 
   - name: auth-service
     github:
@@ -40,7 +56,8 @@ services:
       deploy_on_push: true
     source_dir: /halal-cms-backend
     dockerfile_path: halal-cms-backend/auth-service/Dockerfile.app
-    http_port: 8081
+    internal_ports:
+      - 8081
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb
     envs:
@@ -80,7 +97,8 @@ services:
       deploy_on_push: true
     source_dir: /halal-cms-backend
     dockerfile_path: halal-cms-backend/application-service/Dockerfile.app
-    http_port: 8082
+    internal_ports:
+      - 8082
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb
     envs:
@@ -112,7 +130,8 @@ services:
       deploy_on_push: true
     source_dir: /halal-cms-backend
     dockerfile_path: halal-cms-backend/inspection-service/Dockerfile.app
-    http_port: 8083
+    internal_ports:
+      - 8083
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb
     envs:
@@ -163,7 +182,8 @@ services:
       deploy_on_push: true
     source_dir: /halal-cms-backend
     dockerfile_path: halal-cms-backend/certificate-service/Dockerfile.app
-    http_port: 8084
+    internal_ports:
+      - 8084
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb
     envs:
@@ -221,7 +241,8 @@ services:
       deploy_on_push: true
     source_dir: /halal-cms-backend
     dockerfile_path: halal-cms-backend/company-service/Dockerfile.app
-    http_port: 8085
+    internal_ports:
+      - 8085
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb
     envs:
