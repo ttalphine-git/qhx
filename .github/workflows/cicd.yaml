@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: halal-cms-frontend/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -30,6 +30,7 @@ jobs:
       - name: Verify App Platform files
         run: |
           test -f package.json
+          test -f package-lock.json
           test -f .do/app.yaml
           test -f halal-cms-frontend/Dockerfile
           test -f halal-cms-backend/auth-service/Dockerfile.app
@@ -39,10 +40,9 @@ jobs:
           test -f halal-cms-backend/company-service/Dockerfile.app
 
       - name: Validate frontend install and build
-        working-directory: halal-cms-frontend
         run: |
           npm ci
-          npx vite build
+          npm --workspace halal-cms-frontend run build
 
       - name: Validate backend Maven packages
         working-directory: halal-cms-backend
