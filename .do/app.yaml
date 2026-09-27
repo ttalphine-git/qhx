@@ -1,0 +1,250 @@
+name: qhx-halal-cms
+region: nyc
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+ingress:
+  rules:
+    - component:
+        name: frontend
+      match:
+        path:
+          prefix: /
+
+databases:
+  - name: qhx-db
+    engine: PG
+    version: "16"
+    production: false
+    db_name: halalcms
+    db_user: halal_user
+
+services:
+  - name: frontend
+    github:
+      repo: ttalphine-git/qhx
+      branch: main
+      deploy_on_push: true
+    source_dir: /halal-cms-frontend
+    dockerfile_path: halal-cms-frontend/Dockerfile
+    http_port: 80
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+
+  - name: auth-service
+    github:
+      repo: ttalphine-git/qhx
+      branch: main
+      deploy_on_push: true
+    source_dir: /halal-cms-backend
+    dockerfile_path: halal-cms-backend/auth-service/Dockerfile.app
+    http_port: 8081
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: DB_URL
+        value: ${qhx-db.JDBC_DATABASE_URL}
+        scope: RUN_TIME
+      - key: DB_USER
+        value: ${qhx-db.USERNAME}
+        scope: RUN_TIME
+      - key: DB_PASSWORD
+        value: ${qhx-db.PASSWORD}
+        scope: RUN_TIME
+        type: SECRET
+      - key: JWT_SECRET
+        value: replace-with-a-long-random-secret-before-production
+        scope: RUN_TIME
+        type: SECRET
+      - key: ADMIN_PASSWORD
+        value: replace-before-production
+        scope: RUN_TIME
+        type: SECRET
+      - key: SUPER_ADMIN_PASSWORD
+        value: replace-before-production
+        scope: RUN_TIME
+        type: SECRET
+      - key: SERVER_PORT
+        value: "8081"
+        scope: RUN_TIME
+      - key: EUREKA_CLIENT_ENABLED
+        value: "false"
+        scope: RUN_TIME
+
+  - name: application-service
+    github:
+      repo: ttalphine-git/qhx
+      branch: main
+      deploy_on_push: true
+    source_dir: /halal-cms-backend
+    dockerfile_path: halal-cms-backend/application-service/Dockerfile.app
+    http_port: 8082
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: DB_URL
+        value: ${qhx-db.JDBC_DATABASE_URL}
+        scope: RUN_TIME
+      - key: DB_USER
+        value: ${qhx-db.USERNAME}
+        scope: RUN_TIME
+      - key: DB_PASSWORD
+        value: ${qhx-db.PASSWORD}
+        scope: RUN_TIME
+        type: SECRET
+      - key: JWT_SECRET
+        value: replace-with-a-long-random-secret-before-production
+        scope: RUN_TIME
+        type: SECRET
+      - key: SERVER_PORT
+        value: "8082"
+        scope: RUN_TIME
+      - key: EUREKA_CLIENT_ENABLED
+        value: "false"
+        scope: RUN_TIME
+
+  - name: inspection-service
+    github:
+      repo: ttalphine-git/qhx
+      branch: main
+      deploy_on_push: true
+    source_dir: /halal-cms-backend
+    dockerfile_path: halal-cms-backend/inspection-service/Dockerfile.app
+    http_port: 8083
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: DB_URL
+        value: ${qhx-db.JDBC_DATABASE_URL}
+        scope: RUN_TIME
+      - key: DB_USER
+        value: ${qhx-db.USERNAME}
+        scope: RUN_TIME
+      - key: DB_PASSWORD
+        value: ${qhx-db.PASSWORD}
+        scope: RUN_TIME
+        type: SECRET
+      - key: JWT_SECRET
+        value: replace-with-a-long-random-secret-before-production
+        scope: RUN_TIME
+        type: SECRET
+      - key: SERVER_PORT
+        value: "8083"
+        scope: RUN_TIME
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+        scope: RUN_TIME
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+        scope: RUN_TIME
+      - key: EUREKA_CLIENT_ENABLED
+        value: "false"
+        scope: RUN_TIME
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+        scope: RUN_TIME
+      - key: MAIL_PORT
+        value: "587"
+        scope: RUN_TIME
+      - key: MAIL_USERNAME
+        value: ""
+        scope: RUN_TIME
+      - key: MAIL_PASSWORD
+        value: ""
+        scope: RUN_TIME
+        type: SECRET
+
+  - name: certificate-service
+    github:
+      repo: ttalphine-git/qhx
+      branch: main
+      deploy_on_push: true
+    source_dir: /halal-cms-backend
+    dockerfile_path: halal-cms-backend/certificate-service/Dockerfile.app
+    http_port: 8084
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: DB_URL
+        value: ${qhx-db.JDBC_DATABASE_URL}
+        scope: RUN_TIME
+      - key: DB_USER
+        value: ${qhx-db.USERNAME}
+        scope: RUN_TIME
+      - key: DB_PASSWORD
+        value: ${qhx-db.PASSWORD}
+        scope: RUN_TIME
+        type: SECRET
+      - key: JWT_SECRET
+        value: replace-with-a-long-random-secret-before-production
+        scope: RUN_TIME
+        type: SECRET
+      - key: SERVER_PORT
+        value: "8084"
+        scope: RUN_TIME
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+        scope: RUN_TIME
+      - key: EUREKA_CLIENT_ENABLED
+        value: "false"
+        scope: RUN_TIME
+      - key: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+        value: "false"
+        scope: RUN_TIME
+      - key: EUREKA_CLIENT_FETCH_REGISTRY
+        value: "false"
+        scope: RUN_TIME
+      - key: DO_SPACES_REGION
+        value: nyc3
+        scope: RUN_TIME
+      - key: DO_SPACES_ENDPOINT
+        value: https://nyc3.digitaloceanspaces.com
+        scope: RUN_TIME
+      - key: DO_SPACES_KEY
+        value: ""
+        scope: RUN_TIME
+        type: SECRET
+      - key: DO_SPACES_SECRET
+        value: ""
+        scope: RUN_TIME
+        type: SECRET
+      - key: DO_SPACES_BUCKET
+        value: ""
+        scope: RUN_TIME
+
+  - name: company-service
+    github:
+      repo: ttalphine-git/qhx
+      branch: main
+      deploy_on_push: true
+    source_dir: /halal-cms-backend
+    dockerfile_path: halal-cms-backend/company-service/Dockerfile.app
+    http_port: 8085
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: DB_URL
+        value: ${qhx-db.JDBC_DATABASE_URL}
+        scope: RUN_TIME
+      - key: DB_USER
+        value: ${qhx-db.USERNAME}
+        scope: RUN_TIME
+      - key: DB_PASSWORD
+        value: ${qhx-db.PASSWORD}
+        scope: RUN_TIME
+        type: SECRET
+      - key: JWT_SECRET
+        value: replace-with-a-long-random-secret-before-production
+        scope: RUN_TIME
+        type: SECRET
+      - key: SERVER_PORT
+        value: "8085"
+        scope: RUN_TIME
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+        scope: RUN_TIME
+      - key: EUREKA_CLIENT_ENABLED
+        value: "false"
+        scope: RUN_TIME

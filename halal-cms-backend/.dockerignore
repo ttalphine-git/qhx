@@ -8,3 +8,9 @@ Makefile
 .env
 .env.*
 !.env.example
+**/target
+**/.idea
+**/.vscode
+**/*.log
+**/hs_err_pid*.log
+**/replay_pid*.log
