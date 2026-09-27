@@ -6,8 +6,8 @@ services:
     container_name: halalcms-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER:-halal_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-halal@secure123}
       POSTGRES_DB: halalcms_auth
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -28,10 +28,12 @@ services:
     container_name: halalcms-auth
     restart: unless-stopped
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/halalcms_auth
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
+      DB_URL: ${DB_URL:jdbc:postgresql://postgres:5432/halalcms_auth}
+      DB_USER: ${DB_USER:-halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:-sqxad@12098}
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,9 +54,9 @@ services:
     restart: unless-stopped
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/halalcms_applications
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
+      DB_USER: ${DB_USER:-halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
     depends_on:
       postgres:
         condition: service_healthy
@@ -75,9 +77,9 @@ services:
     restart: unless-stopped
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/halalcms_companies
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
+      DB_USER: ${DB_USER:-halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
     depends_on:
       postgres:
         condition: service_healthy
@@ -98,9 +100,13 @@ services:
     restart: unless-stopped
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/halalcms_inspections
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
+      DB_USER: ${DB_USER:-halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
+      MAIL_HOST: ${MAIL_HOST:smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:587}
+      MAIL_USERNAME: ${MAIL_USERNAME:noreply@halalcertificationboard.com}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
@@ -121,14 +127,14 @@ services:
     restart: unless-stopped
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/halalcms_certificates
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
+      DB_USER: ${DB_USER:-halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
       DO_SPACES_KEY: ${DO_SPACES_KEY}
       DO_SPACES_SECRET: ${DO_SPACES_SECRET}
       DO_SPACES_BUCKET: ${DO_SPACES_BUCKET}
-      DO_SPACES_REGION: ${DO_SPACES_REGION}
-      DO_SPACES_ENDPOINT: ${DO_SPACES_ENDPOINT}
+      DO_SPACES_REGION: ${DO_SPACES_REGION:nyc3}
+      DO_SPACES_ENDPOINT: ${DO_SPACES_ENDPOINT:https://nyc3.digitaloceanspaces.com}
     depends_on:
       postgres:
         condition: service_healthy

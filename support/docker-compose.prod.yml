@@ -30,7 +30,7 @@ services:
     image: registry.digitalocean.com/rzct/qhx-auth:latest
     container_name: qhx-auth-service
     environment:
-      DB_URL: ${AUTH_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_auth}
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/halalcms_auth}
       DB_USER: ${DB_USER:-halal_user}
       DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
@@ -43,6 +43,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     restart: unless-stopped
 
   application-service:
@@ -52,7 +58,7 @@ services:
     image: registry.digitalocean.com/rzct/qhx-application:latest
     container_name: qhx-application-service
     environment:
-      DB_URL: ${APPLICATION_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_applications}
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/halalcms_applications}
       DB_USER: ${DB_USER:-halal_user}
       DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
       JWT_SECRET: ${JWT_SECRET:-changeme-use-256-bit-secret-in-production}
@@ -64,6 +70,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     restart: unless-stopped
 
   inspection-service:
@@ -73,11 +85,16 @@ services:
     image: registry.digitalocean.com/rzct/qhx-inspection:latest
     container_name: qhx-inspection-service
     environment:
-      DB_URL: ${INSPECTION_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_inspections}
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/halalcms_inspections}
       DB_USER: ${DB_USER:-halal_user}
       DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      JWT_SECRET: ${JWT_SECRET:-changeme-use-256-bit-secret-in-production}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
       SERVER_PORT: 8083
+      MAIL_HOST: ${MAIL_HOST:smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:587}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
     ports:
       - "8083:8083"
     networks:
@@ -100,11 +117,17 @@ services:
     image: registry.digitalocean.com/rzct/qhx-certificate:latest
     container_name: qhx-certificate-service
     environment:
-      DB_URL: ${CERTIFICATE_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_certificates}
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/halalcms_certificates}
       DB_USER: ${DB_USER:-halal_user}
       DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      JWT_SECRET: ${JWT_SECRET:-changeme-use-256-bit-secret-in-production}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
       SERVER_PORT: 8084
+      DO_SPACES_KEY: ${DO_SPACES_KEY}
+      DO_SPACES_SECRET: ${DO_SPACES_SECRET}
+      DO_SPACES_BUCKET: ${DO_SPACES_BUCKET}
+      DO_SPACES_REGION: ${DO_SPACES_REGION}
+      DO_SPACES_ENDPOINT: ${DO_SPACES_ENDPOINT}
     ports:
       - "8084:8084"
     networks:
@@ -127,7 +150,7 @@ services:
     image: registry.digitalocean.com/rzct/qhx-company:latest
     container_name: qhx-company-service
     environment:
-      DB_URL: ${COMPANY_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_companies}
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/halalcms_companies}
       DB_USER: ${DB_USER:-halal_user}
       DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}

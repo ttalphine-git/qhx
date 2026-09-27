@@ -14,13 +14,25 @@ spring:
       connection-timeout: 30000
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: false
     properties:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
       hibernate.jdbc.batch_size: 20
       hibernate.order_inserts: true
       hibernate.order_updates: true
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
@@ -36,6 +48,7 @@ spring:
 app:
   email:
     signature: ${APP_EMAIL_SIGNATURE:Halal Certification Board}
+
 jwt:
   secret: ${JWT_SECRET}
 eureka:

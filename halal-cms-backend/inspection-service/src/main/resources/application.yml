@@ -5,8 +5,8 @@ spring:
     name: inspection-service
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/halalcms_inspections}
-    username: ${DB_USER:halalcms}
-    password: ${DB_PASSWORD:halalcms}
+    username: ${DB_USER:halal_user}
+    password: ${DB_PASSWORD:halal@secure123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

@@ -9,5 +9,5 @@ COPY target/*.jar app.jar
 RUN mkdir -p /app/uploads && chown -R appuser:appgroup /app
 USER appuser
 
-EXPOSE 8080
+EXPOSE 8085
 ENTRYPOINT ["java", "-jar", "-Djava.security.egd=file:/dev/./urandom", "app.jar"]

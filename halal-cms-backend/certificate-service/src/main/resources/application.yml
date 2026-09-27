@@ -6,8 +6,8 @@ spring:
     name: certificate-service
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/halalcms_certificates}
-    username: ${DB_USER:halalcms}
-    password: ${DB_PASSWORD:halalcms}
+    username: ${DB_USER:halal_user}
+    password: ${DB_PASSWORD:halal@secure123}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -19,6 +19,15 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET:changeme-use-256-bit-secret-in-production}
+
+# DigitalOcean Spaces Configuration for PDF storage
+do:
+  spaces:
+    key: ${DO_SPACES_KEY}
+    secret: ${DO_SPACES_SECRET}
+    bucket: ${DO_SPACES_BUCKET}
+    region: ${DO_SPACES_REGION:nyc3}
+    endpoint: ${DO_SPACES_ENDPOINT:https://nyc3.digitaloceanspaces.com}
 
 eureka:
   client:
