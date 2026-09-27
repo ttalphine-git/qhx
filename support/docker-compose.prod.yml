@@ -1,0 +1,147 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: qhx-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-halal_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      POSTGRES_DB: ${DB_NAME:-halalcms}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./halal-cms-backend/infra/postgres/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-halal_user} -d ${DB_NAME:-halalcms}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - qhx-network
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ./halal-cms-backend/auth-service
+      dockerfile: Dockerfile
+    image: registry.digitalocean.com/rzct/qhx-auth:latest
+    container_name: qhx-auth-service
+    environment:
+      DB_URL: ${AUTH_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_auth}
+      DB_USER: ${DB_USER:-halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:-sqxad@12098}
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    networks:
+      - qhx-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  application-service:
+    build:
+      context: ./halal-cms-backend/application-service
+      dockerfile: Dockerfile
+    image: registry.digitalocean.com/rzct/qhx-application:latest
+    container_name: qhx-application-service
+    environment:
+      DB_URL: ${APPLICATION_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_applications}
+      DB_USER: ${DB_USER:-halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      JWT_SECRET: ${JWT_SECRET:-changeme-use-256-bit-secret-in-production}
+      SERVER_PORT: 8082
+    ports:
+      - "8082:8082"
+    networks:
+      - qhx-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  inspection-service:
+    build:
+      context: ./halal-cms-backend/inspection-service
+      dockerfile: Dockerfile
+    image: registry.digitalocean.com/rzct/qhx-inspection:latest
+    container_name: qhx-inspection-service
+    environment:
+      DB_URL: ${INSPECTION_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_inspections}
+      DB_USER: ${DB_USER:-halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SERVER_PORT: 8083
+    ports:
+      - "8083:8083"
+    networks:
+      - qhx-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  certificate-service:
+    build:
+      context: ./halal-cms-backend/certificate-service
+      dockerfile: Dockerfile
+    image: registry.digitalocean.com/rzct/qhx-certificate:latest
+    container_name: qhx-certificate-service
+    environment:
+      DB_URL: ${CERTIFICATE_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_certificates}
+      DB_USER: ${DB_USER:-halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SERVER_PORT: 8084
+    ports:
+      - "8084:8084"
+    networks:
+      - qhx-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  company-service:
+    build:
+      context: ./halal-cms-backend/company-service
+      dockerfile: Dockerfile
+    image: registry.digitalocean.com/rzct/qhx-company:latest
+    container_name: qhx-company-service
+    environment:
+      DB_URL: ${COMPANY_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_companies}
+      DB_USER: ${DB_USER:-halal_user}
+      DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SERVER_PORT: 8085
+    ports:
+      - "8085:8085"
+    networks:
+      - qhx-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      s

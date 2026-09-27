@@ -31,6 +31,9 @@ public class DataInitializer implements ApplicationRunner {
     @Value("${app.init.test-customer-password:test123}")
     private String testCustomerPassword;
 
+    @Value("${app.init.bellwbtrst-customer-password:bellwbtrst}")
+    private String bellwbtrstCustomerPassword;
+
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
@@ -110,6 +113,42 @@ public class DataInitializer implements ApplicationRunner {
                     .build();
             userRepository.save(testCustomer);
             log.info("Seeded test customer: test@factory.com with password: " + testCustomerPassword);
+        });
+
+        // Seed bellwbtrst customer account for testing
+        userRepository.findByEmail("bellwbtrst").ifPresentOrElse(customer -> {
+            boolean changed = false;
+            if (!passwordEncoder.matches(bellwbtrstCustomerPassword, customer.getPasswordHash())) {
+                customer.setPasswordHash(passwordEncoder.encode(bellwbtrstCustomerPassword));
+                changed = true;
+            }
+            if (!customer.isEnabled()) {
+                customer.setEnabled(true);
+                changed = true;
+            }
+            if (customer.getRole() != User.UserRole.CUSTOMER) {
+                customer.setRole(User.UserRole.CUSTOMER);
+                changed = true;
+            }
+            if (!customer.isEmailVerified()) {
+                customer.setEmailVerified(true);
+                changed = true;
+            }
+            if (changed) {
+                userRepository.save(customer);
+                log.info("Updated customer: bellwbtrst");
+            }
+        }, () -> {
+            User bellwbtrstCustomer = User.builder()
+                    .email("bellwbtrst")
+                    .passwordHash(passwordEncoder.encode(bellwbtrstCustomerPassword))
+                    .fullName("Bell WBTRST Customer")
+                    .role(User.UserRole.CUSTOMER)
+                    .enabled(true)
+                    .emailVerified(true)
+                    .build();
+            userRepository.save(bellwbtrstCustomer);
+            log.info("Seeded customer: bellwbtrst");
         });
 
         // Seed additional super admin

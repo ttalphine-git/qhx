@@ -16,7 +16,7 @@ EOSQL
 }
 
 # Simpler approach: attempt CREATE DATABASE and ignore duplicate errors
-for db in halalcms_applications halalcms_companies halalcms_certificates halalcms_inspections halalcms_notifications; do
+for db in halalcms_auth halalcms_applications halalcms_companies halalcms_certificates halalcms_inspections halalcms_notifications; do
   psql -v ON_ERROR_STOP=0 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
     -c "CREATE DATABASE $db;" 2>&1 | grep -v "already exists" || true
   echo "Database $db ready."
