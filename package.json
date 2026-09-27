@@ -1,0 +1,16 @@
+{
+  "name": "qhx-halal-cms",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Root package for DigitalOcean App Platform monorepo detection.",
+  "workspaces": [
+    "halal-cms-frontend"
+  ],
+  "scripts": {
+    "build": "npm --workspace halal-cms-frontend run build",
+    "start": "npm --workspace halal-cms-frontend run preview -- --host 0.0.0.0 --port ${PORT:-3000}"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}

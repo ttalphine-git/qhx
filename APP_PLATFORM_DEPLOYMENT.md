@@ -1,7 +1,9 @@
 # DigitalOcean App Platform Deployment
 
-This repository now includes a DigitalOcean App Platform spec at `.do/app.yaml`.
-Use that file when creating the app from the repo root.
+This repository now includes:
+
+- A root `package.json` so the DigitalOcean UI can detect the repo.
+- A DigitalOcean App Platform spec at `.do/app.yaml` for the full multi-service app.
 
 ## What Changed
 
@@ -38,12 +40,22 @@ If you need the old five-database separation from Docker Compose, attach an exis
 managed PostgreSQL cluster and create those databases manually, then override each
 service's `DB_URL`.
 
-## DigitalOcean Steps
+## Recommended Full App Creation
+
+The DigitalOcean UI detection step may only detect the root `package.json` first.
+For the full frontend + five backend services, create the app from the spec:
+
+```bash
+doctl apps create --spec .do/app.yaml
+```
+
+## UI Path
 
 1. Push these files to GitHub.
 2. In DigitalOcean, create an App from GitHub repo `ttalphine-git/qhx`.
 3. Choose branch `main`.
-4. Use the app spec from `.do/app.yaml`.
-5. Give DigitalOcean permission to read the repository if prompted.
-6. Review the generated components and secrets.
-7. Deploy.
+4. If the UI says "No components detected", make sure the latest commit with root `package.json` is selected.
+5. Use the detected root component only to get past detection, then review/edit the app spec or manually add components using the source directories listed above.
+6. Give DigitalOcean permission to read the repository if prompted.
+7. Review the generated components and secrets.
+8. Deploy.
