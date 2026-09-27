@@ -31,7 +31,23 @@ function useClickOutside(ref: React.RefObject<HTMLElement | null>, cb: () => voi
   }, [ref, cb])
 }
 
-const OFFICE_ROLES = ['ADMIN', 'OFFICER', 'AUDITOR', 'REVIEWER', 'SUPER_ADMIN']
+const OFFICE_ROLES = [
+  'ADMIN',
+  'OFFICER',
+  'AUDITOR',
+  'REVIEWER',
+  'SUPER_ADMIN',
+  'OFFICE_ADMIN',
+  'OFFICE_INSPECTOR',
+  'OFFICE_REVIEWER',
+  'SHARIA_AUDITOR',
+  'DECISION_MAKER',
+  'FINANCE',
+  'HALAL_REVIEWER',
+  'AUDIT_PLANNER',
+  'CERTIFICATE_CONTROLLER',
+  'QUALITY_MANAGER',
+]
 
 export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
   const navigate  = useNavigate()
