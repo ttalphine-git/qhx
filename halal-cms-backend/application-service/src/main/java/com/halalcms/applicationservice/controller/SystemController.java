@@ -29,12 +29,14 @@ public class SystemController {
     }
 
     @PostMapping("/accreditation-scopes")
+    @PreAuthorize("hasAnyRole('OFFICE_ADMIN', 'OFFICE_MANAGER', 'SUPER_ADMIN')")
     public ResponseEntity<HcbAccreditationScopeDto> createAccreditationScope(
             @Valid @RequestBody HcbAccreditationScopeRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(accreditationScopeService.create(req));
     }
 
     @PutMapping("/accreditation-scopes/{id}")
+    @PreAuthorize("hasAnyRole('OFFICE_ADMIN', 'OFFICE_MANAGER', 'SUPER_ADMIN')")
     public ResponseEntity<HcbAccreditationScopeDto> updateAccreditationScope(
             @PathVariable("id") Long id,
             @Valid @RequestBody HcbAccreditationScopeRequest req) {
@@ -42,6 +44,7 @@ public class SystemController {
     }
 
     @DeleteMapping("/accreditation-scopes/{id}")
+    @PreAuthorize("hasAnyRole('OFFICE_ADMIN', 'OFFICE_MANAGER', 'SUPER_ADMIN')")
     public ResponseEntity<Void> deleteAccreditationScope(@PathVariable("id") Long id) {
         accreditationScopeService.delete(id);
         return ResponseEntity.noContent().build();

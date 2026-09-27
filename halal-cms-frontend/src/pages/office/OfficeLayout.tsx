@@ -40,12 +40,6 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
 
   const isAuthorized = !!user && OFFICE_ROLES.includes(user.role?.toUpperCase?.() ?? '')
 
-  useEffect(() => {
-    if (!isAuthorized) navigate('/office/login', { replace: true })
-  }, [isAuthorized, navigate])
-
-  if (!isAuthorized) return null
-
   const [onboarded,  setOnboarded]  = useState(isOnboardingComplete)
   const [showUser,   setShowUser]   = useState(false)
   const [showQuick,  setShowQuick]  = useState(false)
@@ -60,11 +54,17 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
   useClickOutside(notifRef, () => setShowNotif(false))
 
   useEffect(() => {
+    if (!isAuthorized) navigate('/office/login', { replace: true })
+  }, [isAuthorized, navigate])
+
+  useEffect(() => {
     const refresh = () => setNotifs(getNotifications('office'))
     window.addEventListener('storage', refresh)
     const id = setInterval(refresh, 3000)
     return () => { window.removeEventListener('storage', refresh); clearInterval(id) }
   }, [])
+
+  if (!isAuthorized) return null
 
   const unreadCount = notifs.filter(n => !n.read).length
 

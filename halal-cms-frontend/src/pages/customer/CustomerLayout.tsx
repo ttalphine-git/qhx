@@ -29,12 +29,6 @@ export default function CustomerLayout({ children, title }: CustomerLayoutProps)
 
   const isAuthorized = !!user && user.role?.toUpperCase?.() === 'CUSTOMER'
 
-  useEffect(() => {
-    if (!isAuthorized) navigate('/customer/login', { replace: true })
-  }, [isAuthorized, navigate])
-
-  if (!isAuthorized) return null
-
   const [showUser,  setShowUser]  = useState(false)
   const [showNotif, setShowNotif] = useState(false)
   const [notifs,    setNotifs]    = useState<AppNotification[]>(() => getNotifications('customer'))
@@ -44,11 +38,17 @@ export default function CustomerLayout({ children, title }: CustomerLayoutProps)
   useClickOutside(notifRef, () => setShowNotif(false))
 
   useEffect(() => {
+    if (!isAuthorized) navigate('/customer/login', { replace: true })
+  }, [isAuthorized, navigate])
+
+  useEffect(() => {
     const refresh = () => setNotifs(getNotifications('customer'))
     window.addEventListener('storage', refresh)
     const id = setInterval(refresh, 3000)
     return () => { window.removeEventListener('storage', refresh); clearInterval(id) }
   }, [])
+
+  if (!isAuthorized) return null
 
   const unreadCount = notifs.filter(n => !n.read).length
 

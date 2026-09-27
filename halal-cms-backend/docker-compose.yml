@@ -15,7 +15,7 @@ services:
     networks:
       - halalcms-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-halal_user}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -23,12 +23,12 @@ services:
   # ── Microservices ─────────────────────────────────────────────────────
   auth-service:
     build:
-      context: .
-      dockerfile: auth-service/Dockerfile
+      context: ./auth-service
+      dockerfile: Dockerfile
     container_name: halalcms-auth
     restart: unless-stopped
     environment:
-      DB_URL: ${DB_URL:jdbc:postgresql://postgres:5432/halalcms_auth}
+      DB_URL: ${AUTH_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_auth}
       DB_USER: ${DB_USER:-halal_user}
       DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
@@ -48,12 +48,12 @@ services:
 
   application-service:
     build:
-      context: .
-      dockerfile: application-service/Dockerfile
+      context: ./application-service
+      dockerfile: Dockerfile
     container_name: halalcms-application
     restart: unless-stopped
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/halalcms_applications
+      DB_URL: ${APPLICATION_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_applications}
       DB_USER: ${DB_USER:-halal_user}
       DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
@@ -71,12 +71,12 @@ services:
 
   company-service:
     build:
-      context: .
-      dockerfile: company-service/Dockerfile
+      context: ./company-service
+      dockerfile: Dockerfile
     container_name: halalcms-company
     restart: unless-stopped
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/halalcms_companies
+      DB_URL: ${COMPANY_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_companies}
       DB_USER: ${DB_USER:-halal_user}
       DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
@@ -94,19 +94,21 @@ services:
 
   inspection-service:
     build:
-      context: .
-      dockerfile: inspection-service/Dockerfile
+      context: ./inspection-service
+      dockerfile: Dockerfile
     container_name: halalcms-inspection
     restart: unless-stopped
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/halalcms_inspections
+      DB_URL: ${INSPECTION_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_inspections}
       DB_USER: ${DB_USER:-halal_user}
       DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
-      MAIL_HOST: ${MAIL_HOST:smtp.gmail.com}
-      MAIL_PORT: ${MAIL_PORT:587}
-      MAIL_USERNAME: ${MAIL_USERNAME:noreply@halalcertificationboard.com}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_PROFILES_ACTIVE: prod
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-noreply@halalcertificationboard.com}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      EUREKA_CLIENT_ENABLED: "false"
     depends_on:
       postgres:
         condition: service_healthy
@@ -121,20 +123,23 @@ services:
 
   certificate-service:
     build:
-      context: .
-      dockerfile: certificate-service/Dockerfile
+      context: ./certificate-service
+      dockerfile: Dockerfile
     container_name: halalcms-certificate
     restart: unless-stopped
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/halalcms_certificates
+      DB_URL: ${CERTIFICATE_DB_URL:-jdbc:postgresql://postgres:5432/halalcms_certificates}
       DB_USER: ${DB_USER:-halal_user}
       DB_PASSWORD: ${DB_PASSWORD:-halal@secure123}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
-      DO_SPACES_KEY: ${DO_SPACES_KEY}
-      DO_SPACES_SECRET: ${DO_SPACES_SECRET}
-      DO_SPACES_BUCKET: ${DO_SPACES_BUCKET}
-      DO_SPACES_REGION: ${DO_SPACES_REGION:nyc3}
-      DO_SPACES_ENDPOINT: ${DO_SPACES_ENDPOINT:https://nyc3.digitaloceanspaces.com}
+      EUREKA_CLIENT_ENABLED: "false"
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
+      EUREKA_CLIENT_FETCH_REGISTRY: "false"
+      DO_SPACES_KEY: ${DO_SPACES_KEY:-}
+      DO_SPACES_SECRET: ${DO_SPACES_SECRET:-}
+      DO_SPACES_BUCKET: ${DO_SPACES_BUCKET:-}
+      DO_SPACES_REGION: ${DO_SPACES_REGION:-nyc3}
+      DO_SPACES_ENDPOINT: ${DO_SPACES_ENDPOINT:-https://nyc3.digitaloceanspaces.com}
     depends_on:
       postgres:
         condition: service_healthy
