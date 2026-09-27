@@ -144,4 +144,31 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      s
+      start_period: 60s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./halal-cms-frontend
+      dockerfile: Dockerfile
+    image: registry.digitalocean.com/rzct/qhx-frontend:latest
+    container_name: qhx-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - auth-service
+      - application-service
+      - inspection-service
+      - certificate-service
+      - company-service
+    networks:
+      - qhx-network
+    restart: unless-stopped
+
+networks:
+  qhx-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
