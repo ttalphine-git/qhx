@@ -64,6 +64,7 @@ import {
   updateAccreditationScope,
   type DatabaseTable,
 } from "@/api/system"
+import { getUserRoles } from "@/api/auth"
 
 type SettingsTab = "certificate" | "audits" | "employees" | "scope" | "activity" | "pricelist" | "agreement" | "payments" | "database"
 
@@ -197,7 +198,7 @@ function normalizeAccreditation(row: Partial<HCBAccreditation> & { id: string | 
 }
 
 const ROLES = [
-  "ADMIN", "AUDITOR", "SHARIA_AUDITOR", "REVIEWER", "OFFICER",
+  "OFFICE_ADMIN", "OFFICE_INSPECTOR", "OFFICE_REVIEWER", "AUDITOR", "SHARIA_AUDITOR",
   "DECISION_MAKER", "FINANCE", "HALAL_REVIEWER",
   "AUDIT_PLANNER", "CERTIFICATE_CONTROLLER", "QUALITY_MANAGER",
 ]
@@ -360,6 +361,13 @@ export default function OfficeSettingsPage() {
     queryFn: () => getMgmtUsers({ page: empPage, size: 20, search: empSearch || undefined, filterByRole: empRole || undefined }),
     enabled: tab === "employees",
   })
+  const { data: liveRoles } = useQuery({
+    queryKey: ["auth-user-roles"],
+    queryFn: getUserRoles,
+    enabled: tab === "employees",
+  })
+  const roleOptions = (liveRoles?.length ? liveRoles : ROLES.map(role => ({ value: role, label: role.replace(/_/g, " ") })))
+    .filter(role => role.value !== "CUSTOMER" && role.value !== "SUPER_ADMIN")
   const empUsers = empData?.content ?? []
   const empTotal = empData?.totalElements ?? 0
   const { mutate: toggleStatus, isPending: statusPending } = useMutation({
@@ -374,7 +382,7 @@ export default function OfficeSettingsPage() {
   // Add Employee
   const [showAddEmp, setShowAddEmp]     = useState(false)
   const emptyEmpForm = () => ({
-    name: "", email: "", password: "", role: "OFFICER",
+    name: "", email: "", password: "", role: "OFFICE_INSPECTOR",
     employmentType: "OWN", phone: "", jobTitle: "", department: "",
     idProof: "", startDate: "", notes: "",
     idDocName: "", idDocData: "",
@@ -1661,7 +1669,7 @@ export default function OfficeSettingsPage() {
                   style={{ height: 34, border: `1px solid ${C.border}`, background: C.white, color: C.text, outline: "none", fontSize: 12 }}
                 >
                   <option value="">All Roles</option>
-                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                  {roleOptions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </div>
               <button onClick={() => empRefetch()}
@@ -2506,7 +2514,7 @@ export default function OfficeSettingsPage() {
                     <div>
                       <label style={lbl}>Role <span style={{ color: "#dc2626" }}>*</span></label>
                       <select value={ef.role} onChange={e => setEmpForm(f => ({ ...f, role: e.target.value }))} style={{ ...inp, cursor: "pointer" }}>
-                        {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                        {roleOptions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                       </select>
                     </div>
                     <div>
@@ -2672,7 +2680,7 @@ export default function OfficeSettingsPage() {
                     <div>
                       <label style={lbl}>Role</label>
                       <select value={ef.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))} style={{ ...inp, cursor: "pointer" }}>
-                        {ROLES.map(r => <option key={r} value={r}>{r.replace(/_/g, " ")}</option>)}
+                        {roleOptions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                       </select>
                     </div>
                     <div>

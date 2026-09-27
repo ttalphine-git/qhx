@@ -4,6 +4,7 @@ import com.halalcms.authservice.dto.AuthRequest;
 import com.halalcms.authservice.dto.AuthResponse;
 import com.halalcms.authservice.dto.EmployeeCreateRequest;
 import com.halalcms.authservice.dto.LoginRequest;
+import com.halalcms.authservice.model.User;
 import com.halalcms.authservice.repository.UserRepository;
 import com.halalcms.authservice.service.AuthService;
 import jakarta.validation.Valid;
@@ -11,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -50,5 +54,32 @@ public class AuthController {
     @GetMapping("/check-email")
     public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
         return ResponseEntity.ok(Map.of("exists", userRepository.existsByEmail(email)));
+    }
+
+    @GetMapping("/roles")
+    public ResponseEntity<List<Map<String, String>>> roles() {
+        return ResponseEntity.ok(Arrays.stream(User.UserRole.values())
+                .filter(role -> role != User.UserRole.CUSTOMER)
+                .map(role -> Map.of(
+                        "value", role.name(),
+                        "label", role.name().replace('_', ' ')
+                ))
+                .toList());
+    }
+
+    @GetMapping("/database-status")
+    public ResponseEntity<Map<String, Object>> databaseStatus() {
+        long userCount = userRepository.count();
+        boolean adminExists = userRepository.existsByEmail("admin@halalcms.com");
+        boolean superAdminExists = userRepository.existsByEmail("superadmin@halalcms.com")
+                || userRepository.existsByEmail("qhxadinsuper");
+        return ResponseEntity.ok(Map.of(
+                "connected", true,
+                "database", "halalcms_auth",
+                "userCount", userCount,
+                "adminExists", adminExists,
+                "superAdminExists", superAdminExists,
+                "checkedAt", Instant.now().toString()
+        ));
     }
 }

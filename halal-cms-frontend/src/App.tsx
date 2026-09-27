@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import OfficeLogin from "./pages/office/OfficeLogin";
+import OfficeRegister from "./pages/office/OfficeRegister";
 import OfficeDashboard from "./pages/office/OfficeDashboard";
 import ApplicationsPage from "./pages/office/ApplicationsPage";
 import ApplicationDetailPage from "./pages/office/ApplicationDetailPage";
@@ -32,6 +33,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/office/login" replace />} />
         <Route path="/office/login" element={<OfficeLogin />} />
+        <Route path="/office/register" element={<OfficeRegister />} />
         <Route path="/office/dashboard" element={<OfficeDashboard />} />
         <Route path="/office/applications" element={<ApplicationsPage />} />
         <Route path="/office/applications/:id" element={<ApplicationDetailPage />} />

@@ -128,11 +128,18 @@ export default function OfficeLogin() {
 
           <h2 style={{ margin: "0 0 0.25rem", fontSize: "2rem", fontWeight: 800, color: "#fff" }}>Sign in</h2>
           <p style={{ margin: "0 0 0.375rem", fontSize: "0.9rem", color: "rgba(255,255,255,0.55)" }}>Access your QHX account</p>
-          <p style={{ margin: "0 0 1.75rem", fontSize: "0.85rem", color: "rgba(255,255,255,0.45)" }}>
+          <p style={{ margin: "0 0 0.55rem", fontSize: "0.85rem", color: "rgba(255,255,255,0.45)" }}>
             Not an officer?{" "}
             <button onClick={() => navigate("/customer/login")}
               style={{ color: "#60a5fa", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", fontSize: "0.85rem" }}>
               Customer Portal
+            </button>
+          </p>
+          <p style={{ margin: "0 0 1.75rem", fontSize: "0.85rem", color: "rgba(255,255,255,0.45)" }}>
+            New office user?{" "}
+            <button onClick={() => navigate("/office/register")}
+              style={{ color: "#60a5fa", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", fontSize: "0.85rem" }}>
+              Register here
             </button>
           </p>
 

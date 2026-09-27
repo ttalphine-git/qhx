@@ -23,3 +23,23 @@ export const getCurrentUser = () =>
 
 export const checkEmailExists = (email: string) =>
   apiClient.get<{ exists: boolean }>(`/auth/check-email?email=${encodeURIComponent(email)}`).then(r => r.data)
+
+export interface UserRoleOption {
+  value: string
+  label: string
+}
+
+export interface AuthDatabaseStatus {
+  connected: boolean
+  database: string
+  userCount: number
+  adminExists: boolean
+  superAdminExists: boolean
+  checkedAt: string
+}
+
+export const getUserRoles = () =>
+  apiClient.get<UserRoleOption[]>('/auth/roles').then(r => r.data)
+
+export const getAuthDatabaseStatus = () =>
+  apiClient.get<AuthDatabaseStatus>('/auth/database-status').then(r => r.data)
