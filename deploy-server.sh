@@ -3,6 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+export DEBIAN_FRONTEND=noninteractive
+
 echo "==> Updating apt metadata"
 apt-get update
 
@@ -11,12 +13,21 @@ apt-get install -y git maven
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "==> Docker is not installed; installing Ubuntu Docker packages"
-  apt-get install -y docker.io docker-compose-plugin
+  apt-get install -y docker.io
 fi
 
 if ! docker compose version >/dev/null 2>&1; then
-  echo "==> Docker Compose plugin is missing; installing compose plugin"
-  apt-get install -y docker-compose-plugin
+  echo "==> Docker Compose plugin is missing; installing compose package"
+  if apt-cache show docker-compose-v2 >/dev/null 2>&1; then
+    apt-get install -y docker-compose-v2
+  elif apt-cache show docker-compose-plugin >/dev/null 2>&1; then
+    apt-get install -y docker-compose-plugin
+  elif apt-cache show docker-compose >/dev/null 2>&1; then
+    apt-get install -y docker-compose
+  else
+    echo "No Docker Compose package was found in apt repositories."
+    exit 1
+  fi
 fi
 
 systemctl enable --now docker || true
