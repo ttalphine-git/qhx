@@ -62,7 +62,24 @@ mvn -DskipTests package
 
 echo "==> Building and restarting containers"
 cd ..
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml build --no-cache
+docker compose -f docker-compose.prod.yml up -d
+
+echo "==> Waiting for auth service to accept connections"
+for i in $(seq 1 30); do
+  if docker exec qhx-frontend wget -qO- "http://auth-service:8081/auth/check-email?email=test@example.com" >/tmp/auth-check.out 2>/tmp/auth-check.err; then
+    cat /tmp/auth-check.out
+    break
+  fi
+  if [ "$i" -eq 30 ]; then
+    echo "Auth service did not become reachable"
+    cat /tmp/auth-check.err || true
+    docker compose -f docker-compose.prod.yml ps
+    docker compose -f docker-compose.prod.yml logs --tail=160 auth-service
+    exit 1
+  fi
+  sleep 5
+done
 
 echo "==> Container status"
 docker compose -f docker-compose.prod.yml ps
@@ -71,6 +88,6 @@ echo "==> Auth service logs"
 docker compose -f docker-compose.prod.yml logs --tail=80 auth-service
 
 echo "==> Auth service connectivity test"
-docker exec qhx-frontend wget -S -O- "http://auth-service:8081/auth/check-email?email=test@example.com" || true
+docker exec qhx-frontend wget -S -O- "http://auth-service:8081/auth/check-email?email=test@example.com"
 
 echo "==> Deployment script completed"
