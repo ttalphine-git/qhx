@@ -59,6 +59,41 @@ git pull origin main
 APP_SERVICES="auth-service application-service inspection-service certificate-service company-service frontend"
 BACKEND_SERVICES="auth-service application-service inspection-service certificate-service company-service"
 
+wait_for_service_health() {
+  service="$1"
+  timeout_seconds="${2:-600}"
+  elapsed_seconds=0
+
+  echo "==> Waiting for $service to become healthy"
+  while [ "$elapsed_seconds" -lt "$timeout_seconds" ]; do
+    container_id="$(docker compose -f docker-compose.prod.yml ps -q "$service" || true)"
+    if [ -n "$container_id" ]; then
+      state="$(docker inspect -f '{{.State.Status}}' "$container_id" 2>/dev/null || true)"
+      health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$container_id" 2>/dev/null || true)"
+
+      if [ "$health" = "healthy" ] || { [ "$health" = "none" ] && [ "$state" = "running" ]; }; then
+        echo "$service is ready"
+        return 0
+      fi
+
+      if [ "$state" = "exited" ] || [ "$state" = "dead" ]; then
+        echo "$service stopped while starting"
+        docker compose -f docker-compose.prod.yml ps
+        docker compose -f docker-compose.prod.yml logs --tail=200 "$service"
+        exit 1
+      fi
+    fi
+
+    sleep 10
+    elapsed_seconds=$((elapsed_seconds + 10))
+  done
+
+  echo "$service did not become healthy within ${timeout_seconds}s"
+  docker compose -f docker-compose.prod.yml ps
+  docker compose -f docker-compose.prod.yml logs --tail=200 "$service"
+  exit 1
+}
+
 echo "==> Stopping app containers to free memory for the build"
 docker compose -f docker-compose.prod.yml stop $APP_SERVICES || true
 
@@ -77,30 +112,23 @@ for service in $APP_SERVICES; do
   echo "==> Building image for $service"
   docker compose -f docker-compose.prod.yml build --no-cache "$service"
 done
-docker compose -f docker-compose.prod.yml up -d postgres
-docker compose -f docker-compose.prod.yml up -d --force-recreate $APP_SERVICES
 
-echo "==> Waiting for auth service to accept connections"
-for i in $(seq 1 60); do
-  if docker exec qhx-frontend wget -qO- "http://auth-service:8081/actuator/health" >/tmp/auth-check.out 2>/tmp/auth-check.err; then
-    cat /tmp/auth-check.out
-    break
-  fi
-  if [ "$i" -eq 60 ]; then
-    echo "Auth service did not become reachable"
-    cat /tmp/auth-check.err || true
-    docker compose -f docker-compose.prod.yml ps
-    docker compose -f docker-compose.prod.yml logs --tail=160 auth-service
-    exit 1
-  fi
-  sleep 5
+echo "==> Starting postgres"
+docker compose -f docker-compose.prod.yml up -d postgres
+wait_for_service_health postgres 180
+
+echo "==> Starting backend services one at a time"
+for service in $BACKEND_SERVICES; do
+  docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate "$service"
+  wait_for_service_health "$service" 600
 done
+
+echo "==> Starting frontend"
+docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate frontend
+wait_for_service_health frontend 120
 
 echo "==> Container status"
 docker compose -f docker-compose.prod.yml ps
-
-echo "==> Auth service logs"
-docker compose -f docker-compose.prod.yml logs --tail=80 auth-service
 
 echo "==> Auth service connectivity test"
 docker exec qhx-frontend wget -S -O- "http://auth-service:8081/actuator/health"
