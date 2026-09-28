@@ -139,7 +139,7 @@ export default function CustomerLogin() {
           </div>
 
           <h2 style={{ margin: "0 0 0.25rem", fontSize: "2rem", fontWeight: 800, color: "#fff" }}>Sign in</h2>
-          <p style={{ margin: "0 0 0.375rem", fontSize: "0.9rem", color: "rgba(255,255,255,0.55)" }}>Access your QHX customer account</p>
+          <p style={{ margin: "0 0 0.375rem", fontSize: "0.9rem", color: "rgba(255,255,255,0.55)" }}>Access your QHX v1 customer account</p>
           <p style={{ margin: "0 0 1.5rem", fontSize: "0.85rem", color: "rgba(255,255,255,0.45)" }}>
             No account?{" "}
             <button onClick={() => navigate("/customer/register")}
