@@ -300,11 +300,57 @@ export default function CustomerRegister() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setError("")
-    if (!companyName || !companyType || !email || !phone || !password || !confirm || !contactName || !address1 || !city || !stateMy || !postcode || !country || !licenseNo) { setError("Please fill in all required fields."); return }
-    if (categories.length === 0) { setError("Please select at least one activity category."); return }
-    if (password.length < 8) { setError("Password must be at least 8 characters."); return }
-    if (password !== confirm) { setError("Passwords do not match."); return }
-    if (!agreed) { setError("Please accept the declaration before submitting."); return }
+
+    // Validate each required field and log missing ones
+    const missingFields: string[] = []
+    const fieldChecks = [
+      { name: "Company Name", value: companyName },
+      { name: "Company Type", value: companyType },
+      { name: "Contact Person Name", value: contactName },
+      { name: "Business Email", value: email },
+      { name: "Mobile Number", value: phone },
+      { name: "Password", value: password },
+      { name: "Confirm Password", value: confirm },
+      { name: "Address Line 1", value: address1 },
+      { name: "City", value: city },
+      { name: "State / Province", value: stateMy },
+      { name: "Postcode", value: postcode },
+      { name: "Country", value: country },
+      { name: "Business License No.", value: licenseNo },
+    ]
+
+    fieldChecks.forEach(({ name, value }) => {
+      if (!value) {
+        missingFields.push(name)
+        console.warn(`[Validation] Missing required field: ${name}`)
+      }
+    })
+
+    if (missingFields.length > 0) {
+      console.error(`[Validation Error] ${missingFields.length} required field(s) missing:`, missingFields)
+      const fieldList = missingFields.join(", ")
+      setError(`Missing required field(s): ${fieldList}`)
+      return
+    }
+
+    if (categories.length === 0) {
+      console.warn("[Validation] No activity categories selected")
+      setError("Please select at least one activity category."); return
+    }
+    if (password.length < 8) {
+      console.warn("[Validation] Password too short")
+      setError("Password must be at least 8 characters."); return
+    }
+    if (password !== confirm) {
+      console.warn("[Validation] Password mismatch")
+      setError("Passwords do not match."); return
+    }
+    if (!agreed) {
+      console.warn("[Validation] Declaration not accepted")
+      setError("Please accept the declaration before submitting."); return
+    }
+
+    console.log("[Validation] All validations passed, submitting form...")
     setLoading(true)
     try {
       const [licenseData, vatData] = await Promise.all([readFileData(licenseFile), readFileData(vatFile)])
