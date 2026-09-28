@@ -35,8 +35,11 @@ server {
     }
 
     # ── Company Service ──────────────────────────────────────────────
+    location = /api/companies {
+        proxy_pass http://company-service:8085/companies;
+    }
     location /api/companies/ {
-        proxy_pass http://company-service:8083/companies/;
+        proxy_pass http://company-service:8085/companies/;
     }
 
     # ── Application Service ──────────────────────────────────────────
