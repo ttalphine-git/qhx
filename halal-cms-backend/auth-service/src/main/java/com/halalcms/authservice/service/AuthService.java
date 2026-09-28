@@ -90,6 +90,7 @@ public class AuthService {
         if (role == null) return User.UserRole.OFFICE_INSPECTOR;
         return switch (role.toUpperCase()) {
             case "ADMIN", "OFFICE_ADMIN"                     -> User.UserRole.OFFICE_ADMIN;
+            case "OFFICE_MANAGER"                            -> User.UserRole.OFFICE_MANAGER;
             case "OFFICE_REVIEWER"                           -> User.UserRole.OFFICE_REVIEWER;
             case "AUDITOR"                                   -> User.UserRole.AUDITOR;
             case "SHARIA_AUDITOR"                            -> User.UserRole.SHARIA_AUDITOR;
