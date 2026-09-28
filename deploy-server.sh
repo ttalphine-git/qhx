@@ -62,8 +62,8 @@ mvn -DskipTests package
 
 echo "==> Building and restarting containers"
 cd ..
-docker compose -f docker-compose.prod.yml build --no-cache
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml build --no-cache auth-service company-service frontend
+docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate auth-service company-service frontend
 
 echo "==> Waiting for auth service to accept connections"
 for i in $(seq 1 30); do
