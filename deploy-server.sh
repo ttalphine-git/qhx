@@ -56,14 +56,29 @@ docker compose version
 echo "==> Pulling latest code"
 git pull origin main
 
-echo "==> Building backend JARs"
+APP_SERVICES="auth-service application-service inspection-service certificate-service company-service frontend"
+BACKEND_SERVICES="auth-service application-service inspection-service certificate-service company-service"
+
+echo "==> Stopping app containers to free memory for the build"
+docker compose -f docker-compose.prod.yml stop $APP_SERVICES || true
+
+export MAVEN_OPTS="${MAVEN_OPTS:-} -Xmx512m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC"
+
+echo "==> Building backend JARs one service at a time"
 cd halal-cms-backend
-mvn -DskipTests package
+for service in $BACKEND_SERVICES; do
+  echo "==> Packaging $service"
+  mvn -DskipTests -pl "$service" package
+done
 
 echo "==> Building and restarting containers"
 cd ..
-docker compose -f docker-compose.prod.yml build --no-cache auth-service company-service frontend
-docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate auth-service company-service frontend
+for service in $APP_SERVICES; do
+  echo "==> Building image for $service"
+  docker compose -f docker-compose.prod.yml build --no-cache "$service"
+done
+docker compose -f docker-compose.prod.yml up -d postgres
+docker compose -f docker-compose.prod.yml up -d --force-recreate $APP_SERVICES
 
 echo "==> Waiting for auth service to accept connections"
 for i in $(seq 1 60); do
