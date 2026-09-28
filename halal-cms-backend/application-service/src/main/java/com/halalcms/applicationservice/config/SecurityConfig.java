@@ -27,7 +27,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/auth/**"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/auth/**", "/system/**"))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/applications/small").permitAll()
