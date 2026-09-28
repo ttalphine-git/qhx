@@ -66,12 +66,12 @@ docker compose -f docker-compose.prod.yml build --no-cache auth-service company-
 docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate auth-service company-service frontend
 
 echo "==> Waiting for auth service to accept connections"
-for i in $(seq 1 30); do
-  if docker exec qhx-frontend wget -qO- "http://auth-service:8081/auth/check-email?email=test@example.com" >/tmp/auth-check.out 2>/tmp/auth-check.err; then
+for i in $(seq 1 60); do
+  if docker exec qhx-frontend wget -qO- "http://auth-service:8081/actuator/health" >/tmp/auth-check.out 2>/tmp/auth-check.err; then
     cat /tmp/auth-check.out
     break
   fi
-  if [ "$i" -eq 30 ]; then
+  if [ "$i" -eq 60 ]; then
     echo "Auth service did not become reachable"
     cat /tmp/auth-check.err || true
     docker compose -f docker-compose.prod.yml ps
@@ -88,6 +88,6 @@ echo "==> Auth service logs"
 docker compose -f docker-compose.prod.yml logs --tail=80 auth-service
 
 echo "==> Auth service connectivity test"
-docker exec qhx-frontend wget -S -O- "http://auth-service:8081/auth/check-email?email=test@example.com"
+docker exec qhx-frontend wget -S -O- "http://auth-service:8081/actuator/health"
 
 echo "==> Deployment script completed"

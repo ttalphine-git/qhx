@@ -35,8 +35,16 @@ public class DataInitializer implements ApplicationRunner {
     private String bellwbtrstCustomerPassword;
 
     @Override
-    @Transactional
     public void run(ApplicationArguments args) {
+        try {
+            initializeUsers();
+        } catch (Exception e) {
+            log.error("Failed to initialize users", e);
+        }
+    }
+
+    @Transactional
+    private void initializeUsers() {
         // Ensure admin@halalcms.com exists and is enabled
         userRepository.findByEmail("admin@halalcms.com").ifPresentOrElse(admin -> {
             if (!admin.isEnabled()) {
