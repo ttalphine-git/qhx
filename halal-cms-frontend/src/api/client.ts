@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const apiClient = axios.create({ baseURL: '/api' })
+const apiClient = axios.create({ baseURL: '' })
 
 apiClient.interceptors.request.use(config => {
   const token = localStorage.getItem('hcs_token')
