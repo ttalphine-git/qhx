@@ -31,9 +31,15 @@ jwt:
   secret: ${JWT_SECRET:changeme-use-256-bit-secret-in-production}
 eureka:
   client:
-    enabled: true
-    service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
-  instance:
-    prefer-ip-address: true
-    hostname: localhost
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always

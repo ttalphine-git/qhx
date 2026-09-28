@@ -15,6 +15,15 @@ spring:
       ddl-auto: update
     open-in-view: false
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
 jwt:
   secret: ${JWT_SECRET:changeme-use-256-bit-secret-in-production}
   access-token-expiry: 28800
