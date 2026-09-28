@@ -68,7 +68,7 @@ echo "==> Building backend JARs one service at a time"
 cd halal-cms-backend
 for service in $BACKEND_SERVICES; do
   echo "==> Packaging $service"
-  mvn -DskipTests -pl "$service" package
+  mvn -DskipTests -pl "$service" clean package
 done
 
 echo "==> Building and restarting containers"
