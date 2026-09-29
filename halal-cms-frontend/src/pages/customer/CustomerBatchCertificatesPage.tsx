@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import {
-  Plus, Eye, AlertCircle, CheckCircle, XCircle, Clock, Loader
+  Plus, Eye, AlertCircle, CheckCircle, XCircle, Clock, Loader, ArrowLeft
 } from "lucide-react"
-import CustomerLayout from "./CustomerLayout"
 import { useAuthStore } from "@/store/authStore"
 
 interface BatchRequest {
@@ -115,10 +114,19 @@ export default function CustomerBatchCertificatesPage() {
   const totalPages = Math.ceil(totalElements / 20)
 
   return (
-    <CustomerLayout>
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Batch Certificates</h1>
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/customer")}
+              className="p-2 hover:bg-gray-100 rounded-lg transition"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <h1 className="text-2xl font-bold">Batch Certificates</h1>
+          </div>
           <button
             onClick={() => navigate("/customer/batch-certificates/new")}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -127,6 +135,12 @@ export default function CustomerBatchCertificatesPage() {
             New Request
           </button>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="p-6">
+          <div className="mb-8">
 
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-8">
@@ -272,7 +286,8 @@ export default function CustomerBatchCertificatesPage() {
             </button>
           </div>
         )}
+        </div>
       </div>
-    </CustomerLayout>
+    </div>
   )
 }
