@@ -140,8 +140,6 @@ export default function CustomerBatchCertificatesPage() {
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         <div className="p-6">
-          <div className="mb-8">
-
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-4 rounded-lg shadow">
@@ -286,8 +284,8 @@ export default function CustomerBatchCertificatesPage() {
             </button>
           </div>
         )}
-        </div>
       </div>
+    </div>
     </div>
   )
 }

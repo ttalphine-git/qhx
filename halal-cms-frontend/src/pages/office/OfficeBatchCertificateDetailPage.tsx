@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Loader, AlertCircle, CheckCircle, XCircle } from "lucide-react"
+import OfficeLayout from "./OfficeLayout"
 
 interface BatchRequestDetail {
   id: number
