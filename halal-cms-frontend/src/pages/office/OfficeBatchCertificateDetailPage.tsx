@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Loader, AlertCircle, CheckCircle, XCircle } from "lucide-react"
-import OfficeLayout from "./OfficeLayout"
 
 interface BatchRequestDetail {
   id: number
@@ -178,15 +177,23 @@ export default function OfficeBatchCertificateDetailPage() {
   }
 
   return (
-    <OfficeLayout title="Batch Certificate Detail">
-      <div className="max-w-6xl mx-auto p-6">
-        <button
-          onClick={() => navigate("/office/batch-certificates")}
-          className="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-700"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Batch Certificates
-        </button>
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-6 py-4 flex items-center gap-4">
+          <button
+            onClick={() => navigate("/office/batch-certificates")}
+            className="p-2 hover:bg-gray-100 rounded-lg transition"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <h1 className="text-2xl font-bold">Batch Certificate Detail</h1>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="p-6">
 
         {/* Header */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -450,7 +457,8 @@ export default function OfficeBatchCertificateDetailPage() {
             </div>
           </div>
         )}
+        </div>
       </div>
-    </OfficeLayout>
+    </div>
   )
 }

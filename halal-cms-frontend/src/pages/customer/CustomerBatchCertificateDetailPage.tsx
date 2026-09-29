@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Loader, AlertCircle, CheckCircle, Copy } from "lucide-react"
-import CustomerLayout from "./CustomerLayout"
 
 interface BatchRequestDetail {
   id: number
@@ -93,44 +92,54 @@ export default function CustomerBatchCertificateDetailPage() {
 
   if (loading) {
     return (
-      <CustomerLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader className="w-8 h-8 animate-spin text-blue-600" />
-        </div>
-      </CustomerLayout>
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <Loader className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
     )
   }
 
   if (error || !request) {
     return (
-      <CustomerLayout>
-        <div className="max-w-4xl mx-auto p-6">
-          <button
-            onClick={() => navigate("/customer/batch-certificates")}
-            className="mb-4 flex items-center gap-2 text-blue-600 hover:text-blue-700"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </button>
+      <div className="h-screen flex flex-col bg-gray-50">
+        <div className="bg-white border-b border-gray-200">
+          <div className="px-6 py-4 flex items-center gap-4">
+            <button
+              onClick={() => navigate("/customer/batch-certificates")}
+              className="p-2 hover:bg-gray-100 rounded-lg transition"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <h1 className="text-2xl font-bold">Batch Certificate Detail</h1>
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-center p-6">
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <p className="text-red-700">{error}</p>
           </div>
         </div>
-      </CustomerLayout>
+      </div>
     )
   }
 
   return (
-    <CustomerLayout>
-      <div className="max-w-4xl mx-auto p-6">
-        <button
-          onClick={() => navigate("/customer/batch-certificates")}
-          className="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-700"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Batch Certificates
-        </button>
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-6 py-4 flex items-center gap-4">
+          <button
+            onClick={() => navigate("/customer/batch-certificates")}
+            className="p-2 hover:bg-gray-100 rounded-lg transition"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <h1 className="text-2xl font-bold">Batch Certificate Detail</h1>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="p-6">
 
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex justify-between items-start mb-4">
@@ -352,7 +361,8 @@ export default function CustomerBatchCertificateDetailPage() {
             </p>
           )}
         </div>
+        </div>
       </div>
-    </CustomerLayout>
+    </div>
   )
 }
