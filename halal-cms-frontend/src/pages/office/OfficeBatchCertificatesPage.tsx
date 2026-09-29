@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Eye, CheckCircle, XCircle, Clock, AlertCircle, Download, Loader } from "lucide-react"
-import OfficeLayout from "./OfficeLayout"
+import { Eye, CheckCircle, XCircle, Clock, AlertCircle, Download, Loader, ArrowLeft } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 
 interface BatchRequest {
@@ -135,10 +134,26 @@ export default function OfficeBatchCertificatesPage() {
   const totalPages = Math.ceil(totalElements / 20)
 
   return (
-    <OfficeLayout title="Batch Certificates">
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">Batch Certificate Management</h1>
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/office")}
+              className="p-2 hover:bg-gray-100 rounded-lg transition"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <h1 className="text-2xl font-bold">Batch Certificate Management</h1>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="p-6">
+          <div className="mb-8">
 
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -319,7 +334,8 @@ export default function OfficeBatchCertificatesPage() {
             </button>
           </div>
         )}
+        </div>
       </div>
-    </OfficeLayout>
+    </div>
   )
 }
