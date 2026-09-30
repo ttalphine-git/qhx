@@ -15,6 +15,7 @@ const NAV_ITEMS = [
 ]
 
 const SETTINGS_ITEMS = [
+  { label: "Applications List",  sub: "Browse all customer applications",  path: "/office/applications-list" },
   { label: "Audit Trail",       sub: "View system activity logs",     path: "/office/audit-trail" },
   { label: "Audit Reports",     sub: "Configure category questions",  path: "/office/settings?tab=audits" },
   { label: "Advanced Settings",  sub: "Portal configuration",          path: "/office/settings?tab=scope"      },
