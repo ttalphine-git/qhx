@@ -31,8 +31,10 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/applications/small").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/applications").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/applications").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/applications/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/applications/**").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/applications/**").authenticated()
                         .requestMatchers("/auth/**", "/api/auth/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/error").permitAll()
