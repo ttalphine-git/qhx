@@ -224,6 +224,7 @@ const fmtSize = (b:number) => b<1048576?`${(b/1024).toFixed(1)} KB`:`${(b/104857
 function ReadOnlyFactoryCard({ f, idx }: { f:AppFactory; idx:number }) {
   const lat = f.lat || "3.1390"
   const lng = f.lng || "101.6869"
+  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${(parseFloat(lng)-0.08).toFixed(4)},${(parseFloat(lat)-0.06).toFixed(4)},${(parseFloat(lng)+0.08).toFixed(4)},${(parseFloat(lat)+0.06).toFixed(4)}&layer=mapnik&marker=${lat},${lng}`
   return (
     <div style={{ border:"1px solid #e2e8f0", borderRadius:10, overflow:"hidden", marginBottom:12 }}>
       <div style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 14px", background:"#f8fafc", borderBottom:"1px solid #e2e8f0" }}>
@@ -256,17 +257,9 @@ function ReadOnlyFactoryCard({ f, idx }: { f:AppFactory; idx:number }) {
             </>
           )}
         </div>
-        <div style={{ width:"55%", flexShrink:0, minHeight:200, background:"#eff6ff", display:"flex", alignItems:"center", justifyContent:"center", padding:18 }}>
-          <div style={{ width:"100%", height:"100%", minHeight:164, border:"1px solid #bfdbfe", borderRadius:10, background:"#fff", display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", gap:8, textAlign:"center" as const, padding:18 }}>
-            <Globe size={24} color={BLUE} />
-            <div style={{ fontSize:"0.78rem", fontWeight:800, color:DARK }}>{f.city || "Factory Location"}</div>
-            <div style={{ fontSize:"0.72rem", color:"#64748b", lineHeight:1.5 }}>
-              {f.address || f.country || "Registered factory address"}
-            </div>
-            <div style={{ marginTop:4, fontSize:"0.68rem", color:"#2563eb", fontWeight:700 }}>
-              {lat}, {lng}
-            </div>
-          </div>
+        {/* Right: map */}
+        <div style={{ width:"55%", flexShrink:0 }}>
+          <iframe src={mapSrc} style={{ width:"100%", height:"100%", minHeight:200, border:"none", display:"block" }} title={`Factory ${idx+1}`} />
         </div>
       </div>
     </div>
