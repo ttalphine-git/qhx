@@ -178,23 +178,19 @@ export default function OfficeBatchCertificateDetailPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-4 flex items-center gap-4">
+    <OfficeLayout title="Batch Certificate Detail">
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="mb-6 flex items-center gap-4">
           <button
             onClick={() => navigate("/office/batch-certificates")}
             className="p-2 hover:bg-gray-100 rounded-lg transition"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-2xl font-bold">Batch Certificate Detail</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Batch Certificate Detail</h1>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-6">
+        <div className="space-y-6">
 
         {/* Header */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -460,6 +456,6 @@ export default function OfficeBatchCertificateDetailPage() {
         )}
         </div>
       </div>
-    </div>
+    </OfficeLayout>
   )
 }
