@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { Search, ChevronLeft, ChevronRight, Eye, Loader } from "lucide-react"
+import { Search, ChevronLeft, ChevronRight, Eye, Loader, Plus } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import OfficeLayout from "./OfficeLayout"
 import { getApplications, type ApplicationResponseDTO } from "@/api/applications"
@@ -46,9 +46,18 @@ export default function OfficeApplicationsListPage() {
   return (
     <OfficeLayout>
       <div className="p-6 bg-gray-50 min-h-screen">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">All Applications</h1>
-          <p className="text-gray-600">Browse and manage customer applications</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">All Applications</h1>
+            <p className="text-gray-600">Browse and manage customer applications</p>
+          </div>
+          <button
+            onClick={() => navigate("/office/applications-list/new")}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+          >
+            <Plus className="w-5 h-5" />
+            New Application
+          </button>
         </div>
 
         {/* Filters */}
