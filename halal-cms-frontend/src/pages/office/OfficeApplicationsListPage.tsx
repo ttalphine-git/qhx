@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query"
 import { Search, ChevronLeft, ChevronRight, Eye, Loader, Plus } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import OfficeLayout from "./OfficeLayout"
-import { getApplications, type ApplicationResponseDTO } from "@/api/applications"
+import { getApplications } from "@/api/applications"
 import { getStatusStyle, formatDate } from "@/lib/utils"
+import type { ApplicationResponseDTO, ApplicationStatus } from "@/types"
 
 export default function OfficeApplicationsListPage() {
   const navigate = useNavigate()
