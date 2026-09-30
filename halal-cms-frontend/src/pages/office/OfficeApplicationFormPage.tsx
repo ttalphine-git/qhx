@@ -26,10 +26,10 @@ export default function OfficeApplicationFormPage() {
     e.preventDefault()
 
     if (!formData.companyName || !formData.email || !formData.phone) {
-      addNotification({
+      addNotification("office", {
         type: "error",
         title: "Missing Fields",
-        message: "Please fill in all required fields",
+        body: "Please fill in all required fields",
       })
       return
     }
@@ -37,17 +37,17 @@ export default function OfficeApplicationFormPage() {
     setLoading(true)
     try {
       const result = await createApplication()
-      addNotification({
+      addNotification("office", {
         type: "success",
         title: "Application Created",
-        message: `New application ${result.applicationNumber} created successfully`,
+        body: `New application ${result.applicationNumber} created successfully`,
       })
       navigate(`/office/applications/${result.id}`)
     } catch (error) {
-      addNotification({
+      addNotification("office", {
         type: "error",
         title: "Failed",
-        message: "Could not create application. Please try again.",
+        body: "Could not create application. Please try again.",
       })
     } finally {
       setLoading(false)
