@@ -12,8 +12,8 @@ export const getApplications = (p?: { statuses?: string; search?: string; page?:
 export const getApplication = (id: number) =>
   apiClient.get<ApplicationResponseDTO>(`/applications/${id}`).then(r => r.data)
 
-export const createApplication = () =>
-  apiClient.post<ApplicationResponseDTO>('/applications').then(r => r.data)
+export const createApplication = (payload: Record<string, unknown>) =>
+  apiClient.post<ApplicationResponseDTO>('/applications', payload).then(r => r.data)
 
 export const deleteApplication = (id: number) =>
   apiClient.delete(`/applications/${id}`).then(r => r.data)
