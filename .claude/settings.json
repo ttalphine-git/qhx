@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "do-apps": {
+      "url": "https://apps.mcp.digitalocean.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${DO_API_TOKEN}"
+      }
+    },
+    "do-droplets": {
+      "url": "https://droplets.mcp.digitalocean.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${DO_API_TOKEN}"
+      }
+    }
+  }
+}
