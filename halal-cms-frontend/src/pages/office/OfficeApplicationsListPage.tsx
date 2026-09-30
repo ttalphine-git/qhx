@@ -3,31 +3,24 @@ import { useQuery } from "@tanstack/react-query"
 import { Search, ChevronLeft, ChevronRight, Eye, Loader } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import OfficeLayout from "./OfficeLayout"
-import { getApplications } from "@/api/applications"
+import { getApplications, type ApplicationResponseDTO } from "@/api/applications"
 import { getStatusStyle, formatDate } from "@/lib/utils"
-import type { ApplicationStatus } from "@/types"
-
-interface Application {
-  id: number
-  companyName: string
-  status: ApplicationStatus
-  submittedAt: string
-  approvedAt?: string
-  totalFee: number
-  paymentStatus: string
-}
 
 export default function OfficeApplicationsListPage() {
   const navigate = useNavigate()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "">("")
+  const [statusFilter, setStatusFilter] = useState<string>("")
 
   const { data, isLoading } = useQuery({
     queryKey: ["office-applications", page, search, statusFilter],
     queryFn: async () => {
-      const status = statusFilter || undefined
-      const result = await getApplications(status, search, page, 20)
+      const result = await getApplications({
+        statuses: statusFilter || undefined,
+        search: search || undefined,
+        page,
+        size: 20,
+      })
       return result
     },
   })
@@ -36,7 +29,7 @@ export default function OfficeApplicationsListPage() {
   const totalElements = data?.totalElements || 0
   const totalPages = Math.ceil(totalElements / 20)
 
-  const statuses: ApplicationStatus[] = [
+  const statuses = [
     "DRAFT",
     "SUBMITTED",
     "UNDER_REVIEW",
@@ -46,6 +39,8 @@ export default function OfficeApplicationsListPage() {
     "AUDIT_IN_PROGRESS",
     "CERTIFIED",
     "REJECTED",
+    "SUSPENDED",
+    "EXPIRED",
   ]
 
   return (
@@ -119,16 +114,13 @@ export default function OfficeApplicationsListPage() {
                       Company
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                      App #
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Submitted
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Fee
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Payment
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Action
@@ -136,9 +128,10 @@ export default function OfficeApplicationsListPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {applications.map((app: Application) => (
+                  {applications.map((app: ApplicationResponseDTO) => (
                     <tr key={app.id} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{app.companyName}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{app.applicationNumber}</td>
                       <td className="px-6 py-4 text-sm">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(app.status)}`}
@@ -148,20 +141,6 @@ export default function OfficeApplicationsListPage() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {app.submittedAt ? formatDate(app.submittedAt) : "Not submitted"}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        AED {app.totalFee?.toFixed(2) || "0.00"}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${
-                            app.paymentStatus === "PAID"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-orange-100 text-orange-800"
-                          }`}
-                        >
-                          {app.paymentStatus}
-                        </span>
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <button
