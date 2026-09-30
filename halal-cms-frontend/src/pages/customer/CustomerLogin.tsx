@@ -57,7 +57,7 @@ export default function CustomerLogin() {
         role: data.role, status: "ACTIVE", createdAt: new Date().toISOString(),
         organization: email === "company@example.com" ? "Al-Barakah Food Co." : undefined,
       }
-      setAuth(data.accessToken, user)
+      setAuth(data.accessToken, user, data.refreshToken, data.expiresIn)
       navigate("/customer/dashboard")
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message

@@ -91,7 +91,7 @@ export default function OfficeRegister() {
         role: data.role,
         status: "ACTIVE",
         createdAt: new Date().toISOString(),
-      })
+      }, data.refreshToken, data.expiresIn)
       navigate("/office/dashboard")
     } catch (err: unknown) {
       const axErr = err as { response?: { status?: number; data?: { message?: string } }; message?: string }

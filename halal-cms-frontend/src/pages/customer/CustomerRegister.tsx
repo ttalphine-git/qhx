@@ -370,7 +370,7 @@ export default function CustomerRegister() {
         createdAt: new Date().toISOString(),
         organization: companyName,
         phone,
-      })
+      }, auth.refreshToken, auth.expiresIn)
       await createCompany({
         registrationNumber: licenseNo,
         name: companyName,
@@ -1034,6 +1034,5 @@ export default function CustomerRegister() {
     </div>
   )
 }
-
 
 

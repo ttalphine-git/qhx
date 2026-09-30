@@ -48,7 +48,7 @@ export default function OfficeLogin() {
         status: "ACTIVE",
         createdAt: new Date().toISOString(),
       }
-      setAuth(data.accessToken, user)
+      setAuth(data.accessToken, user, data.refreshToken, data.expiresIn)
       navigate("/office/dashboard")
     } catch (err: unknown) {
       const axErr = err as { response?: { status?: number; data?: { message?: string } }; message?: string }
