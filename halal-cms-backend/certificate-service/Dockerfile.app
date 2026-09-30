@@ -10,7 +10,7 @@ WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=builder /workspace/certificate-service/target/*.jar app.jar
-
+##
 RUN mkdir -p /app/uploads && chown -R appuser:appgroup /app
 USER appuser
 
