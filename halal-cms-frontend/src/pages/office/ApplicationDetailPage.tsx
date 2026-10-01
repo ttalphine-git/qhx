@@ -1068,14 +1068,15 @@ export default function ApplicationDetailPage() {
 
       </div>
 
-      {/* Progress Timeline */}
-      <div style={{ background: C.white, border: `1px solid ${C.border}`, borderTop: 'none', padding: '16px 20px', marginTop: -1 }}>
-        <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Application Progress</p>
-        <StatusPipeline currentStatus={app.status} />
-      </div>
-
       {/* Tabs - Connected to header */}
       <div style={{ background: C.white, border: `1px solid ${C.border}`, borderTop: 'none', boxShadow: C.cardShadow, borderRadius: '0 0 12px 12px', overflow: 'hidden', marginTop: -1 }}>
+
+        {/* Progress Timeline */}
+        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${C.border}` }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Application Progress</p>
+          <StatusPipeline currentStatus={app.status} />
+        </div>
+
         <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}`, overflowX: 'auto' }}>
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
