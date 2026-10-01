@@ -8,10 +8,10 @@ import OnboardingWizard from "@/components/OnboardingWizard"
 import { isOnboardingComplete } from "@/lib/onboarding"
 
 const NAV_ITEMS = [
-  { label: "Dashboard",    path: "/office/dashboard"    },
-  { label: "Customers",    path: "/office/customers"    },
-  { label: "Applications", path: "/office/applications" },
-  { label: "Audits",       path: "/office/audits"       },
+  { label: "Dashboard",              path: "/office/dashboard"              },
+  { label: "Customers",              path: "/office/customers"              },
+  { label: "Factory Applications",   path: "/office/applications"           },
+  { label: "Batch Applications",     path: "/office/batch-applications"     },
 ]
 
 const SETTINGS_ITEMS = [

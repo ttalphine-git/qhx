@@ -6,6 +6,7 @@ import ApplicationsPage from "./pages/office/ApplicationsPage";
 import ApplicationDetailPage from "./pages/office/ApplicationDetailPage";
 import OfficeApplicationsListPage from "./pages/office/OfficeApplicationsListPage";
 import OfficeApplicationFormPage from "./pages/office/OfficeApplicationFormPage";
+import OfficeBatchApplicationsPage from "./pages/office/OfficeBatchApplicationsPage";
 import UsersPage from "./pages/office/UsersPage"
 import CustomerManagementPage from "./pages/office/CustomerManagementPage"
 import OfficeCustomerDetailPage from "./pages/office/OfficeCustomerDetailPage"
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/office/applications-list" element={<OfficeApplicationsListPage />} />
         <Route path="/office/applications-list/new" element={<OfficeApplicationFormPage />} />
         <Route path="/office/applications/:id" element={<ApplicationDetailPage />} />
+        <Route path="/office/batch-applications" element={<OfficeBatchApplicationsPage />} />
         <Route path="/office/batch-certificates" element={<OfficeBatchCertificatesPage />} />
         <Route path="/office/batch-certificates/:id" element={<OfficeBatchCertificateDetailPage />} />
         <Route path="/office/users" element={<UsersPage />} />
