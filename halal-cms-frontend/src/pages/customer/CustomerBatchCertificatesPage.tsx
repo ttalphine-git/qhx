@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { Search, RefreshCw, Eye, Loader, FileText, Download } from "lucide-react"
+import { Search, RefreshCw, Eye, Loader, FileText, Download, Zap, FilePlus2, CalendarDays, ShieldCheck, CircleHelp, Headphones, ChevronRight } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import CustomerLayout from "./CustomerLayout"
 
@@ -16,12 +16,19 @@ interface Certificate {
 const F = "'Inter', system-ui, sans-serif"
 const NAV = "#0f2170"
 const BLUE = "#2563eb"
+const TEXT = "#0f172a"
 
 const STATS = [
   { label: "Total", value: 0, bg: "#1e3a8a" },
   { label: "Active", value: 0, bg: "#15803d" },
   { label: "Expiring", value: 0, bg: "#b45309" },
   { label: "Expired", value: 0, bg: "#64748b" },
+]
+
+const quickActions = [
+  { label: "Apply for New Certificate", helper: "Start a new batch certificate application", icon: FilePlus2, color: "#0b5ed7", path: "/customer/batch-certificates/new" },
+  { label: "View My Applications", helper: "Track your application status", icon: CalendarDays, color: "#2563eb", path: "/customer/applications" },
+  { label: "My Factories", helper: "Manage your registered factories", icon: ShieldCheck, color: "#7c3aed", path: "/customer/factories" },
 ]
 
 export default function CustomerBatchCertificatesPage() {
@@ -65,7 +72,8 @@ export default function CustomerBatchCertificatesPage() {
 
   return (
     <CustomerLayout title="Batch Certificates">
-      <div style={{ fontFamily: F, padding: "18px 24px" }}>
+      <div style={{ fontFamily: F, padding: "18px 24px", display: "grid", gridTemplateColumns: "1fr 320px", gap: 20 }}>
+        <div>
         {/* Page Header */}
         <div
           style={{
@@ -356,6 +364,61 @@ export default function CustomerBatchCertificatesPage() {
               )}
             </tbody>
           </table>
+        </div>
+        </div>
+
+        {/* Sidebar */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Quick Actions */}
+          <div
+            style={{
+              background: "linear-gradient(180deg, rgba(255,255,255,0.9), rgba(237,245,255,0.88))",
+              border: "1px solid rgba(199, 223, 247, 0.78)",
+              borderRadius: 12,
+              padding: "16px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            }}
+          >
+            <h3 style={{ margin: "0 0 12px", color: TEXT, fontSize: "0.95rem", fontWeight: 850, display: "flex", alignItems: "center", gap: 8 }}>
+              <Zap size={17} color="#0b5ed7" fill="#0b5ed7" />Quick Actions
+            </h3>
+            <div style={{ display: "grid", gap: 8 }}>
+              {quickActions.map(({ label, helper, icon: Icon, color, path }) => (
+                <button key={label} onClick={() => navigate(path)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: "1px solid #e7eff9", background: "rgba(255, 255, 255, 0.88)", cursor: "pointer", textAlign: "left", fontFamily: F }}>
+                  <span style={{ width: 34, height: 34, borderRadius: 10, background: `${color}14`, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                    <Icon size={16} color={color} strokeWidth={2.4} />
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: "block", color: "#152238", fontSize: "0.7rem", fontWeight: 800 }}>{label}</span>
+                    <span style={{ display: "block", color: "#63758f", fontSize: "0.6rem", marginTop: 2 }}>{helper}</span>
+                  </span>
+                  <ChevronRight size={15} color="#44617e" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Need Help */}
+          <div
+            style={{
+              background: "#fff",
+              border: "1px solid rgba(199, 223, 247, 0.78)",
+              borderRadius: 12,
+              padding: "16px",
+              textAlign: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            }}
+          >
+            <CircleHelp size={22} color={NAV} style={{ margin: "0 auto 8px", display: "block" }} />
+            <h3 style={{ margin: "0 0 6px", color: TEXT, fontSize: "0.9rem", fontWeight: 850 }}>Need Help?</h3>
+            <p style={{ margin: "0 auto 12px", color: "#5d6f86", lineHeight: 1.55, fontSize: "0.68rem" }}>
+              If you have any questions about your batch certificates, please contact our support team.
+            </p>
+            <button style={{ width: "100%", height: 36, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, border: "1px solid #0f2170", borderRadius: 6, background: "#fff", color: "#0f2170", fontWeight: 800, fontSize: "0.7rem", cursor: "pointer", fontFamily: F }}>
+              <Headphones size={14} />
+              Contact Support
+            </button>
+          </div>
         </div>
       </div>
     </CustomerLayout>
