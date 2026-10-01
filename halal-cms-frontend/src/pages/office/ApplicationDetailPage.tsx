@@ -686,12 +686,12 @@ export default function ApplicationDetailPage() {
   async function approveApplication() {
     try {
       setIsApproving(true)
-      await updateApplicationStatus(id, 'APPROVED')
-      toast.success('Application approved successfully')
+      await updateApplicationStatus(id, 'CERTIFIED')
+      toast.success('Application certified successfully')
       appQ.refetch()
     } catch (error) {
-      console.error('Failed to approve application', error)
-      toast.error('Failed to approve application')
+      console.error('Failed to certify application', error)
+      toast.error('Failed to certify application')
     } finally {
       setIsApproving(false)
     }
