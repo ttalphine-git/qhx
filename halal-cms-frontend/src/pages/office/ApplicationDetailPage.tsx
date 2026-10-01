@@ -8,7 +8,7 @@ import {
   Award, Plus, Trash2, Save, ChevronDown, ChevronUp, CheckSquare, Square, X, Search,
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { getApplication, getCompanyInfo, getServiceInfo, getApplicationDocuments, getPaymentStatus, getEventLogs } from '@/api/applications'
+import { getApplication, getCompanyInfo, getServiceInfo, getApplicationDocuments, getPaymentStatus, getEventLogs, updateApplicationStatus } from '@/api/applications'
 import {
   getApplicationAuditReport,
   getAuditReportConfigurations,
@@ -679,6 +679,38 @@ export default function ApplicationDetailPage() {
   const [invoice, setInvoice] = useState<Invoice | null>(() => loadInvoiceByApp(id))
   const billing = loadApplicationBilling(id)
 
+  // Approval / Rejection
+  const [isApproving, setIsApproving] = useState(false)
+  const [isRejecting, setIsRejecting] = useState(false)
+
+  async function approveApplication() {
+    try {
+      setIsApproving(true)
+      await updateApplicationStatus(id, 'APPROVED')
+      toast.success('Application approved successfully')
+      appQ.refetch()
+    } catch (error) {
+      console.error('Failed to approve application', error)
+      toast.error('Failed to approve application')
+    } finally {
+      setIsApproving(false)
+    }
+  }
+
+  async function rejectApplication() {
+    try {
+      setIsRejecting(true)
+      await updateApplicationStatus(id, 'REJECTED')
+      toast.success('Application rejected successfully')
+      appQ.refetch()
+    } catch (error) {
+      console.error('Failed to reject application', error)
+      toast.error('Failed to reject application')
+    } finally {
+      setIsRejecting(false)
+    }
+  }
+
   function handleCreateInvoice() {
     if (!billing || !app) return
     const inv = createInvoiceFromBilling({ ...billing, applicationId: String(id), applicationNumber: app.applicationNumber })
@@ -1035,9 +1067,18 @@ export default function ApplicationDetailPage() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button style={{ padding: '6px 14px', fontSize: 12, fontWeight: 600, background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, cursor: 'pointer', color: C.muted }}>Reject</button>
-            <button style={{ padding: '6px 14px', fontSize: 12, fontWeight: 600, background: '#107c10', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Approve</button>
-            <button style={{ padding: '6px 14px', fontSize: 12, fontWeight: 600, background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, cursor: 'pointer', color: C.muted }}>×</button>
+            <button
+              onClick={rejectApplication}
+              disabled={isRejecting || isApproving}
+              style={{ padding: '6px 14px', fontSize: 12, fontWeight: 600, background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, cursor: isRejecting || isApproving ? 'not-allowed' : 'pointer', color: C.muted, opacity: isRejecting || isApproving ? 0.6 : 1 }}>
+              {isRejecting ? 'Rejecting...' : 'Reject'}
+            </button>
+            <button
+              onClick={approveApplication}
+              disabled={isApproving || isRejecting}
+              style={{ padding: '6px 14px', fontSize: 12, fontWeight: 600, background: '#107c10', color: '#fff', border: 'none', borderRadius: 6, cursor: isApproving || isRejecting ? 'not-allowed' : 'pointer', opacity: isApproving || isRejecting ? 0.7 : 1 }}>
+              {isApproving ? 'Approving...' : 'Approve'}
+            </button>
           </div>
         </div>
 
