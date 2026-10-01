@@ -1,185 +1,361 @@
 import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { Search, RefreshCw, Eye, Loader, FileText, Download } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import {
-  CalendarDays,
-  ChevronDown,
-  ChevronRight,
-  CircleHelp,
-  Clock3,
-  FilePlus2,
-  FileText,
-  Filter,
-  Grid2X2,
-  Headphones,
-  LayoutList,
-  Plus,
-  Search,
-  ShieldCheck,
-  XCircle,
-  Zap,
-} from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
 
-const F = "'Inter', system-ui, sans-serif"
-const NAVY = "#0f2170"
-const BLUE = "#0b5ed7"
-const SOFT_BLUE = "#edf5ff"
-const TEXT = "#0f172a"
-const MUTED = "#5c6f85"
-
-const stats = [
-  { label: "Total Certificates", helper: "All issued batch certificates", value: 0, icon: FileText, accent: "#0b5ed7", bg: "#e8f2ff" },
-  { label: "Valid Certificates", helper: "Currently active", value: 0, icon: ShieldCheck, accent: "#2563eb", bg: "#eaf1ff" },
-  { label: "Expiring Soon", helper: "Within 3 months", value: 0, icon: Clock3, accent: "#b45309", bg: "#fff4df" },
-  { label: "Expired Certificates", helper: "No longer valid", value: 0, icon: XCircle, accent: "#dc2626", bg: "#feeaea" },
-]
-
-const quickActions = [
-  { label: "Apply for New Certificate", helper: "Start a new batch certificate application", icon: FilePlus2, color: "#0b5ed7", path: "/customer/batch-certificates/new" },
-  { label: "View My Applications", helper: "Track your application status", icon: CalendarDays, color: "#2563eb", path: "/customer/applications" },
-  { label: "My Factories", helper: "Manage your registered factories", icon: ShieldCheck, color: "#7c3aed", path: "/customer/factories" },
-]
-
-function HeroArtwork() {
-  return (
-    <div className="batch-hero-art" aria-hidden="true">
-      <div className="batch-sky" />
-      <div className="batch-dome dome-one" />
-      <div className="batch-dome dome-two" />
-      <div className="batch-minaret" />
-      <div className="batch-leaf leaf-one" />
-      <div className="batch-leaf leaf-two" />
-      <div className="batch-cert-card">
-        <div style={{ fontWeight: 850, color: NAVY, fontSize: 18, lineHeight: 1.1 }}>HALAL<br />CERTIFICATE</div>
-        <div style={{ height: 7, background: "#dce7f4", borderRadius: 99, marginTop: 20, width: "74%" }} />
-        <div style={{ height: 7, background: "#dce7f4", borderRadius: 99, marginTop: 9, width: "88%" }} />
-        <div style={{ height: 7, background: "#dce7f4", borderRadius: 99, marginTop: 9, width: "58%" }} />
-        <div className="batch-seal">★</div>
-      </div>
-    </div>
-  )
+interface Certificate {
+  id: number
+  certificateNumber: string
+  status: string
+  companyName: string
+  expiryDate?: string
+  halalStandard?: string
 }
+
+const F = "'Inter', system-ui, sans-serif"
+const NAV = "#0f2170"
+const BLUE = "#2563eb"
+
+const STATS = [
+  { label: "Total", value: 0, bg: "#1e3a8a" },
+  { label: "Active", value: 0, bg: "#15803d" },
+  { label: "Expiring", value: 0, bg: "#b45309" },
+  { label: "Expired", value: 0, bg: "#64748b" },
+]
 
 export default function CustomerBatchCertificatesPage() {
   const navigate = useNavigate()
+  const [page, setPage] = useState(0)
   const [search, setSearch] = useState("")
-  const [view, setView] = useState<"list" | "grid">("list")
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["customer-batch-certificates", page, search],
+    queryFn: async () => {
+      return {
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+      }
+    },
+  })
+
+  const certificates = data?.content || []
+  const totalElements = data?.totalElements || 0
+
+  function getStatusColor(status: string) {
+    switch (status) {
+      case "ACTIVE":
+        return { bg: "#dcfce7", color: "#15803d" }
+      case "EXPIRING_SOON":
+        return { bg: "#fef3c7", color: "#b45309" }
+      case "EXPIRED":
+        return { bg: "#fee2e2", color: "#dc2626" }
+      default:
+        return { bg: "#f3f4f6", color: "#64748b" }
+    }
+  }
+
+  const stats_display = [
+    { ...STATS[0], value: totalElements },
+    { ...STATS[1], value: 0 },
+    { ...STATS[2], value: 0 },
+    { ...STATS[3], value: 0 },
+  ]
 
   return (
     <CustomerLayout title="Batch Certificates">
-      <div className="batch-page" style={{ fontFamily: F }}>
-        <section className="batch-hero">
-          <div className="batch-hero-copy">
-            <p style={{ margin: "0 0 8px", color: "#4b5563", fontSize: "0.83rem", fontWeight: 850, letterSpacing: "0.14em", textTransform: "uppercase" }}>Batch Certificates</p>
-            <h1 style={{ margin: 0, color: "#09204f", fontSize: "clamp(1.5rem, 3vw, 2.8rem)", lineHeight: 1.04, fontWeight: 900, letterSpacing: "-0.045em" }}>
-              Your Halal Certifications<br />
-              in <span style={{ color: BLUE }}>One Place</span>
-            </h1>
-            <p style={{ margin: "12px 0 0", color: "#405779", maxWidth: 760, fontSize: "clamp(0.8rem, 1.1vw, 0.95rem)", lineHeight: 1.55 }}>
-              View, download, and manage all batch certificates issued by HalalCMS. Keep your certifications organized, secure, and always accessible.
-            </p>
+      <div style={{ fontFamily: F, padding: "18px 24px" }}>
+        {/* Page Header */}
+        <div
+          style={{
+            background: "#fff",
+            borderBottom: "1px solid #e9ecef",
+            padding: "18px 24px 0",
+            marginBottom: 20,
+            borderRadius: "12px 12px 0 0",
+            border: "1px solid #e9ecef",
+          }}
+        >
+          {/* Title and Stats */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 16,
+            }}
+          >
+            <div>
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: "1.1rem",
+                  fontWeight: 800,
+                  color: "#0f172a",
+                }}
+              >
+                Batch Certificates
+              </h1>
+              <p
+                style={{
+                  margin: "3px 0 0",
+                  fontSize: "0.72rem",
+                  color: "#64748b",
+                }}
+              >
+                View and manage your halal batch certificates
+              </p>
+            </div>
+
+            {/* Stat Cards */}
+            <div style={{ display: "flex", gap: 8 }}>
+              {stats_display.map((s) => (
+                <div
+                  key={s.label}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "8px 14px",
+                    borderRadius: 10,
+                    background: s.bg,
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "1rem",
+                        fontWeight: 800,
+                        color: "#fff",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {s.value}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.6rem",
+                        color: "rgba(255,255,255,0.8)",
+                        marginTop: 2,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {s.label}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <HeroArtwork />
-        </section>
+        </div>
 
-        <section className="batch-stats">
-          {stats.map(({ label, helper, value, icon: Icon, accent, bg }) => (
-            <article key={label} className="batch-stat-card">
-              <div style={{ width: 54, height: 54, borderRadius: "50%", background: bg, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                <Icon size={24} color={accent} strokeWidth={2.35} />
-              </div>
-              <div>
-                <div style={{ color: "#071d35", fontSize: "1.35rem", fontWeight: 900, lineHeight: 1 }}>{value}</div>
-                <div style={{ color: "#41546c", marginTop: 4, fontSize: "0.78rem", fontWeight: 700 }}>{label}</div>
-                <div style={{ color: "#6a7890", marginTop: 3, fontSize: "0.68rem" }}>{helper}</div>
-              </div>
-            </article>
-          ))}
-        </section>
+        {/* Search Bar */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 14,
+          }}
+        >
+          <div style={{ position: "relative", width: 280 }}>
+            <Search
+              style={{
+                position: "absolute",
+                left: 10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 13,
+                height: 13,
+                color: "#94a3b8",
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search by number or company"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(0)
+              }}
+              style={{
+                width: "100%",
+                paddingLeft: 32,
+                paddingRight: 10,
+                height: 33,
+                border: "1px solid #e2e8f0",
+                borderRadius: 8,
+                background: "#fff",
+                color: "#0f172a",
+                outline: "none",
+                fontSize: "0.73rem",
+                fontFamily: F,
+                boxSizing: "border-box" as const,
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
+            />
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              width: 32,
+              height: 32,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 8,
+              border: "1px solid #e2e8f0",
+              background: "#fff",
+              color: "#64748b",
+              cursor: "pointer",
+            }}
+          >
+            <RefreshCw size={13} />
+          </button>
+        </div>
 
-        <div className="batch-content-grid">
-          <section className="batch-panel">
-            <div className="batch-panel-head">
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: "#e8f2ff", display: "grid", placeItems: "center" }}>
-                  <FileText size={22} color={BLUE} strokeWidth={2.45} />
-                </div>
-                <div>
-                  <h2 style={{ margin: 0, color: TEXT, fontSize: "1.1rem", fontWeight: 850, letterSpacing: "-0.025em" }}>Batch Certificates</h2>
-                  <p style={{ margin: "3px 0 0", color: MUTED, fontSize: "0.72rem" }}>Manage and access your batch certificates</p>
-                </div>
-              </div>
-
-              <div className="batch-toolbar">
-                <label style={{ position: "relative", display: "block" }}>
-                  <Search size={14} style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
-                  <input
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search certificates..."
-                    style={{ width: 200, height: 36, border: "1px solid #d7e3f2", borderRadius: 8, background: "#f8fbff", color: TEXT, padding: "0 12px 0 36px", fontSize: "0.7rem" }}
-                  />
-                </label>
-                <button className="batch-tool-button"><Filter size={17} />Filter</button>
-                <button className="batch-tool-button"><CalendarDays size={17} />All Dates<ChevronDown size={16} /></button>
-                <div style={{ display: "flex", border: "1px solid #d7e3f2", borderRadius: 10, overflow: "hidden" }}>
-                  <button className="batch-view-button" aria-label="List view" onClick={() => setView("list")} data-active={view === "list"}><LayoutList size={20} /></button>
-                  <button className="batch-view-button" aria-label="Grid view" onClick={() => setView("grid")} data-active={view === "grid"}><Grid2X2 size={18} /></button>
-                </div>
-              </div>
-            </div>
-
-            <div className="batch-empty">
-              <div className="batch-empty-art">
-                <div className="batch-folder">
-                  <div className="batch-folder-tab" />
-                  <div style={{ width: 76, height: 52, borderRadius: 10, background: "linear-gradient(180deg, #b8d1eb 0%, #8eb7dd 100%)", boxShadow: "0 18px 35px rgba(15,33,112,0.14)" }} />
-                </div>
-              </div>
-              <h3 style={{ margin: "0 0 8px", color: TEXT, fontSize: "1.1rem", fontWeight: 850, letterSpacing: "-0.025em" }}>No Batch Certificates Yet</h3>
-              <p style={{ margin: "0 auto", maxWidth: 540, color: "#536783", lineHeight: 1.55, fontSize: "0.8rem" }}>
-                Your issued batch certificates will appear here. You can view, download, and manage your certificates once they are available.
-              </p>
-              <button onClick={() => navigate("/customer/batch-certificates/new")} className="batch-primary-button">
-                <Plus size={19} />
-                Apply for Batch Certificate
-              </button>
-            </div>
-          </section>
-
-          <aside className="batch-sidebar">
-            <section className="batch-side-panel tinted">
-              <h3 style={{ margin: "0 0 10px", color: TEXT, fontSize: "0.95rem", fontWeight: 850, display: "flex", alignItems: "center", gap: 8 }}>
-                <Zap size={17} color={BLUE} fill="#0b5ed7" />Quick Actions
-              </h3>
-              <div style={{ display: "grid", gap: 8 }}>
-                {quickActions.map(({ label, helper, icon: Icon, color, path }) => (
-                  <button key={label} onClick={() => navigate(path)} className="batch-action-row">
-                    <span style={{ width: 34, height: 34, borderRadius: 10, background: `${color}14`, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                      <Icon size={16} color={color} strokeWidth={2.4} />
-                    </span>
-                    <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                      <span style={{ display: "block", color: "#152238", fontSize: "0.7rem", fontWeight: 800 }}>{label}</span>
-                      <span style={{ display: "block", color: "#63758f", fontSize: "0.6rem", marginTop: 2 }}>{helper}</span>
-                    </span>
-                    <ChevronRight size={15} color="#44617e" />
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="batch-side-panel help">
-              <CircleHelp size={22} color={NAVY} />
-              <h3 style={{ margin: "8px 0 6px", color: TEXT, fontSize: "0.9rem", fontWeight: 850 }}>Need Help?</h3>
-              <p style={{ margin: "0 auto 14px", color: "#5d6f86", maxWidth: 280, lineHeight: 1.55, fontSize: "0.68rem" }}>
-                If you have any questions about your batch certificates, please contact our support team.
-              </p>
-              <button className="batch-support-button">
-                <Headphones size={18} />
-                Contact Support
-              </button>
-            </section>
-          </aside>
+        {/* Table */}
+        <div
+          style={{
+            background: "#fff",
+            border: "1px solid #e9ecef",
+            borderRadius: 12,
+            overflow: "hidden",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          }}
+        >
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr
+                style={{
+                  borderBottom: "2px solid #e9ecef",
+                  background: "#fafbfc",
+                }}
+              >
+                {["Certificate #", "Company", "Standard", "Expiry Date", "Status", "Action"].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: "9px 16px",
+                        textAlign: "left",
+                        fontSize: "0.62rem",
+                        fontWeight: 700,
+                        color: "#94a3b8",
+                        letterSpacing: "0.07em",
+                        textTransform: "uppercase" as const,
+                        whiteSpace: "nowrap" as const,
+                      }}
+                    >
+                      {h}
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {!isLoading && certificates.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    style={{ padding: "60px 20px", textAlign: "center" }}
+                  >
+                    <FileText
+                      size={28}
+                      color="#cbd5e1"
+                      style={{ margin: "0 auto 12px", display: "block" }}
+                    />
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "0.9rem",
+                        fontWeight: 700,
+                        color: "#334155",
+                      }}
+                    >
+                      No batch certificates found
+                    </p>
+                  </td>
+                </tr>
+              ) : isLoading ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    style={{
+                      padding: "40px 20px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Loader size={24} color="#2563eb" className="animate-spin" style={{ margin: "0 auto" }} />
+                  </td>
+                </tr>
+              ) : (
+                certificates.map((cert: Certificate) => {
+                  const st = getStatusColor(cert.status)
+                  return (
+                    <tr
+                      key={cert.id}
+                      style={{
+                        borderBottom: "1px solid #f1f5f9",
+                        fontSize: "0.73rem",
+                      }}
+                    >
+                      <td style={{ padding: "12px 16px", fontWeight: 600, color: "#0f172a" }}>
+                        {cert.certificateNumber}
+                      </td>
+                      <td style={{ padding: "12px 16px", color: "#334155" }}>
+                        {cert.companyName}
+                      </td>
+                      <td style={{ padding: "12px 16px", color: "#334155" }}>
+                        {cert.halalStandard || "-"}
+                      </td>
+                      <td style={{ padding: "12px 16px", color: "#334155" }}>
+                        {cert.expiryDate ? new Date(cert.expiryDate).toLocaleDateString() : "-"}
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "3px 10px",
+                            borderRadius: 6,
+                            backgroundColor: st.bg,
+                            color: st.color,
+                            fontSize: "0.7rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {cert.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <button
+                          onClick={() => navigate(`/customer/batch-certificates/${cert.id}`)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "4px 10px",
+                            borderRadius: 6,
+                            border: "1px solid #e2e8f0",
+                            background: "#fff",
+                            color: "#64748b",
+                            cursor: "pointer",
+                            fontSize: "0.7rem",
+                          }}
+                        >
+                          <Download size={12} />
+                          Download
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </CustomerLayout>
