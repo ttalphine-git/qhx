@@ -354,6 +354,7 @@ export default function CustomerBatchCertificateDetailPage() {
             </p>
           )}
         </div>
+        </div>
       </div>
     </CustomerLayout>
   )
