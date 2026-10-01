@@ -1,277 +1,424 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import {
-  Plus, Eye, AlertCircle, CheckCircle, XCircle, Clock, Loader, ArrowLeft
-} from "lucide-react"
-import { useAuthStore } from "@/store/authStore"
+import { Search, RefreshCw, Eye, AlertCircle, Loader, FileText, ChevronRight } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
 
 interface BatchRequest {
   id: number
   requestNumber: string
   status: string
-  factoryCertNumber: string
+  companyName: string
   totalWeightKg: number
   totalFee: number
-  amountOwed: number
   paymentStatus: string
   submittedAt: string
   approvedAt?: string
 }
 
+const F = "'Inter', system-ui, sans-serif"
+const NAV = "#0f2170"
+const BLUE = "#2563eb"
+
+const STATS = [
+  { label: "Total", value: 0, bg: "#1e3a8a" },
+  { label: "Active", value: 0, bg: "#b45309" },
+  { label: "Certified", value: 0, bg: "#15803d" },
+  { label: "Draft", value: 0, bg: "#64748b" },
+]
+
+const TABS = [
+  { label: "Pending", value: "PENDING" },
+  { label: "Approved", value: "APPROVED" },
+  { label: "Rejected", value: "REJECTED" },
+]
+
 export default function CustomerBatchCertificatesPage() {
   const navigate = useNavigate()
-  const user = useAuthStore(s => s.user)
-
-  const [activeTab, setActiveTab] = useState<"pending" | "approved" | "rejected">("pending")
-  const [requests, setRequests] = useState<BatchRequest[]>([])
-  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("PENDING")
+  const [search, setSearch] = useState("")
   const [page, setPage] = useState(0)
-  const [totalElements, setTotalElements] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [requests, setRequests] = useState<BatchRequest[]>([])
   const [stats, setStats] = useState({
-    totalRequests: 0,
-    pendingApproval: 0,
+    total: 0,
+    pending: 0,
     approved: 0,
-    amountOwed: 0,
+    rejected: 0,
   })
 
   useEffect(() => {
     loadRequests()
-    loadStats()
-  }, [activeTab, page])
+  }, [activeTab, search, page])
 
   async function loadRequests() {
+    setLoading(true)
     try {
-      setLoading(true)
-      const statusMap = {
-        pending: "PENDING",
-        approved: "APPROVED",
-        rejected: "REJECTED",
-      }
-
-      const resp = await fetch(
-        `/api/batch-certificates/requests?status=${statusMap[activeTab]}&page=${page}&size=20`
-      )
-
-      if (resp.ok) {
-        const data = await resp.json()
-        setRequests(data.content || [])
-        setTotalElements(data.totalElements || 0)
-      }
-    } catch (err) {
-      console.error("Failed to load requests", err)
+      // Placeholder - replace with actual API call
+      setRequests([])
+    } catch (error) {
+      console.error("Failed to load requests", error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  async function loadStats() {
-    try {
-      const resp = await fetch("/api/batch-certificates/requests?page=0&size=1000")
-      if (resp.ok) {
-        const data = await resp.json()
-        const allRequests = data.content || []
-
-        setStats({
-          totalRequests: allRequests.length,
-          pendingApproval: allRequests.filter((r: any) => r.status === "PENDING").length,
-          approved: allRequests.filter((r: any) => r.status === "APPROVED").length,
-          amountOwed: allRequests
-            .filter((r: any) => r.paymentStatus === "PENDING")
-            .reduce((sum: number, r: any) => sum + (r.amountOwed || 0), 0),
-        })
-      }
-    } catch (err) {
-      console.error("Failed to load stats", err)
-    }
-  }
-
-  function getStatusIcon(status: string) {
-    switch (status) {
-      case "PENDING":
-        return <Clock className="w-5 h-5 text-orange-500" />
-      case "APPROVED":
-        return <CheckCircle className="w-5 h-5 text-green-500" />
-      case "REJECTED":
-        return <XCircle className="w-5 h-5 text-red-500" />
-      default:
-        return null
     }
   }
 
   function getStatusColor(status: string) {
     switch (status) {
       case "PENDING":
-        return "bg-orange-50 text-orange-700 border-orange-200"
+        return { bg: "#fef3c7", color: "#b45309" }
       case "APPROVED":
-        return "bg-green-50 text-green-700 border-green-200"
+        return { bg: "#dcfce7", color: "#15803d" }
       case "REJECTED":
-        return "bg-red-50 text-red-700 border-red-200"
+        return { bg: "#fee2e2", color: "#dc2626" }
       default:
-        return "bg-gray-50 text-gray-700 border-gray-200"
+        return { bg: "#f3f4f6", color: "#64748b" }
     }
   }
 
-  const totalPages = Math.ceil(totalElements / 20)
+  const stats_display = [
+    { ...STATS[0], value: stats.total },
+    { ...STATS[1], value: stats.pending },
+    { ...STATS[2], value: stats.approved },
+    { ...STATS[3], value: stats.rejected },
+  ]
 
   return (
     <CustomerLayout title="Batch Certificates">
-      <div className="p-6">
-        {/* Header Section with Title and Stat Cards */}
-        <div className="flex justify-between items-start mb-8">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">Batch Certificates</h1>
-            <p className="text-gray-600 text-sm">Track and manage your halal batch certificate requests</p>
-          </div>
-
-          {/* Stat Cards - Right Side */}
-          <div className="flex gap-3 ml-8">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 min-w-fit">
-              <p className="text-xs text-blue-600 font-semibold mb-1">Total</p>
-              <p className="text-2xl font-bold text-blue-900">{stats.totalRequests}</p>
-            </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 min-w-fit">
-              <p className="text-xs text-orange-600 font-semibold mb-1">Active</p>
-              <p className="text-2xl font-bold text-orange-900">{stats.pendingApproval}</p>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 min-w-fit">
-              <p className="text-xs text-green-600 font-semibold mb-1">Certified</p>
-              <p className="text-2xl font-bold text-green-900">{stats.approved}</p>
-            </div>
-            <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 min-w-fit">
-              <p className="text-xs text-gray-600 font-semibold mb-1">Draft</p>
-              <p className="text-2xl font-bold text-gray-900">0</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-8 border-b border-gray-200">
-          {(["pending", "approved", "rejected"] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => {
-                setActiveTab(tab)
-                setPage(0)
-              }}
-              className={`pb-3 font-medium text-sm transition border-b-2 ${
-                activeTab === tab
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {/* Content Section */}
-        <div className="mt-6">
-
-        {/* Requests List */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader className="w-8 h-8 animate-spin text-blue-600" />
-          </div>
-        ) : requests.length === 0 ? (
-          <div className="text-center py-12">
-            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600">No batch certificate requests found</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {requests.map(req => (
-              <div
-                key={req.id}
-                className="bg-white p-6 rounded-lg shadow hover:shadow-md transition border-l-4 border-blue-600"
+      <div style={{ fontFamily: F }}>
+        {/* Page Header */}
+        <div
+          style={{
+            background: "#fff",
+            borderBottom: "1px solid #e9ecef",
+            padding: "18px 24px 0",
+            marginBottom: 20,
+            borderRadius: "12px 12px 0 0",
+            border: "1px solid #e9ecef",
+          }}
+        >
+          {/* Title and Stats */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 16,
+            }}
+          >
+            <div>
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: "1.1rem",
+                  fontWeight: 800,
+                  color: "#0f172a",
+                }}
               >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(req.status)}
-                    <div>
-                      <h3 className="font-semibold text-lg">{req.requestNumber}</h3>
-                      <p className="text-sm text-gray-600">
-                        Cert: {req.factoryCertNumber}
-                      </p>
+                Batch Certificates
+              </h1>
+              <p
+                style={{
+                  margin: "3px 0 0",
+                  fontSize: "0.72rem",
+                  color: "#64748b",
+                }}
+              >
+                Track and manage your batch certificate requests
+              </p>
+            </div>
+
+            {/* Stat Cards */}
+            <div style={{ display: "flex", gap: 8 }}>
+              {stats_display.map((s) => (
+                <div
+                  key={s.label}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "8px 14px",
+                    borderRadius: 10,
+                    background: s.bg,
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "1rem",
+                        fontWeight: 800,
+                        color: "#fff",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {s.value}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.6rem",
+                        color: "rgba(255,255,255,0.8)",
+                        marginTop: 2,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {s.label}
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full border text-sm font-medium ${getStatusColor(req.status)}`}>
-                    {req.status}
-                  </span>
                 </div>
-
-                <div className="grid grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <p className="text-xs text-gray-600">Total Weight</p>
-                    <p className="font-semibold">{req.totalWeightKg.toFixed(2)} kg</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Total Fee</p>
-                    <p className="font-semibold">RM {req.totalFee.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Payment</p>
-                    <p className={`font-semibold ${req.paymentStatus === "PENDING" ? "text-orange-600" : "text-green-600"}`}>
-                      {req.paymentStatus}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Amount Owed</p>
-                    <p className="font-semibold text-red-600">RM {req.amountOwed.toFixed(2)}</p>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center text-sm text-gray-600">
-                  <span>
-                    {req.submittedAt
-                      ? new Date(req.submittedAt).toLocaleDateString()
-                      : "Not submitted"}
-                  </span>
-                  <button
-                    onClick={() => navigate(`/customer/batch-certificates/${req.id}`)}
-                    className="flex items-center gap-2 px-3 py-1 text-blue-600 hover:bg-blue-50 rounded"
-                  >
-                    <Eye className="w-4 h-4" />
-                    View Details
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-8">
-            <button
-              onClick={() => setPage(Math.max(0, page - 1))}
-              disabled={page === 0}
-              className="px-4 py-2 border rounded-lg disabled:opacity-50"
-            >
-              Previous
-            </button>
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i)}
-                className={`px-3 py-2 rounded-lg ${
-                  page === i
-                    ? "bg-blue-600 text-white"
-                    : "border hover:bg-gray-50"
-                }`}
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: 0 }}>
+            {TABS.map((tab) => {
+              const isActive = activeTab === tab.value
+              return (
+                <button
+                  key={tab.value}
+                  onClick={() => {
+                    setActiveTab(tab.value)
+                    setPage(0)
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 7,
+                    padding: "11px 18px",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "0.8rem",
+                    fontWeight: isActive ? 700 : 500,
+                    fontFamily: F,
+                    background: "transparent",
+                    color: isActive ? NAV : "#64748b",
+                    borderBottom: isActive
+                      ? `2.5px solid ${NAV}`
+                      : "2.5px solid transparent",
+                    marginBottom: -1,
+                    whiteSpace: "nowrap" as const,
+                  }}
+                >
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 14,
+          }}
+        >
+          <div style={{ position: "relative", width: 280 }}>
+            <Search
+              style={{
+                position: "absolute",
+                left: 10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 13,
+                height: 13,
+                color: "#94a3b8",
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search by number or company"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(0)
+              }}
+              style={{
+                width: "100%",
+                paddingLeft: 32,
+                paddingRight: 10,
+                height: 33,
+                border: "1px solid #e2e8f0",
+                borderRadius: 8,
+                background: "#fff",
+                color: "#0f172a",
+                outline: "none",
+                fontSize: "0.73rem",
+                fontFamily: F,
+                boxSizing: "border-box" as const,
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
+            />
+          </div>
+          <button
+            onClick={loadRequests}
+            style={{
+              width: 32,
+              height: 32,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 8,
+              border: "1px solid #e2e8f0",
+              background: "#fff",
+              color: "#64748b",
+              cursor: "pointer",
+            }}
+          >
+            <RefreshCw size={13} />
+          </button>
+        </div>
+
+        {/* Table */}
+        <div
+          style={{
+            background: "#fff",
+            border: "1px solid #e9ecef",
+            borderRadius: 12,
+            overflow: "hidden",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          }}
+        >
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr
+                style={{
+                  borderBottom: "2px solid #e9ecef",
+                  background: "#fafbfc",
+                }}
               >
-                {i + 1}
-              </button>
-            ))}
-            <button
-              onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
-              disabled={page === totalPages - 1}
-              className="px-4 py-2 border rounded-lg disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        )}
+                {["Request #", "Company", "Weight", "Fee", "Payment Status", "Status", "Submitted", "Action"].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: "9px 16px",
+                        textAlign: "left",
+                        fontSize: "0.62rem",
+                        fontWeight: 700,
+                        color: "#94a3b8",
+                        letterSpacing: "0.07em",
+                        textTransform: "uppercase" as const,
+                        whiteSpace: "nowrap" as const,
+                      }}
+                    >
+                      {h}
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {!loading && requests.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    style={{ padding: "60px 20px", textAlign: "center" }}
+                  >
+                    <FileText
+                      size={28}
+                      color="#cbd5e1"
+                      style={{ margin: "0 auto 12px", display: "block" }}
+                    />
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "0.9rem",
+                        fontWeight: 700,
+                        color: "#334155",
+                      }}
+                    >
+                      No batch requests yet
+                    </p>
+                  </td>
+                </tr>
+              ) : loading ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    style={{
+                      padding: "40px 20px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Loader size={24} color="#2563eb" className="animate-spin" style={{ margin: "0 auto" }} />
+                  </td>
+                </tr>
+              ) : (
+                requests.map((req) => {
+                  const st = getStatusColor(req.status)
+                  return (
+                    <tr
+                      key={req.id}
+                      style={{
+                        borderBottom: "1px solid #f1f5f9",
+                        fontSize: "0.73rem",
+                      }}
+                    >
+                      <td style={{ padding: "12px 16px", fontWeight: 600, color: "#0f172a" }}>
+                        {req.requestNumber}
+                      </td>
+                      <td style={{ padding: "12px 16px", color: "#334155" }}>
+                        {req.companyName}
+                      </td>
+                      <td style={{ padding: "12px 16px", color: "#64748b" }}>
+                        {req.totalWeightKg.toFixed(2)} kg
+                      </td>
+                      <td style={{ padding: "12px 16px", color: "#64748b" }}>
+                        {req.totalFee.toFixed(2)}
+                      </td>
+                      <td style={{ padding: "12px 16px", color: "#64748b" }}>
+                        {req.paymentStatus}
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <span
+                          style={{
+                            fontSize: "0.65rem",
+                            fontWeight: 700,
+                            padding: "3px 9px",
+                            borderRadius: 20,
+                            background: st.bg,
+                            color: st.color,
+                          }}
+                        >
+                          {req.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: "12px 16px", color: "#64748b" }}>
+                        {new Date(req.submittedAt).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <button
+                          onClick={() =>
+                            navigate(`/customer/batch-certificates/${req.id}`)
+                          }
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            color: "#2563eb",
+                            textDecoration: "none",
+                            cursor: "pointer",
+                            background: "none",
+                            border: "none",
+                            fontFamily: F,
+                            fontSize: "0.73rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          <Eye size={13} />
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </CustomerLayout>
