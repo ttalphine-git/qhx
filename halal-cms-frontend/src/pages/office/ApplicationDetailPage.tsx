@@ -1055,30 +1055,14 @@ export default function ApplicationDetailPage() {
         </div>
 
         {/* Action Bar Stripe */}
-        <div style={{ background: '#dbeef9', border: `1px solid #b4d8f0`, borderRadius: '8px', padding: '12px 16px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', margin: '0 0 2px' }}>Current Status</p>
-              <p style={{ fontSize: 13, fontWeight: 600, color: C.textDark, margin: 0 }}>{appStatus.label}</p>
-            </div>
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', margin: '0 0 2px' }}>Next Action</p>
-              <p style={{ fontSize: 13, fontWeight: 600, color: C.primary, margin: 0 }}>Awaiting Review</p>
-            </div>
+        <div style={{ background: '#dbeef9', border: `1px solid #b4d8f0`, borderRadius: '8px', padding: '12px 16px', marginBottom: 16, display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', margin: '0 0 2px' }}>Current Status</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: C.textDark, margin: 0 }}>{appStatus.label}</p>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={rejectApplication}
-              disabled={isRejecting || isApproving}
-              style={{ padding: '6px 14px', fontSize: 12, fontWeight: 600, background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, cursor: isRejecting || isApproving ? 'not-allowed' : 'pointer', color: C.muted, opacity: isRejecting || isApproving ? 0.6 : 1 }}>
-              {isRejecting ? 'Rejecting...' : 'Reject'}
-            </button>
-            <button
-              onClick={approveApplication}
-              disabled={isApproving || isRejecting}
-              style={{ padding: '6px 14px', fontSize: 12, fontWeight: 600, background: '#107c10', color: '#fff', border: 'none', borderRadius: 6, cursor: isApproving || isRejecting ? 'not-allowed' : 'pointer', opacity: isApproving || isRejecting ? 0.7 : 1 }}>
-              {isApproving ? 'Approving...' : 'Approve'}
-            </button>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', margin: '0 0 2px' }}>Next Action</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: C.primary, margin: 0 }}>Awaiting Review</p>
           </div>
         </div>
 
