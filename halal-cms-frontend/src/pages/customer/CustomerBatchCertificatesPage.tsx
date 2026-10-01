@@ -116,41 +116,37 @@ export default function CustomerBatchCertificatesPage() {
 
   return (
     <CustomerLayout title="Batch Certificates">
-      <div className="p-6 flex flex-col gap-4">
-        {/* New Request Button */}
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={() => navigate("/customer/batch-certificates/new")}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            New Request
-          </button>
-        </div>
+      <div className="p-6">
+        {/* Header Section with Title and Stat Cards */}
+        <div className="flex justify-between items-start mb-8">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">Batch Certificates</h1>
+            <p className="text-gray-600 text-sm">Track and manage your halal batch certificate requests</p>
+          </div>
 
-        <div className="space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-600">Total Requests</p>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalRequests}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-600">Pending Approval</p>
-            <p className="text-3xl font-bold text-orange-600">{stats.pendingApproval}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-600">Approved</p>
-            <p className="text-3xl font-bold text-green-600">{stats.approved}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-600">Amount Owed</p>
-            <p className="text-3xl font-bold text-red-600">RM {stats.amountOwed.toFixed(2)}</p>
+          {/* Stat Cards - Right Side */}
+          <div className="flex gap-3 ml-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 min-w-fit">
+              <p className="text-xs text-blue-600 font-semibold mb-1">Total</p>
+              <p className="text-2xl font-bold text-blue-900">{stats.totalRequests}</p>
+            </div>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 min-w-fit">
+              <p className="text-xs text-orange-600 font-semibold mb-1">Active</p>
+              <p className="text-2xl font-bold text-orange-900">{stats.pendingApproval}</p>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 min-w-fit">
+              <p className="text-xs text-green-600 font-semibold mb-1">Certified</p>
+              <p className="text-2xl font-bold text-green-900">{stats.approved}</p>
+            </div>
+            <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 min-w-fit">
+              <p className="text-xs text-gray-600 font-semibold mb-1">Draft</p>
+              <p className="text-2xl font-bold text-gray-900">0</p>
+            </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b">
+        <div className="flex gap-8 border-b border-gray-200">
           {(["pending", "approved", "rejected"] as const).map(tab => (
             <button
               key={tab}
@@ -158,7 +154,7 @@ export default function CustomerBatchCertificatesPage() {
                 setActiveTab(tab)
                 setPage(0)
               }}
-              className={`px-4 py-2 font-medium border-b-2 transition ${
+              className={`pb-3 font-medium text-sm transition border-b-2 ${
                 activeTab === tab
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
@@ -168,6 +164,9 @@ export default function CustomerBatchCertificatesPage() {
             </button>
           ))}
         </div>
+
+        {/* Content Section */}
+        <div className="mt-6">
 
         {/* Requests List */}
         {loading ? (
