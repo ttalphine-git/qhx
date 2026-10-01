@@ -40,19 +40,16 @@ input:focus, select:focus, textarea:focus {
 .batch-page {
   min-height: calc(100vh - 78px);
   padding: 0 clamp(1rem, 4vw, 5rem) 2rem;
-  background:
-    radial-gradient(circle at 0 15%, rgba(122, 174, 214, 0.16), transparent 28rem),
-    radial-gradient(circle at 100% 20%, rgba(11, 94, 215, 0.12), transparent 30rem),
-    linear-gradient(180deg, #f8fbff 0%, #edf5ff 100%);
+  background: #fff;
 }
 
 .batch-hero {
   position: relative;
-  min-height: 220px;
+  min-height: 160px;
   display: flex;
   align-items: center;
   overflow: hidden;
-  border-bottom: 1px solid rgba(199, 223, 247, 0.7);
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .batch-hero-copy {
@@ -67,6 +64,7 @@ input:focus, select:focus, textarea:focus {
   inset: 0 0 0 auto;
   width: min(48%, 760px);
   overflow: hidden;
+  display: none;
 }
 
 .batch-sky {
