@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { Settings, ChevronDown, Power, Menu, X, Bell } from "lucide-react"
+import { Settings, ChevronDown, Power, Menu, X, Bell, Search } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { C } from "@/lib/utils"
 import { getNotifications, markRead, markAllRead, clearNotifications, type AppNotification } from "@/lib/notifications"
@@ -161,6 +161,17 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
               </button>
             )
           })}
+        </div>
+
+        {/* Search */}
+        <div style={{ position: "relative", display: "flex", alignItems: "center", width: "280px", marginRight: "0.5rem" }}>
+          <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.7)" }} />
+          <input
+            placeholder="Search..."
+            style={{ width: "100%", height: 36, border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, background: "rgba(255,255,255,0.12)", color: "#fff", padding: "0 12px 0 38px", fontSize: "0.8125rem", outline: "none", fontFamily: "inherit" }}
+            onFocus={e => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
+            onBlur={e => (e.currentTarget.style.background = "rgba(255,255,255,0.12)")}
+          />
         </div>
 
         {/* Desktop right */}
