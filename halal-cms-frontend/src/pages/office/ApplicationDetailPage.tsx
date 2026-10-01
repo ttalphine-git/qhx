@@ -5,7 +5,7 @@ import {
   ArrowLeft, Building2, FileText, CreditCard,
   Activity, CheckCircle, Circle, AlertTriangle, Download,
   User, ClipboardList, CalendarCheck, ShieldAlert, ShieldCheck,
-  Award, Plus, Trash2, Save, ChevronDown, ChevronUp, CheckSquare, Square, X,
+  Award, Plus, Trash2, Save, ChevronDown, ChevronUp, CheckSquare, Square, X, Search,
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { getApplication, getCompanyInfo, getServiceInfo, getApplicationDocuments, getPaymentStatus, getEventLogs } from '@/api/applications'
@@ -956,14 +956,37 @@ export default function ApplicationDetailPage() {
 
   return (
     <div style={{ padding: 24, maxWidth: 1280, margin: '0 auto', fontFamily: "'Inter',system-ui,sans-serif" }}>
-      {/* Back */}
-      <button onClick={() => navigate('/office/applications')}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.muted, background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, marginBottom: 16 }}>
-        <ArrowLeft size={16} /> Back to Applications
-      </button>
+      {/* Back & Search Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 16 }}>
+        <button onClick={() => navigate('/office/applications')}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.muted, background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }}>
+          <ArrowLeft size={16} /> Back to Applications
+        </button>
+        <div style={{ position: 'relative', width: 300 }}>
+          <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.muted }} />
+          <input
+            type="text"
+            placeholder="Search application…"
+            style={{
+              width: '100%',
+              paddingLeft: 40,
+              paddingRight: 12,
+              paddingTop: 8,
+              paddingBottom: 8,
+              border: `1px solid ${C.border}`,
+              borderRadius: 8,
+              fontSize: 13,
+              outline: 'none',
+              background: C.white,
+            }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = C.primary)}
+            onBlur={(e) => (e.currentTarget.style.borderColor = C.border)}
+          />
+        </div>
+      </div>
 
-      {/* Header card */}
-      <div style={{ ...card(), marginBottom: 20 }}>
+      {/* Header card with app info */}
+      <div style={{ ...card(), marginBottom: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: C.textDark, margin: 0 }}>{app.companyName}</h1>
@@ -998,14 +1021,35 @@ export default function ApplicationDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Action Bar Stripe */}
+        <div style={{ background: '#dbeef9', border: `1px solid #b4d8f0`, borderRadius: '8px', padding: '12px 16px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', margin: '0 0 2px' }}>Current Status</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: C.textDark, margin: 0 }}>{appStatus.label}</p>
+            </div>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', margin: '0 0 2px' }}>Next Action</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: C.primary, margin: 0 }}>Awaiting Review</p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button style={{ padding: '6px 14px', fontSize: 12, fontWeight: 600, background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, cursor: 'pointer', color: C.muted }}>Reject</button>
+            <button style={{ padding: '6px 14px', fontSize: 12, fontWeight: 600, background: '#107c10', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Approve</button>
+            <button style={{ padding: '6px 14px', fontSize: 12, fontWeight: 600, background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, cursor: 'pointer', color: C.muted }}>×</button>
+          </div>
+        </div>
+
+        {/* Progress Timeline */}
         <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Application Progress</p>
           <StatusPipeline currentStatus={app.status} />
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ background: C.white, border: `1px solid ${C.border}`, boxShadow: C.cardShadow, borderRadius: 12, overflow: 'hidden' }}>
+      {/* Tabs - Connected to header */}
+      <div style={{ background: C.white, border: `1px solid ${C.border}`, borderTop: 'none', boxShadow: C.cardShadow, borderRadius: '0 0 12px 12px', overflow: 'hidden', marginTop: -1 }}>
         <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}`, overflowX: 'auto' }}>
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
