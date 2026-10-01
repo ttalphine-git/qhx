@@ -1082,11 +1082,12 @@ export default function ApplicationDetailPage() {
           </div>
         </div>
 
-        {/* Progress Timeline */}
-        <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Application Progress</p>
-          <StatusPipeline currentStatus={app.status} />
-        </div>
+      </div>
+
+      {/* Progress Timeline */}
+      <div style={{ background: C.white, border: `1px solid ${C.border}`, borderTop: 'none', padding: '16px 20px', marginTop: -1 }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Application Progress</p>
+        <StatusPipeline currentStatus={app.status} />
       </div>
 
       {/* Tabs - Connected to header */}
@@ -1104,7 +1105,30 @@ export default function ApplicationDetailPage() {
 
           {/* ── Overview ── */}
           {tab === 'overview' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+            <div>
+              {/* Approve/Reject Panel */}
+              <div style={{ background: '#dbeef9', border: `1px solid #b4d8f0`, borderRadius: '8px', padding: '16px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: C.textDark, margin: 0 }}>Ready to make a decision?</p>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={rejectApplication}
+                    disabled={isRejecting || isApproving}
+                    style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, cursor: isRejecting || isApproving ? 'not-allowed' : 'pointer', color: C.muted, opacity: isRejecting || isApproving ? 0.6 : 1 }}>
+                    {isRejecting ? 'Rejecting...' : 'Reject'}
+                  </button>
+                  <button
+                    onClick={approveApplication}
+                    disabled={isApproving || isRejecting}
+                    style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, background: '#107c10', color: '#fff', border: 'none', borderRadius: 6, cursor: isApproving || isRejecting ? 'not-allowed' : 'pointer', opacity: isApproving || isRejecting ? 0.7 : 1 }}>
+                    {isApproving ? 'Approving...' : 'Approve'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Company & Service Info */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
               <div style={{ background: C.bg, borderRadius: 10, padding: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
                   <Building2 size={16} color={C.primary} />
@@ -1147,6 +1171,7 @@ export default function ApplicationDetailPage() {
                     </div>
                   </div>
                 ) : <p style={{ color: C.muted, fontSize: 13 }}>No data</p>}
+              </div>
               </div>
             </div>
           )}
