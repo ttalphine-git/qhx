@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { Search, ChevronLeft, ChevronRight, Eye, Loader, Plus } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
+import { Search, ChevronLeft, ChevronRight, Eye, Loader } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import OfficeLayout from "./OfficeLayout"
 import { formatDate } from "@/lib/utils"
@@ -10,7 +11,6 @@ interface BatchApplication {
   status: string
   companyName: string
   submittedAt?: string
-  approvedAt?: string
 }
 
 export default function OfficeBatchApplicationsPage() {
@@ -18,10 +18,21 @@ export default function OfficeBatchApplicationsPage() {
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("")
-  const [loading, setLoading] = useState(false)
-  const [applications, setApplications] = useState<BatchApplication[]>([])
-  const [totalElements, setTotalElements] = useState(0)
 
+  const { data, isLoading } = useQuery({
+    queryKey: ["office-batch-applications", page, search, statusFilter],
+    queryFn: async () => {
+      // Placeholder - replace with actual API call
+      return {
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+      }
+    },
+  })
+
+  const applications = data?.content || []
+  const totalElements = data?.totalElements || 0
   const totalPages = Math.ceil(totalElements / 20)
 
   const statuses = [
@@ -30,30 +41,23 @@ export default function OfficeBatchApplicationsPage() {
     "REJECTED",
   ]
 
-  function getStatusColor(status: string): string {
-    const colors: Record<string, string> = {
+  function getStatusStyle(status: string): string {
+    const styles: Record<string, string> = {
       "PENDING": "bg-amber-50 text-amber-700 border-amber-200",
       "APPROVED": "bg-green-50 text-green-700 border-green-200",
       "REJECTED": "bg-red-50 text-red-700 border-red-200",
     }
-    return colors[status] || "bg-gray-50 text-gray-700 border-gray-200"
+    return styles[status] || "bg-gray-50 text-gray-700 border-gray-200"
   }
 
   return (
     <OfficeLayout>
       <div className="p-6 bg-gray-50 min-h-screen">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Batch Applications</h1>
             <p className="text-gray-600">Browse and manage batch certificate applications</p>
           </div>
-          <button
-            onClick={() => navigate("/office/batch-applications/new")}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
-          >
-            <Plus className="w-5 h-5" />
-            New Batch Application
-          </button>
         </div>
 
         {/* Filters */}
@@ -70,7 +74,7 @@ export default function OfficeBatchApplicationsPage() {
                   setSearch(e.target.value)
                   setPage(0)
                 }}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
@@ -81,7 +85,7 @@ export default function OfficeBatchApplicationsPage() {
                 setStatusFilter(e.target.value)
                 setPage(0)
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">All Statuses</option>
               {statuses.map((status) => (
@@ -102,9 +106,9 @@ export default function OfficeBatchApplicationsPage() {
 
         {/* Batch Applications Table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader className="w-8 h-8 animate-spin text-green-600" />
+              <Loader className="w-8 h-8 animate-spin text-blue-600" />
             </div>
           ) : applications.length === 0 ? (
             <div className="text-center py-12">
@@ -133,13 +137,13 @@ export default function OfficeBatchApplicationsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {applications.map((app) => (
+                  {applications.map((app: BatchApplication) => (
                     <tr key={app.id} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{app.companyName}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{app.requestNumber}</td>
                       <td className="px-6 py-4 text-sm">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(app.status)}`}
                         >
                           {app.status}
                         </span>
@@ -150,7 +154,7 @@ export default function OfficeBatchApplicationsPage() {
                       <td className="px-6 py-4 text-sm">
                         <button
                           onClick={() => navigate(`/office/batch-applications/${app.id}`)}
-                          className="text-green-600 hover:text-green-800 flex items-center gap-1"
+                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
                         >
                           <Eye className="w-4 h-4" />
                           View
