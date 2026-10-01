@@ -1,9 +1,25 @@
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { Search, ChevronLeft, ChevronRight, Eye, Loader } from "lucide-react"
+import {
+  CalendarDays,
+  ChevronDown,
+  ChevronRight,
+  CircleHelp,
+  Clock3,
+  FilePlus2,
+  FileText,
+  Filter,
+  Grid2X2,
+  Headphones,
+  LayoutList,
+  Plus,
+  Search,
+  ShieldCheck,
+  XCircle,
+  Zap,
+} from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import OfficeLayout from "./OfficeLayout"
-import { formatDate } from "@/lib/utils"
 
 interface BatchApplication {
   id: number
@@ -13,203 +29,168 @@ interface BatchApplication {
   submittedAt?: string
 }
 
+const F = "'Inter', system-ui, sans-serif"
+const NAVY = "#0f2170"
+const BLUE = "#0b5ed7"
+const SOFT_BLUE = "#edf5ff"
+const TEXT = "#0f172a"
+const MUTED = "#5c6f85"
+
+const stats = [
+  { label: "Total Applications", helper: "All submitted", value: 0, icon: FileText, accent: "#0b5ed7", bg: "#e8f2ff" },
+  { label: "Active", helper: "Currently processing", value: 0, icon: ShieldCheck, accent: "#2563eb", bg: "#eaf1ff" },
+  { label: "Approved", helper: "Certified", value: 0, icon: ShieldCheck, accent: "#15803d", bg: "#ecfdf5" },
+  { label: "Rejected", helper: "Declined", value: 0, icon: XCircle, accent: "#dc2626", bg: "#feeaea" },
+]
+
 export default function OfficeBatchApplicationsPage() {
   const navigate = useNavigate()
-  const [page, setPage] = useState(0)
   const [search, setSearch] = useState("")
-  const [activeTab, setActiveTab] = useState("Active")
+  const [view, setView] = useState<"list" | "grid">("list")
 
   const { data, isLoading } = useQuery({
-    queryKey: ["office-batch-applications", page, search, activeTab],
+    queryKey: ["office-batch-applications", search],
     queryFn: async () => {
-      // Placeholder - replace with actual API call
       return {
         content: [],
         totalElements: 0,
-        totalPages: 0,
       }
     },
   })
 
   const applications = data?.content || []
   const totalElements = data?.totalElements || 0
-  const totalPages = Math.ceil(totalElements / 20)
 
-  const tabs = ["Active", "Certified", "Draft", "Rejected"]
-
-  function getStatusStyle(status: string): string {
-    const styles: Record<string, string> = {
-      "PENDING": "bg-amber-50 text-amber-700 border-amber-200",
-      "APPROVED": "bg-green-50 text-green-700 border-green-200",
-      "REJECTED": "bg-red-50 text-red-700 border-red-200",
+  function getStatusColor(status: string) {
+    switch (status) {
+      case "PENDING":
+        return { bg: "#fef3c7", color: "#b45309" }
+      case "APPROVED":
+        return { bg: "#dcfce7", color: "#15803d" }
+      case "REJECTED":
+        return { bg: "#fee2e2", color: "#dc2626" }
+      default:
+        return { bg: "#f3f4f6", color: "#64748b" }
     }
-    return styles[status] || "bg-gray-50 text-gray-700 border-gray-200"
   }
 
   return (
     <OfficeLayout>
-      <div className="p-6 bg-gray-50 min-h-screen">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Batch Applications</h1>
-            <p className="text-gray-600">{totalElements} applications total</p>
+      <div style={{ fontFamily: F, background: "#f8fafc", minHeight: "100vh", padding: "32px 24px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          {/* Header */}
+          <div style={{ marginBottom: 40 }}>
+            <p style={{ margin: "0 0 8px", color: "#4b5563", fontSize: "0.83rem", fontWeight: 850, letterSpacing: "0.14em", textTransform: "uppercase" }}>Batch Applications</p>
+            <h1 style={{ margin: 0, color: "#09204f", fontSize: "clamp(2rem, 4vw, 3.5rem)", lineHeight: 1.04, fontWeight: 900, letterSpacing: "-0.045em" }}>
+              Batch Applications
+            </h1>
           </div>
 
-          {/* Stat Cards */}
-          <div className="flex gap-3">
-            <div className="bg-blue-600 text-white rounded-lg p-4 min-w-fit">
-              <p className="text-xs font-semibold mb-1">Total</p>
-              <p className="text-2xl font-bold">{totalElements}</p>
-            </div>
-            <div className="bg-blue-500 text-white rounded-lg p-4 min-w-fit">
-              <p className="text-xs font-semibold mb-1">Active</p>
-              <p className="text-2xl font-bold">1</p>
-            </div>
-            <div className="bg-green-600 text-white rounded-lg p-4 min-w-fit">
-              <p className="text-xs font-semibold mb-1">Certified</p>
-              <p className="text-2xl font-bold">1</p>
-            </div>
-            <div className="bg-gray-600 text-white rounded-lg p-4 min-w-fit">
-              <p className="text-xs font-semibold mb-1">Draft</p>
-              <p className="text-2xl font-bold">0</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="border-b border-gray-200 mb-6">
-          <div className="flex gap-8">
-            {tabs.map(tab => (
-              <button
-                key={tab}
-                onClick={() => {
-                  setActiveTab(tab)
-                  setPage(0)
-                }}
-                className={`pb-3 font-medium text-sm transition border-b-2 ${
-                  activeTab === tab
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                {tab}
-              </button>
+          {/* Stats Cards */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16, marginBottom: 40 }}>
+            {stats.map(({ label, helper, value, icon: Icon, accent, bg }) => (
+              <div key={label} style={{ background: "#fff", borderRadius: 16, padding: 24, display: "flex", gap: 16, alignItems: "flex-start", border: "1px solid #e2e8f0", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: bg, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  <Icon size={32} color={accent} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <div style={{ color: "#071d35", fontSize: "2rem", fontWeight: 900, lineHeight: 1 }}>{value}</div>
+                  <div style={{ color: "#41546c", marginTop: 8, fontSize: "1rem", fontWeight: 700 }}>{label}</div>
+                  <div style={{ color: "#6a7890", marginTop: 4, fontSize: "0.9rem" }}>{helper}</div>
+                </div>
+              </div>
             ))}
           </div>
-        </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by company or app number..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                setPage(0)
-              }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
+          {/* Content Panel */}
+          <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", overflow: "hidden" }}>
+            {/* Panel Header */}
+            <div style={{ padding: "24px", borderBottom: "1px solid #e2e8f0" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <div style={{ width: 56, height: 56, borderRadius: 14, background: "#e8f2ff", display: "grid", placeItems: "center" }}>
+                    <FileText size={28} color={BLUE} strokeWidth={2.4} />
+                  </div>
+                  <div>
+                    <h2 style={{ margin: 0, color: TEXT, fontSize: "1.4rem", fontWeight: 850, letterSpacing: "-0.025em" }}>Batch Applications</h2>
+                    <p style={{ margin: "6px 0 0", color: MUTED, fontSize: "0.95rem" }}>{totalElements} total applications</p>
+                  </div>
+                </div>
 
-        {/* Batch Applications Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader className="w-8 h-8 animate-spin text-blue-600" />
-            </div>
-          ) : applications.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600">No batch applications found</p>
-            </div>
-          ) : (
-            <>
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Request #
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Company
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Submitted
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Updated
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {applications.map((app: BatchApplication) => (
-                    <tr key={app.id} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 text-sm font-medium text-blue-600">{app.requestNumber}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{app.companyName}</td>
-                      <td className="px-6 py-4 text-sm">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(app.status)}`}
-                        >
-                          {app.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {app.submittedAt ? formatDate(app.submittedAt) : "Not submitted"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {app.submittedAt ? formatDate(app.submittedAt) : "-"}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        <button
-                          onClick={() => navigate(`/office/batch-applications/${app.id}`)}
-                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="border-t border-gray-200 px-6 py-4 flex items-center justify-between">
-                  <button
-                    onClick={() => setPage(Math.max(0, page - 1))}
-                    disabled={page === 0}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
+                {/* Toolbar */}
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <label style={{ position: "relative", display: "block" }}>
+                    <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
+                    <input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search applications..."
+                      style={{ width: 220, height: 40, border: "1px solid #d7e3f2", borderRadius: 10, background: "#f8fbff", color: TEXT, padding: "0 12px 0 40px", fontSize: "0.85rem", outline: "none" }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = BLUE)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = "#d7e3f2")}
+                    />
+                  </label>
+                  <button style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", border: "1px solid #d7e3f2", borderRadius: 10, background: "#fff", color: MUTED, fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", fontFamily: F }}>
+                    <Filter size={16} />Filter
                   </button>
-
-                  <span className="text-sm text-gray-600">
-                    Page {page + 1} of {totalPages}
-                  </span>
-
-                  <button
-                    onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
-                    disabled={page === totalPages - 1}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
+                  <button style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", border: "1px solid #d7e3f2", borderRadius: 10, background: "#fff", color: MUTED, fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", fontFamily: F }}>
+                    <CalendarDays size={16} />All Dates<ChevronDown size={14} />
                   </button>
                 </div>
-              )}
-            </>
-          )}
+              </div>
+            </div>
+
+            {/* Table */}
+            {isLoading ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 24px" }}>
+                <div style={{ textAlign: "center", color: MUTED }}>Loading...</div>
+              </div>
+            ) : applications.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "48px 24px" }}>
+                <FileText size={48} style={{ margin: "0 auto 16px", color: "#cbd5e1", display: "block" }} />
+                <h3 style={{ margin: "0 0 8px", color: TEXT, fontSize: "1.3rem", fontWeight: 850 }}>No Batch Applications</h3>
+                <p style={{ margin: "0 auto", maxWidth: 480, color: MUTED, lineHeight: 1.5, fontSize: "0.95rem" }}>
+                  No batch applications found. Applications submitted by customers will appear here.
+                </p>
+              </div>
+            ) : (
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
+                    {["Request #", "Company", "Status", "Submitted", "Action"].map(h => (
+                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: "0.75rem", fontWeight: 700, color: MUTED, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {applications.map((app: BatchApplication) => {
+                    const st = getStatusColor(app.status)
+                    return (
+                      <tr key={app.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                        <td style={{ padding: "14px 16px", fontSize: "0.9rem", fontWeight: 600, color: BLUE }}>{app.requestNumber}</td>
+                        <td style={{ padding: "14px 16px", fontSize: "0.9rem", fontWeight: 500, color: TEXT }}>{app.companyName}</td>
+                        <td style={{ padding: "14px 16px", fontSize: "0.85rem" }}>
+                          <span style={{ padding: "4px 12px", borderRadius: 16, background: st.bg, color: st.color, fontWeight: 600 }}>
+                            {app.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: "14px 16px", fontSize: "0.9rem", color: MUTED }}>
+                          {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString() : "N/A"}
+                        </td>
+                        <td style={{ padding: "14px 16px", fontSize: "0.9rem" }}>
+                          <button onClick={() => navigate(`/office/batch-applications/${app.id}`)} style={{ color: BLUE, textDecoration: "none", cursor: "pointer", background: "none", border: "none", fontFamily: F, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+                            View <ChevronRight size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
     </OfficeLayout>
