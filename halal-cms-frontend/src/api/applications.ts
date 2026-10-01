@@ -19,7 +19,7 @@ export const deleteApplication = (id: number) =>
   apiClient.delete(`/applications/${id}`).then(r => r.data)
 
 export const updateApplicationStatus = (id: number, status: ApplicationStatus) =>
-  apiClient.patch<ApplicationResponseDTO>(`/applications/${id}/status`, status).then(r => r.data)
+  apiClient.patch<ApplicationResponseDTO>(`/applications/${id}/status`, { status }).then(r => r.data)
 
 export const getCompanyInfo = (id: number) =>
   apiClient.get<CompanyInformationDTO>(`/applications/${id}/personal`).then(r => r.data)
