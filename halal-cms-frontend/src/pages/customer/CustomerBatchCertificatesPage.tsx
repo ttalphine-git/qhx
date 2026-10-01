@@ -4,6 +4,7 @@ import {
   Plus, Eye, AlertCircle, CheckCircle, XCircle, Clock, Loader, ArrowLeft
 } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
+import CustomerLayout from "./CustomerLayout"
 
 interface BatchRequest {
   id: number
@@ -114,19 +115,10 @@ export default function CustomerBatchCertificatesPage() {
   const totalPages = Math.ceil(totalElements / 20)
 
   return (
-    <div className="w-full bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/customer")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-2xl font-bold">Batch Certificates</h1>
-          </div>
+    <CustomerLayout title="Batch Certificates">
+      <div className="p-6 flex flex-col gap-4">
+        {/* New Request Button */}
+        <div className="flex justify-end mb-4">
           <button
             onClick={() => navigate("/customer/batch-certificates/new")}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -135,13 +127,10 @@ export default function CustomerBatchCertificatesPage() {
             New Request
           </button>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="w-full">
-        <div className="p-6">
+        <div className="space-y-6">
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-sm text-gray-600">Total Requests</p>
             <p className="text-3xl font-bold text-gray-900">{stats.totalRequests}</p>
@@ -284,8 +273,8 @@ export default function CustomerBatchCertificatesPage() {
             </button>
           </div>
         )}
+        </div>
       </div>
-    </div>
-    </div>
+    </CustomerLayout>
   )
 }
