@@ -17,10 +17,10 @@ export default function OfficeBatchApplicationsPage() {
   const navigate = useNavigate()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("")
+  const [activeTab, setActiveTab] = useState("Active")
 
   const { data, isLoading } = useQuery({
-    queryKey: ["office-batch-applications", page, search, statusFilter],
+    queryKey: ["office-batch-applications", page, search, activeTab],
     queryFn: async () => {
       // Placeholder - replace with actual API call
       return {
@@ -35,11 +35,7 @@ export default function OfficeBatchApplicationsPage() {
   const totalElements = data?.totalElements || 0
   const totalPages = Math.ceil(totalElements / 20)
 
-  const statuses = [
-    "PENDING",
-    "APPROVED",
-    "REJECTED",
-  ]
+  const tabs = ["Active", "Certified", "Draft", "Rejected"]
 
   function getStatusStyle(status: string): string {
     const styles: Record<string, string> = {
@@ -53,54 +49,69 @@ export default function OfficeBatchApplicationsPage() {
   return (
     <OfficeLayout>
       <div className="p-6 bg-gray-50 min-h-screen">
-        <div className="mb-6">
+        <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Batch Applications</h1>
-            <p className="text-gray-600">Browse and manage batch certificate applications</p>
+            <p className="text-gray-600">{totalElements} applications total</p>
+          </div>
+
+          {/* Stat Cards */}
+          <div className="flex gap-3">
+            <div className="bg-blue-600 text-white rounded-lg p-4 min-w-fit">
+              <p className="text-xs font-semibold mb-1">Total</p>
+              <p className="text-2xl font-bold">{totalElements}</p>
+            </div>
+            <div className="bg-blue-500 text-white rounded-lg p-4 min-w-fit">
+              <p className="text-xs font-semibold mb-1">Active</p>
+              <p className="text-2xl font-bold">1</p>
+            </div>
+            <div className="bg-green-600 text-white rounded-lg p-4 min-w-fit">
+              <p className="text-xs font-semibold mb-1">Certified</p>
+              <p className="text-2xl font-bold">1</p>
+            </div>
+            <div className="bg-gray-600 text-white rounded-lg p-4 min-w-fit">
+              <p className="text-xs font-semibold mb-1">Draft</p>
+              <p className="text-2xl font-bold">0</p>
+            </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by company name..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
+        {/* Tabs */}
+        <div className="border-b border-gray-200 mb-6">
+          <div className="flex gap-8">
+            {tabs.map(tab => (
+              <button
+                key={tab}
+                onClick={() => {
+                  setActiveTab(tab)
                   setPage(0)
                 }}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+                className={`pb-3 font-medium text-sm transition border-b-2 ${
+                  activeTab === tab
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
 
-            {/* Status Filter */}
-            <select
-              value={statusFilter}
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by company or app number..."
+              value={search}
               onChange={(e) => {
-                setStatusFilter(e.target.value)
+                setSearch(e.target.value)
                 setPage(0)
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Statuses</option>
-              {statuses.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-
-            {/* Results Count */}
-            <div className="flex items-center px-4 py-2 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">
-                Showing <strong>{applications.length}</strong> of <strong>{totalElements}</strong> applications
-              </span>
-            </div>
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
         </div>
 
@@ -120,16 +131,19 @@ export default function OfficeBatchApplicationsPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Company
+                      Request #
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Request #
+                      Company
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Submitted
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                      Updated
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Action
@@ -139,8 +153,8 @@ export default function OfficeBatchApplicationsPage() {
                 <tbody className="divide-y divide-gray-200">
                   {applications.map((app: BatchApplication) => (
                     <tr key={app.id} className="hover:bg-gray-50 transition">
+                      <td className="px-6 py-4 text-sm font-medium text-blue-600">{app.requestNumber}</td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{app.companyName}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{app.requestNumber}</td>
                       <td className="px-6 py-4 text-sm">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(app.status)}`}
@@ -150,6 +164,9 @@ export default function OfficeBatchApplicationsPage() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {app.submittedAt ? formatDate(app.submittedAt) : "Not submitted"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {app.submittedAt ? formatDate(app.submittedAt) : "-"}
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <button
