@@ -91,12 +91,12 @@ export default function CustomerLayout({ children, title }: CustomerLayoutProps)
 
         {/* Search */}
         <div style={{ position: "relative", display: "flex", alignItems: "center", width: "280px" }}>
-          <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.7)" }} />
+          <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#9ca3af" }} />
           <input
             placeholder="Search..."
-            style={{ width: "100%", height: 36, border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, background: "rgba(255,255,255,0.12)", color: "#fff", padding: "0 12px 0 38px", fontSize: "0.8125rem", outline: "none", fontFamily: "inherit" }}
-            onFocus={e => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
-            onBlur={e => (e.currentTarget.style.background = "rgba(255,255,255,0.12)")}
+            style={{ width: "100%", height: 36, border: "1px solid #e5e7eb", borderRadius: 8, background: "#fff", color: "#1f2937", padding: "0 12px 0 38px", fontSize: "0.8125rem", outline: "none", fontFamily: "inherit", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}
+            onFocus={e => { e.currentTarget.style.borderColor = "#3b82f6"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)" }}
+            onBlur={e => { e.currentTarget.style.borderColor = "#e5e7eb"; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)" }}
           />
         </div>
 
