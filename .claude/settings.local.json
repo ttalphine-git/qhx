@@ -256,10 +256,19 @@
       "Bash(git commit -m 'feat: Add customer payment management pages *)",
       "Bash(git commit -m 'feat: Add test users for deployment testing *)",
       "PowerShell(Get-NetTCPConnection -LocalPort 8087 -State Listen -ErrorAction SilentlyContinue)",
-      "Bash(export DO_API_TOKEN=\"dop_v1_696d773ed640cddb45360677fadf5e1bed9386cea79129378885ea94df303899\")",
-      "PowerShell(cd d:\\\\QHXSASS\\\\halal-cms-backend; $env:DO_API_TOKEN = \"dop_v1_696d773ed640cddb45360677fadf5e1bed9386cea79129378885ea94df303899\"; mvn clean package -DskipTests -q)",
+      "Bash(export DO_API_TOKEN=\"$DO_API_TOKEN\")",
+      "PowerShell(cd d:\\\\QHXSASS\\\\halal-cms-backend; $env:DO_API_TOKEN = $env:DO_API_TOKEN; mvn clean package -DskipTests -q)",
       "Bash(git commit -m 'fix: Use correct docker-compose variable syntax with hyphen \\(:-\\) for defaults *)",
-      "Bash(ssh -i *)"
+      "Bash(ssh -i *)",
+      "PowerShell(& \"C:\\\\Program Files\\\\PuTTY\\\\plink.exe\" -pw $password -l $username $dropletIP \"echo 'Connected'\" 2>&1)",
+      "PowerShell(& \"C:\\\\Program Files\\\\PuTTY\\\\plink.exe\" -pw $password -l $username $dropletIP \"cd /root/qhx && docker compose up -d && docker ps --format 'table {{.Names}}\\\\t{{.Status}}'\" 2>&1)",
+      "PowerShell($password = $env:QHX_DROPLET_PASSWORD)",
+      "PowerShell($username = \"root\")",
+      "PowerShell($dropletIP = \"157.230.80.158\")",
+      "Bash(git commit -m 'Fix certificate-service email config and customer batch certificates layout *)",
+      "PowerShell(curl -s http://localhost:5173/office/applications-list 2>&1)",
+      "PowerShell(\\(Get-Content d:\\\\QHXSASS\\\\halal-cms-frontend\\\\src\\\\pages\\\\office\\\\OfficeBatchCertificateDetailPage.tsx\\).Count)",
+      "PowerShell(tail -20 d:\\\\QHXSASS\\\\halal-cms-frontend\\\\src\\\\pages\\\\customer\\\\CustomerBatchCertificateDetailPage.tsx)"
     ]
   }
 }

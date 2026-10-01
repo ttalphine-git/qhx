@@ -71,11 +71,11 @@ export default function CustomerBatchCertificatesPage() {
         <section className="batch-hero">
           <div className="batch-hero-copy">
             <p style={{ margin: "0 0 8px", color: "#4b5563", fontSize: "0.83rem", fontWeight: 850, letterSpacing: "0.14em", textTransform: "uppercase" }}>Batch Certificates</p>
-            <h1 style={{ margin: 0, color: "#09204f", fontSize: "clamp(2.15rem, 4vw, 4.15rem)", lineHeight: 1.04, fontWeight: 900, letterSpacing: "-0.045em" }}>
+            <h1 style={{ margin: 0, color: "#09204f", fontSize: "clamp(1.5rem, 3vw, 2.8rem)", lineHeight: 1.04, fontWeight: 900, letterSpacing: "-0.045em" }}>
               Your Halal Certifications<br />
               in <span style={{ color: BLUE }}>One Place</span>
             </h1>
-            <p style={{ margin: "18px 0 0", color: "#405779", maxWidth: 760, fontSize: "clamp(1rem, 1.4vw, 1.27rem)", lineHeight: 1.55 }}>
+            <p style={{ margin: "12px 0 0", color: "#405779", maxWidth: 760, fontSize: "clamp(0.8rem, 1.1vw, 0.95rem)", lineHeight: 1.55 }}>
               View, download, and manage all batch certificates issued by HalalCMS. Keep your certifications organized, secure, and always accessible.
             </p>
           </div>
@@ -85,13 +85,13 @@ export default function CustomerBatchCertificatesPage() {
         <section className="batch-stats">
           {stats.map(({ label, helper, value, icon: Icon, accent, bg }) => (
             <article key={label} className="batch-stat-card">
-              <div style={{ width: 72, height: 72, borderRadius: "50%", background: bg, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                <Icon size={34} color={accent} strokeWidth={2.35} />
+              <div style={{ width: 54, height: 54, borderRadius: "50%", background: bg, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                <Icon size={24} color={accent} strokeWidth={2.35} />
               </div>
               <div>
-                <div style={{ color: "#071d35", fontSize: "2rem", fontWeight: 900, lineHeight: 1 }}>{value}</div>
-                <div style={{ color: "#41546c", marginTop: 8, fontSize: "1.02rem", fontWeight: 700 }}>{label}</div>
-                <div style={{ color: "#6a7890", marginTop: 6, fontSize: "0.9rem" }}>{helper}</div>
+                <div style={{ color: "#071d35", fontSize: "1.35rem", fontWeight: 900, lineHeight: 1 }}>{value}</div>
+                <div style={{ color: "#41546c", marginTop: 4, fontSize: "0.78rem", fontWeight: 700 }}>{label}</div>
+                <div style={{ color: "#6a7890", marginTop: 3, fontSize: "0.68rem" }}>{helper}</div>
               </div>
             </article>
           ))}
@@ -100,24 +100,24 @@ export default function CustomerBatchCertificatesPage() {
         <div className="batch-content-grid">
           <section className="batch-panel">
             <div className="batch-panel-head">
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <div style={{ width: 58, height: 58, borderRadius: 16, background: "#e8f2ff", display: "grid", placeItems: "center" }}>
-                  <FileText size={31} color={BLUE} strokeWidth={2.45} />
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: "#e8f2ff", display: "grid", placeItems: "center" }}>
+                  <FileText size={22} color={BLUE} strokeWidth={2.45} />
                 </div>
                 <div>
-                  <h2 style={{ margin: 0, color: TEXT, fontSize: "1.55rem", fontWeight: 850, letterSpacing: "-0.025em" }}>Batch Certificates</h2>
-                  <p style={{ margin: "6px 0 0", color: MUTED, fontSize: "0.95rem" }}>Manage and access your batch certificates</p>
+                  <h2 style={{ margin: 0, color: TEXT, fontSize: "1.1rem", fontWeight: 850, letterSpacing: "-0.025em" }}>Batch Certificates</h2>
+                  <p style={{ margin: "3px 0 0", color: MUTED, fontSize: "0.72rem" }}>Manage and access your batch certificates</p>
                 </div>
               </div>
 
               <div className="batch-toolbar">
                 <label style={{ position: "relative", display: "block" }}>
-                  <Search size={17} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
+                  <Search size={14} style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search certificates..."
-                    style={{ width: 230, height: 44, border: "1px solid #d7e3f2", borderRadius: 10, background: "#f8fbff", color: TEXT, padding: "0 14px 0 42px", fontSize: "0.86rem" }}
+                    style={{ width: 200, height: 36, border: "1px solid #d7e3f2", borderRadius: 8, background: "#f8fbff", color: TEXT, padding: "0 12px 0 36px", fontSize: "0.7rem" }}
                   />
                 </label>
                 <button className="batch-tool-button"><Filter size={17} />Filter</button>
@@ -136,8 +136,8 @@ export default function CustomerBatchCertificatesPage() {
                   <div style={{ width: 76, height: 52, borderRadius: 10, background: "linear-gradient(180deg, #b8d1eb 0%, #8eb7dd 100%)", boxShadow: "0 18px 35px rgba(15,33,112,0.14)" }} />
                 </div>
               </div>
-              <h3 style={{ margin: "0 0 10px", color: TEXT, fontSize: "1.5rem", fontWeight: 850, letterSpacing: "-0.025em" }}>No Batch Certificates Yet</h3>
-              <p style={{ margin: "0 auto", maxWidth: 540, color: "#536783", lineHeight: 1.55, fontSize: "1rem" }}>
+              <h3 style={{ margin: "0 0 8px", color: TEXT, fontSize: "1.1rem", fontWeight: 850, letterSpacing: "-0.025em" }}>No Batch Certificates Yet</h3>
+              <p style={{ margin: "0 auto", maxWidth: 540, color: "#536783", lineHeight: 1.55, fontSize: "0.8rem" }}>
                 Your issued batch certificates will appear here. You can view, download, and manage your certificates once they are available.
               </p>
               <button onClick={() => navigate("/customer/batch-certificates/new")} className="batch-primary-button">
@@ -149,29 +149,29 @@ export default function CustomerBatchCertificatesPage() {
 
           <aside className="batch-sidebar">
             <section className="batch-side-panel tinted">
-              <h3 style={{ margin: "0 0 12px", color: TEXT, fontSize: "1.18rem", fontWeight: 850, display: "flex", alignItems: "center", gap: 10 }}>
-                <Zap size={23} color={BLUE} fill="#0b5ed7" />Quick Actions
+              <h3 style={{ margin: "0 0 10px", color: TEXT, fontSize: "0.95rem", fontWeight: 850, display: "flex", alignItems: "center", gap: 8 }}>
+                <Zap size={17} color={BLUE} fill="#0b5ed7" />Quick Actions
               </h3>
-              <div style={{ display: "grid", gap: 12 }}>
+              <div style={{ display: "grid", gap: 8 }}>
                 {quickActions.map(({ label, helper, icon: Icon, color, path }) => (
                   <button key={label} onClick={() => navigate(path)} className="batch-action-row">
-                    <span style={{ width: 42, height: 42, borderRadius: 12, background: `${color}14`, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                      <Icon size={22} color={color} strokeWidth={2.4} />
+                    <span style={{ width: 34, height: 34, borderRadius: 10, background: `${color}14`, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                      <Icon size={16} color={color} strokeWidth={2.4} />
                     </span>
                     <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                      <span style={{ display: "block", color: "#152238", fontSize: "0.88rem", fontWeight: 800 }}>{label}</span>
-                      <span style={{ display: "block", color: "#63758f", fontSize: "0.74rem", marginTop: 3 }}>{helper}</span>
+                      <span style={{ display: "block", color: "#152238", fontSize: "0.7rem", fontWeight: 800 }}>{label}</span>
+                      <span style={{ display: "block", color: "#63758f", fontSize: "0.6rem", marginTop: 2 }}>{helper}</span>
                     </span>
-                    <ChevronRight size={19} color="#44617e" />
+                    <ChevronRight size={15} color="#44617e" />
                   </button>
                 ))}
               </div>
             </section>
 
             <section className="batch-side-panel help">
-              <CircleHelp size={28} color={NAVY} />
-              <h3 style={{ margin: "10px 0 8px", color: TEXT, fontSize: "1.16rem", fontWeight: 850 }}>Need Help?</h3>
-              <p style={{ margin: "0 auto 18px", color: "#5d6f86", maxWidth: 280, lineHeight: 1.55, fontSize: "0.82rem" }}>
+              <CircleHelp size={22} color={NAVY} />
+              <h3 style={{ margin: "8px 0 6px", color: TEXT, fontSize: "0.9rem", fontWeight: 850 }}>Need Help?</h3>
+              <p style={{ margin: "0 auto 14px", color: "#5d6f86", maxWidth: 280, lineHeight: 1.55, fontSize: "0.68rem" }}>
                 If you have any questions about your batch certificates, please contact our support team.
               </p>
               <button className="batch-support-button">

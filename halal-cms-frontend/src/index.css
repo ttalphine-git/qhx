@@ -48,7 +48,7 @@ input:focus, select:focus, textarea:focus {
 
 .batch-hero {
   position: relative;
-  min-height: 295px;
+  min-height: 220px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -59,7 +59,7 @@ input:focus, select:focus, textarea:focus {
   position: relative;
   z-index: 2;
   width: min(63%, 850px);
-  padding: 2.6rem 0 1.6rem 1.25rem;
+  padding: 1.5rem 0 1rem 1.25rem;
 }
 
 .batch-hero-art {
@@ -191,11 +191,11 @@ input:focus, select:focus, textarea:focus {
 }
 
 .batch-stat-card {
-  min-height: 130px;
+  min-height: 100px;
   display: flex;
   align-items: center;
-  gap: 1.4rem;
-  padding: 1.45rem 1.55rem;
+  gap: 1rem;
+  padding: 0.95rem 1.1rem;
   border-radius: 14px;
 }
 
@@ -217,12 +217,12 @@ input:focus, select:focus, textarea:focus {
 }
 
 .batch-panel-head {
-  min-height: 95px;
+  min-height: 75px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.25rem 1.45rem;
+  padding: 0.9rem 1.1rem;
   border-bottom: 1px solid #dce8f7;
 }
 
@@ -244,21 +244,22 @@ input:focus, select:focus, textarea:focus {
 }
 
 .batch-tool-button {
-  height: 44px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   border: 1px solid #d7e3f2;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fff;
   color: #22344f;
-  padding: 0 0.9rem;
+  padding: 0 0.7rem;
   font-weight: 700;
+  font-size: 0.7rem;
 }
 
 .batch-view-button {
-  width: 45px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   border: 0;
@@ -272,13 +273,13 @@ input:focus, select:focus, textarea:focus {
 }
 
 .batch-empty {
-  min-height: 334px;
+  min-height: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2.2rem 1.5rem;
+  padding: 1.5rem 1.2rem;
 }
 
 .batch-empty-art {
@@ -312,17 +313,17 @@ input:focus, select:focus, textarea:focus {
 }
 
 .batch-primary-button {
-  margin-top: 1.4rem;
-  height: 52px;
+  margin-top: 0.9rem;
+  height: 40px;
   display: inline-flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.5rem;
   border: 0;
-  border-radius: 10px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #0f2170, #0b5ed7);
   color: #fff;
-  padding: 0 1.7rem;
-  font-size: 0.98rem;
+  padding: 0 1.3rem;
+  font-size: 0.75rem;
   font-weight: 800;
   box-shadow: 0 14px 24px rgba(11, 94, 215, 0.24);
 }
@@ -334,7 +335,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .batch-side-panel {
-  padding: 1.25rem;
+  padding: 0.9rem;
 }
 
 .batch-side-panel.tinted {
@@ -342,14 +343,14 @@ input:focus, select:focus, textarea:focus {
 }
 
 .batch-action-row {
-  min-height: 61px;
+  min-height: 48px;
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.65rem;
   border: 1px solid #e7eff9;
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.88);
-  padding: 0.65rem;
+  padding: 0.5rem;
 }
 
 .batch-side-panel.help {
@@ -359,16 +360,17 @@ input:focus, select:focus, textarea:focus {
 
 .batch-support-button {
   width: 100%;
-  height: 46px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   border: 1px solid #0f2170;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #fff;
   color: #0f2170;
   font-weight: 800;
+  font-size: 0.7rem;
 }
 
 @media (max-width: 1180px) {
