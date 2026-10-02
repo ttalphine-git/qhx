@@ -142,7 +142,7 @@ export default function CustomerDashboard() {
         </div>
 
         {/* ── Main content ─────────────────────────────────────────── */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 300px", gap:16 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1.5fr 1.5fr 320px", gap:20 }}>
 
           {/* Applications */}
           <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden" }}>
