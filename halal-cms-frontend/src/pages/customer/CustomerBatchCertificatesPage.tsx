@@ -72,7 +72,7 @@ export default function CustomerBatchCertificatesPage() {
 
   return (
     <CustomerLayout title="Batch Certificates">
-      <div style={{ fontFamily: F, padding: "18px 24px", paddingBottom: 40, display: "grid", gridTemplateColumns: "1fr 320px", gap: 20 }}>
+      <div style={{ fontFamily: F, padding: "18px 24px", paddingBottom: 40 }}>
         <div>
         {/* Page Header */}
         <div

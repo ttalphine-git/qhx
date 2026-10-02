@@ -2062,10 +2062,11 @@ export default function CustomerApplicationsPage() {
         )}
 
         {/* Table */}
-        <div style={{ background: "#fff", border: "1px solid #e9ecef", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", height: "calc(100vh - 420px)", marginBottom: 20 }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", flex: 1, overflow: "auto" }}>
-            <thead>
-              <tr style={{ borderBottom: "2px solid #e9ecef", background: "#fafbfc" }}>
+        <div style={{ background: "#fff", border: "1px solid #e9ecef", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", height: "calc(100vh - 400px)", marginBottom: 20 }}>
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead style={{ position: "sticky", top: 0, background: "#fafbfc", zIndex: 1 }}>
+                <tr style={{ borderBottom: "2px solid #e9ecef", background: "#fafbfc" }}>
                 {["App #", "Submitted", "Company", "Type", "Location", "Standard", "Products", "Status", "Total", "Updated", "Progress", "-"].map(h => (
                   <th key={h} style={{ padding: "9px 16px", textAlign: "left", fontSize: "0.62rem", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.07em", textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>{h}</th>
                 ))}
@@ -2171,7 +2172,8 @@ export default function CustomerApplicationsPage() {
                 )
               })}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
 
         {totalPages > 1 && (
