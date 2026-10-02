@@ -11,7 +11,7 @@ import {
 import OfficeLayout from "./OfficeLayout"
 import "@/styles/audit.css"
 import { NcsTab } from "@/components/NcsTab"
-import { getApplications, getCompanyInfo } from "@/api/applications"
+import { getApplications, getCompanyInfo, updateApplicationStatus } from "@/api/applications"
 import {
   getApplicationAuditReport,
   getAuditPlan,
@@ -2222,6 +2222,7 @@ export default function ApplicationsPage() {
   const [discountValue, setDiscountValue]   = useState("")
   const [rejectModal, setRejectModal]       = useState(false)
   const [rejectReason, setRejectReason]     = useState("")
+  const [statusSaving, setStatusSaving]     = useState(false)
   const detailRef                       = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -2335,133 +2336,165 @@ export default function ApplicationsPage() {
     }]
   }
 
-  function approveApp() {
+  async function approveApp() {
     if (!a) return
+    setStatusSaving(true)
     const now = new Date().toISOString()
     const appRef = a.applicationNumber ?? String(a.id).replace('local_', '#L')
     const coName = a.companyName || (a as any).factoryName || '-'
     const actorName = user?.name ?? 'HCB Office'
 
-    // Apply discount to billing if entered
-    const billing = loadApplicationBilling(a.id)
-    if (billing && discountValue && parseFloat(discountValue) > 0) {
-      const dv = parseFloat(discountValue)
-      const discountAmt = discountType === "%" ? billing.subtotal * (dv / 100) : Math.min(dv, billing.subtotal)
-      const newSubtotal = Math.max(0, billing.subtotal - discountAmt)
-      const newVat      = newSubtotal * billing.vatPct / 100
-      const discountLine = { description: `Discount ${discountType === "%" ? `(${dv}%)` : "(Fixed)"}`, quantity: 1, unitPrice: -discountAmt, total: -discountAmt }
-      saveApplicationBilling({ ...billing, lineItems: [...billing.lineItems, discountLine], subtotal: newSubtotal, vatAmount: newVat, total: newSubtotal + newVat, savedAt: now })
-    }
-
-    const logs = [...buildInitialLog(a), {
-      timestamp: now,
-      action: "Application Approved", by: actorName,
-      note: "Status changed to Agreement Pending. Profile data locked. Customer notified by email to sign agreement.",
-      color: "#2563eb",
-    }]
-    const updated = {
-      ...a,
-      status: "AGREEMENT_PENDING" as ApplicationStatus,
-      approvedAt: now,
-      approvedBy: actorName,
-      logs,
-    }
-    setApproveConfirm(false)
-    setDiscountValue("")
-    setDiscountType("%")
-    setViewApp(updated)
-    if (a._local) {
-      try {
-        const all = loadLocalApps().map((la: any) => String(la.id) === String(a.id) ? { ...la, ...updated } : la)
-        localStorage.setItem('hcs_local_applications', JSON.stringify(all))
-        setLocalApps(all as LocalApp[])
-      } catch {
-        const all = loadLocalApps().map((la: any) => String(la.id) === String(a.id) ? { ...la, status: "AGREEMENT_PENDING", approvedAt: now, approvedBy: actorName } : la)
-        localStorage.setItem('hcs_local_applications', JSON.stringify(all))
-        setLocalApps(all as LocalApp[])
+    try {
+      // Apply discount to billing if entered
+      const billing = loadApplicationBilling(a.id)
+      if (billing && discountValue && parseFloat(discountValue) > 0) {
+        const dv = parseFloat(discountValue)
+        const discountAmt = discountType === "%" ? billing.subtotal * (dv / 100) : Math.min(dv, billing.subtotal)
+        const newSubtotal = Math.max(0, billing.subtotal - discountAmt)
+        const newVat      = newSubtotal * billing.vatPct / 100
+        const discountLine = { description: `Discount ${discountType === "%" ? `(${dv}%)` : "(Fixed)"}`, quantity: 1, unitPrice: -discountAmt, total: -discountAmt }
+        saveApplicationBilling({ ...billing, lineItems: [...billing.lineItems, discountLine], subtotal: newSubtotal, vatAmount: newVat, total: newSubtotal + newVat, savedAt: now })
       }
+
+      const logs = [...buildInitialLog(a), {
+        timestamp: now,
+        action: "Application Approved", by: actorName,
+        note: "Status changed to Agreement Pending. Profile data locked. Customer notified by email to sign agreement.",
+        color: "#2563eb",
+      }]
+      const updated = {
+        ...a,
+        status: "AGREEMENT_PENDING" as ApplicationStatus,
+        approvedAt: now,
+        approvedBy: actorName,
+        logs,
+      }
+      const saved = a._local ? updated : await updateApplicationStatus(Number(a.id), "AGREEMENT_PENDING" as ApplicationStatus)
+      const nextView = { ...updated, ...saved }
+      setApproveConfirm(false)
+      setDiscountValue("")
+      setDiscountType("%")
+      setViewApp(nextView)
+      if (a._local) {
+        try {
+          const all = loadLocalApps().map((la: any) => String(la.id) === String(a.id) ? { ...la, ...updated } : la)
+          localStorage.setItem('hcs_local_applications', JSON.stringify(all))
+          setLocalApps(all as LocalApp[])
+        } catch {
+          const all = loadLocalApps().map((la: any) => String(la.id) === String(a.id) ? { ...la, status: "AGREEMENT_PENDING", approvedAt: now, approvedBy: actorName } : la)
+          localStorage.setItem('hcs_local_applications', JSON.stringify(all))
+          setLocalApps(all as LocalApp[])
+        }
+      } else {
+        refetch()
+      }
+
+      // Audit - approval action
+      addAuditLog({
+        applicationId: String(a.id),
+        applicationNumber: appRef,
+        companyName: coName,
+        actor: actorName,
+        role: 'HCB Office',
+        action: 'Application Approved',
+        details: `Application approved by ${actorName}. Profile data locked. Status moved to Agreement Pending.`,
+        oldStatus: a.status,
+        newStatus: 'AGREEMENT_PENDING',
+        category: 'APPLICATION',
+      })
+
+      // Audit - email sent
+      addAuditLog({
+        applicationId: String(a.id),
+        applicationNumber: appRef,
+        companyName: coName,
+        actor: 'System',
+        role: 'System',
+        action: 'Email Notification Sent',
+        details: `Approval email sent to customer for application ${appRef}. Customer requested to sign the agreement.`,
+        category: 'SYSTEM',
+      })
+
+      // Customer notification
+      addNotification('customer', {
+        type: 'success',
+        title: 'Application Approved',
+        body: `Your application ${appRef} has been approved by HCB. Please sign the agreement to proceed.`,
+      })
+
+      // Office confirmation
+      addNotification('office', {
+        type: 'info',
+        title: 'Email Sent to Customer',
+        body: `Approval notification email sent to ${coName} for application ${appRef}.`,
+      })
+    } catch (err) {
+      console.error("Failed to approve application", err)
+      addNotification('office', {
+        type: 'error',
+        title: 'Approval Failed',
+        body: `Could not update application ${appRef}. Please try again.`,
+      })
+    } finally {
+      setStatusSaving(false)
     }
-
-    // Audit - approval action
-    addAuditLog({
-      applicationId: String(a.id),
-      applicationNumber: appRef,
-      companyName: coName,
-      actor: actorName,
-      role: 'HCB Office',
-      action: 'Application Approved',
-      details: `Application approved by ${actorName}. Profile data locked. Status moved to Agreement Pending.`,
-      oldStatus: a.status,
-      newStatus: 'AGREEMENT_PENDING',
-      category: 'APPLICATION',
-    })
-
-    // Audit - email sent
-    addAuditLog({
-      applicationId: String(a.id),
-      applicationNumber: appRef,
-      companyName: coName,
-      actor: 'System',
-      role: 'System',
-      action: 'Email Notification Sent',
-      details: `Approval email sent to customer for application ${appRef}. Customer requested to sign the agreement.`,
-      category: 'SYSTEM',
-    })
-
-    // Customer notification
-    addNotification('customer', {
-      type: 'success',
-      title: 'Application Approved',
-      body: `Your application ${appRef} has been approved by HCB. Please sign the agreement to proceed.`,
-    })
-
-    // Office confirmation
-    addNotification('office', {
-      type: 'info',
-      title: 'Email Sent to Customer',
-      body: `Approval notification email sent to ${coName} for application ${appRef}.`,
-    })
   }
 
-  function rejectApp() {
+  async function rejectApp() {
     if (!a) return
-    const logs = [...buildInitialLog(a), {
-      timestamp: new Date().toISOString(),
-      action: "Application Rejected", by: "HCB Office",
-      note: rejectReason.trim() || undefined, color: "#dc2626",
-    }]
-    const updated = {
-      ...a,
-      status: "REJECTED" as ApplicationStatus,
-      rejectedAt: new Date().toISOString(),
-      rejectionReason: rejectReason.trim(),
-      logs,
+    setStatusSaving(true)
+    const appRef = a.applicationNumber ?? String(a.id).replace('local_', '#L')
+    try {
+      const logs = [...buildInitialLog(a), {
+        timestamp: new Date().toISOString(),
+        action: "Application Rejected", by: "HCB Office",
+        note: rejectReason.trim() || undefined, color: "#dc2626",
+      }]
+      const updated = {
+        ...a,
+        status: "REJECTED" as ApplicationStatus,
+        rejectedAt: new Date().toISOString(),
+        rejectionReason: rejectReason.trim(),
+        logs,
+      }
+      const saved = a._local ? updated : await updateApplicationStatus(Number(a.id), "REJECTED" as ApplicationStatus)
+      setViewApp({ ...updated, ...saved })
+      if (a._local) {
+        const all = loadLocalApps().map(la => la.id === a.id ? { ...la, ...updated } : la)
+        localStorage.setItem('hcs_local_applications', JSON.stringify(all))
+        setLocalApps(all as LocalApp[])
+      } else {
+        refetch()
+      }
+      addAuditLog({
+        applicationId: String(a.id),
+        applicationNumber: appRef,
+        companyName: a.companyName || (a as any).factoryName || '-',
+        actor: user?.name ?? 'HCB Office',
+        role: 'HCB Office',
+        action: 'Application Rejected',
+        details: rejectReason.trim() ? `Reason: ${rejectReason.trim()}` : 'No reason provided',
+        oldStatus: a.status,
+        newStatus: 'REJECTED',
+        category: 'APPLICATION',
+      })
+      addNotification('customer', {
+        type: 'error',
+        title: 'Application Rejected',
+        body: `Your application ${a.applicationNumber ?? a.id} was rejected.${rejectReason.trim() ? ` Reason: ${rejectReason.trim()}` : ''}`,
+      })
+      setRejectModal(false)
+      setRejectReason("")
+    } catch (err) {
+      console.error("Failed to reject application", err)
+      addNotification('office', {
+        type: 'error',
+        title: 'Rejection Failed',
+        body: `Could not update application ${appRef}. Please try again.`,
+      })
+    } finally {
+      setStatusSaving(false)
     }
-    setViewApp(updated)
-    if (a._local) {
-      const all = loadLocalApps().map(la => la.id === a.id ? { ...la, ...updated } : la)
-      localStorage.setItem('hcs_local_applications', JSON.stringify(all))
-      setLocalApps(all as LocalApp[])
-    }
-    addAuditLog({
-      applicationId: String(a.id),
-      applicationNumber: a.applicationNumber ?? String(a.id).replace('local_', '#L'),
-      companyName: a.companyName || (a as any).factoryName || '-',
-      actor: user?.name ?? 'HCB Office',
-      role: 'HCB Office',
-      action: 'Application Rejected',
-      details: rejectReason.trim() ? `Reason: ${rejectReason.trim()}` : 'No reason provided',
-      oldStatus: a.status,
-      newStatus: 'REJECTED',
-      category: 'APPLICATION',
-    })
-    addNotification('customer', {
-      type: 'error',
-      title: 'Application Rejected',
-      body: `Your application ${a.applicationNumber ?? a.id} was rejected.${rejectReason.trim() ? ` Reason: ${rejectReason.trim()}` : ''}`,
-    })
-    setRejectModal(false)
-    setRejectReason("")
   }
 
   const a       = viewApp
@@ -3530,7 +3563,7 @@ export default function ApplicationsPage() {
 
       {/* "" Reject modal "" */}
       {rejectModal && (
-        <div onClick={() => { setRejectModal(false); setRejectReason("") }}
+        <div onClick={() => { if (!statusSaving) { setRejectModal(false); setRejectReason("") } }}
           style={{ position:"fixed", inset:0, zIndex:99999, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:24, fontFamily:F }}>
           <div onClick={e => e.stopPropagation()}
             style={{ background:"#fff", borderRadius:14, overflow:"hidden", width:"min(440px,95vw)", boxShadow:"0 24px 64px rgba(0,0,0,0.2)" }}>
@@ -3570,14 +3603,14 @@ export default function ApplicationsPage() {
               />
             </div>
             <div style={{ padding:"16px 22px", display:"flex", justifyContent:"flex-end", gap:8 }}>
-              <button onClick={() => { setRejectModal(false); setRejectReason("") }}
-                style={{ padding:"8px 18px", background:"#f1f5f9", color:"#374151", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:600, cursor:"pointer", fontFamily:F }}>
+              <button onClick={() => { setRejectModal(false); setRejectReason("") }} disabled={statusSaving}
+                style={{ padding:"8px 18px", background:"#f1f5f9", color:"#374151", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:600, cursor: statusSaving ? "not-allowed" : "pointer", fontFamily:F, opacity: statusSaving ? 0.7 : 1 }}>
                 Cancel
               </button>
-              <button onClick={rejectApp} disabled={!rejectReason.trim()}
-                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 20px", background: rejectReason.trim() ? "#dc2626" : "#f1f5f9", color: rejectReason.trim() ? "#fff" : "#94a3b8", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:700, cursor: rejectReason.trim() ? "pointer" : "not-allowed", fontFamily:F, transition:"background 0.15s" }}>
+              <button onClick={rejectApp} disabled={!rejectReason.trim() || statusSaving}
+                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 20px", background: rejectReason.trim() ? "#dc2626" : "#f1f5f9", color: rejectReason.trim() ? "#fff" : "#94a3b8", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:700, cursor: rejectReason.trim() && !statusSaving ? "pointer" : "not-allowed", fontFamily:F, transition:"background 0.15s", opacity: statusSaving ? 0.75 : 1 }}>
                 <X style={{ width:14, height:14 }} />
-                Confirm Reject
+                {statusSaving ? "Rejecting..." : "Confirm Reject"}
               </button>
             </div>
           </div>
@@ -3597,7 +3630,7 @@ export default function ApplicationsPage() {
         const newVat      = billing ? newSubtotal * billing.vatPct / 100 : 0
         const newTotal    = newSubtotal + newVat
         return (
-          <div onClick={() => setApproveConfirm(false)}
+          <div onClick={() => { if (!statusSaving) setApproveConfirm(false) }}
             style={{ position:"fixed", inset:0, zIndex:99999, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:24, fontFamily:F }}>
             <div onClick={e => e.stopPropagation()}
               style={{ background:"#fff", borderRadius:14, overflow:"hidden", width:"min(520px,95vw)", boxShadow:"0 24px 64px rgba(0,0,0,0.2)" }}>
@@ -3683,14 +3716,14 @@ export default function ApplicationsPage() {
 
               {/* Footer */}
               <div style={{ padding:"14px 22px", display:"flex", justifyContent:"flex-end", gap:8 }}>
-                <button onClick={() => { setApproveConfirm(false); setDiscountValue(""); setDiscountType("%") }}
-                  style={{ padding:"8px 18px", background:"#f1f5f9", color:"#374151", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:600, cursor:"pointer", fontFamily:F }}>
+                <button onClick={() => { setApproveConfirm(false); setDiscountValue(""); setDiscountType("%") }} disabled={statusSaving}
+                  style={{ padding:"8px 18px", background:"#f1f5f9", color:"#374151", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:600, cursor: statusSaving ? "not-allowed" : "pointer", fontFamily:F, opacity: statusSaving ? 0.7 : 1 }}>
                   Cancel
                 </button>
-                <button onClick={approveApp}
-                  style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 20px", background:"#16a34a", color:"#fff", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:700, cursor:"pointer", fontFamily:F }}>
+                <button onClick={approveApp} disabled={statusSaving}
+                  style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 20px", background:"#16a34a", color:"#fff", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:700, cursor: statusSaving ? "not-allowed" : "pointer", fontFamily:F, opacity: statusSaving ? 0.75 : 1 }}>
                   <CheckCircle2 style={{ width:14, height:14 }} />
-                  Confirm Approval
+                  {statusSaving ? "Approving..." : "Confirm Approval"}
                 </button>
               </div>
 
