@@ -367,30 +367,6 @@ export default function CustomerBatchCertificatesPage() {
         </div>
         </div>
 
-        {/* Sidebar */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Need Help */}
-          <div
-            style={{
-              background: "#fff",
-              border: "1px solid rgba(199, 223, 247, 0.78)",
-              borderRadius: 12,
-              padding: "16px",
-              textAlign: "center",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-            }}
-          >
-            <CircleHelp size={22} color={NAV} style={{ margin: "0 auto 8px", display: "block" }} />
-            <h3 style={{ margin: "0 0 6px", color: TEXT, fontSize: "0.9rem", fontWeight: 850 }}>Need Help?</h3>
-            <p style={{ margin: "0 auto 12px", color: "#5d6f86", lineHeight: 1.55, fontSize: "0.68rem" }}>
-              If you have any questions about your batch certificates, please contact our support team.
-            </p>
-            <button style={{ width: "100%", height: 36, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, border: "1px solid #0f2170", borderRadius: 6, background: "#fff", color: "#0f2170", fontWeight: 800, fontSize: "0.7rem", cursor: "pointer", fontFamily: F }}>
-              <Headphones size={14} />
-              Contact Support
-            </button>
-          </div>
-        </div>
       </div>
     </CustomerLayout>
   )
