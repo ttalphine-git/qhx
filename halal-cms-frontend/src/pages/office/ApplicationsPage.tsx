@@ -2470,6 +2470,7 @@ export default function ApplicationsPage() {
   const company = a ? (a.companyName || a.factoryName || "-") : ""
   const status  = a?.status ?? ""
   const s       = status ? getStatusStyle(status as ApplicationStatus) : { bg:"#f1f5f9", color:"#64748b", dot:"#94a3b8", label:"-" }
+  const progressIndex = status ? (STATUS_IDX[status] ?? -1) : -1
 
   // "" Application tab - same visual structure as CustomerApplyPage """"""
   const applicationTab = !a ? null : (() => {
@@ -2503,7 +2504,7 @@ export default function ApplicationsPage() {
 
     const appFactories = factories.filter((f:any) => !a.factoryId || f.id === a.factoryId)
 
-    const ci = STATUS_IDX[a.status] ?? -1
+    const canReviewApplication = a.status === "SUBMITTED" || a.status === "UNDER_REVIEW"
 
     return (
       <div style={{ fontFamily:F }}>
@@ -2516,37 +2517,31 @@ export default function ApplicationsPage() {
           </div>
         )}
 
-        {/* "" Progress stepper "" */}
-        <div style={{ ...card, marginBottom:14, overflowX:"auto" }}>
-          <div style={{ display:"flex", alignItems:"flex-start", minWidth:780 }}>
-            {PROGRESS_STEPS.map((step, i) => {
-              const done   = ci > step.max
-              const active = ci >= step.min && ci <= step.max
-              return (
-                <React.Fragment key={i}>
-                  {i > 0 && (
-                    <div style={{ flex:1, height:2, marginTop:15, background: ci >= step.min ? "#16a34a" : "#e2e8f0" }} />
-                  )}
-                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, width:72, flexShrink:0 }}>
-                    <div style={{ width:32, height:32, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
-                      background: done ? "#16a34a" : active ? "#fff" : "#f1f5f9",
-                      border: done ? "2px solid #16a34a" : active ? `2px solid ${BLUE}` : "2px solid #e2e8f0",
-                      boxShadow: active ? "0 0 0 4px rgba(37,99,235,0.12)" : "none",
-                    }}>
-                      {done
-                        ? <svg width="13" height="10" viewBox="0 0 13 10" fill="none"><path d="M1 5L4.5 8.5L12 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        : <span style={{ fontSize:"0.7rem", fontWeight:700, color: active ? BLUE : "#94a3b8", fontFamily:F }}>{i+1}</span>
-                      }
-                    </div>
-                    <span style={{ fontSize:"0.58rem", fontWeight: active ? 700 : done ? 600 : 400, color: done ? "#16a34a" : active ? DARK : "#94a3b8", textAlign:"center" as const, lineHeight:1.35, fontFamily:F }}>
-                      {step.label}
-                    </span>
-                  </div>
-                </React.Fragment>
-              )
-            })}
+        {/* Application review actions */}
+        {canReviewApplication && (
+          <div style={{ ...card, marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, border:"1px solid #bfdbfe", background:"#eff6ff" }}>
+            <div style={{ minWidth:0 }}>
+              <p style={{ margin:"0 0 3px", fontSize:"0.72rem", fontWeight:800, color:BLUE, textTransform:"uppercase" as const, letterSpacing:"0.08em", fontFamily:F }}>Application Review</p>
+              <p style={{ margin:0, fontSize:"0.82rem", color:"#475569", fontWeight:600, fontFamily:F }}>Approve this application to continue to agreement, or reject it with a reason for the customer.</p>
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+              <button onClick={() => setRejectModal(true)}
+                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:8, background:"#fff", border:"1px solid #fecaca", color:"#dc2626", fontSize:"0.78rem", fontWeight:800, cursor:"pointer", fontFamily:F, boxShadow:"0 1px 2px rgba(15,23,42,0.05)" }}
+                onMouseOver={e => (e.currentTarget.style.background = "#fef2f2")}
+                onMouseOut={e  => (e.currentTarget.style.background = "#fff")}>
+                <X style={{ width:14, height:14 }} />
+                Reject
+              </button>
+              <button onClick={() => setApproveConfirm(true)}
+                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 18px", borderRadius:8, background:"#16a34a", border:"1px solid #15803d", color:"#fff", fontSize:"0.78rem", fontWeight:800, cursor:"pointer", fontFamily:F, boxShadow:"0 1px 2px rgba(15,23,42,0.08)" }}
+                onMouseOver={e => (e.currentTarget.style.background = "#15803d")}
+                onMouseOut={e  => (e.currentTarget.style.background = "#16a34a")}>
+                <CheckCircle2 style={{ width:14, height:14 }} />
+                Approve
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
 
         {/* " 1 + 2 + 2b. Company Information | Services & Activities + Application Details " */}
@@ -3367,28 +3362,44 @@ export default function ApplicationsPage() {
                 )
               })()}
               {isLocal && <span style={{ fontSize:"0.67rem", color:"rgba(255,255,255,0.75)", background:"rgba(255,255,255,0.12)", padding:"2px 9px", borderRadius:9, fontWeight:600, flexShrink:0 }}>Pending sync</span>}
-              {(status === "SUBMITTED" || status === "UNDER_REVIEW") && (
-                <div style={{ display:"flex", gap:6, flexShrink:0 }}>
-                  <button onClick={() => setRejectModal(true)}
-                    style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 14px", borderRadius:8, background:"rgba(220,38,38,0.15)", border:"1px solid rgba(220,38,38,0.4)", color:"#fca5a5", fontSize:"0.78rem", fontWeight:700, cursor:"pointer", fontFamily:F, transition:"background 0.15s" }}
-                    onMouseOver={e => (e.currentTarget.style.background = "rgba(220,38,38,0.25)")}
-                    onMouseOut={e  => (e.currentTarget.style.background = "rgba(220,38,38,0.15)")}>
-                    <X style={{ width:13, height:13 }} />
-                    Reject
-                  </button>
-                  <button onClick={() => setApproveConfirm(true)}
-                    style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 16px", borderRadius:8, background:"#16a34a", border:"1px solid #15803d", color:"#fff", fontSize:"0.78rem", fontWeight:700, cursor:"pointer", fontFamily:F, transition:"background 0.15s" }}
-                    onMouseOver={e => (e.currentTarget.style.background = "#15803d")}
-                    onMouseOut={e  => (e.currentTarget.style.background = "#16a34a")}>
-                    <CheckCircle2 style={{ width:14, height:14 }} />
-                    Approve
-                  </button>
-                </div>
-              )}
               <button onClick={() => setViewApp(null)}
                 style={{ width:28, height:28, borderRadius:8, border:"1px solid rgba(255,255,255,0.25)", background:"rgba(255,255,255,0.12)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", flexShrink:0 }}>
                 <X style={{ width:14, height:14 }} />
               </button>
+            </div>
+
+            {/* Progress stepper */}
+            <div style={{ padding:"18px 24px 14px", background:"#f1f5f9", borderBottom:"1px solid #e2e8f0" }}>
+              <div style={{ ...card, marginBottom:0, overflowX:"auto" }}>
+                <div style={{ display:"flex", alignItems:"flex-start", minWidth:780 }}>
+                  {PROGRESS_STEPS.map((step, i) => {
+                    const done   = progressIndex > step.max
+                    const active = progressIndex >= step.min && progressIndex <= step.max
+                    return (
+                      <React.Fragment key={i}>
+                        {i > 0 && (
+                          <div style={{ flex:1, height:2, marginTop:15, background: progressIndex >= step.min ? "#16a34a" : "#e2e8f0" }} />
+                        )}
+                        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, width:72, flexShrink:0 }}>
+                          <div style={{ width:32, height:32, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+                            background: done ? "#16a34a" : active ? "#fff" : "#f1f5f9",
+                            border: done ? "2px solid #16a34a" : active ? `2px solid ${BLUE}` : "2px solid #e2e8f0",
+                            boxShadow: active ? "0 0 0 4px rgba(37,99,235,0.12)" : "none",
+                          }}>
+                            {done
+                              ? <svg width="13" height="10" viewBox="0 0 13 10" fill="none"><path d="M1 5L4.5 8.5L12 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              : <span style={{ fontSize:"0.7rem", fontWeight:700, color: active ? BLUE : "#94a3b8", fontFamily:F }}>{i+1}</span>
+                            }
+                          </div>
+                          <span style={{ fontSize:"0.58rem", fontWeight: active ? 700 : done ? 600 : 400, color: done ? "#16a34a" : active ? DARK : "#94a3b8", textAlign:"center" as const, lineHeight:1.35, fontFamily:F }}>
+                            {step.label}
+                          </span>
+                        </div>
+                      </React.Fragment>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Tab bar */}
