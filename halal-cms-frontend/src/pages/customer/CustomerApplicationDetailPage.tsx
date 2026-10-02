@@ -340,18 +340,18 @@ export default function CustomerApplicationDetailPage() {
         </button>
 
         {/* Header card */}
-        <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20, marginBottom: 20, boxShadow: C.cardShadow }}>
+        <div style={{ background: '#0f2170', border: `1px solid #0f2170`, borderRadius: 14, padding: 20, marginBottom: 20, boxShadow: C.cardShadow }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" as const }}>
-                <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 600, color: C.primary }}>{app.applicationNumber}</span>
+                <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 600, color: '#60a5fa' }}>{app.applicationNumber}</span>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, padding: "3px 10px", borderRadius: 99, fontWeight: 500, background: s.bg, color: s.color }}>
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: s.dot }} />{s.label}
                 </span>
-                <span style={{ fontSize: 12, padding: "2px 8px", borderRadius: 99, background: "#f3f4f6", color: C.muted }}>{app.type}</span>
+                <span style={{ fontSize: 12, padding: "2px 8px", borderRadius: 99, background: "rgba(255,255,255,0.15)", color: '#f1f5f9' }}>{app.type}</span>
               </div>
-              <h1 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: C.textDark }}>{app.companyName}</h1>
-              <p style={{ margin: "4px 0 0", fontSize: 13, color: C.muted }}>
+              <h1 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: '#fff' }}>{app.companyName}</h1>
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
                 Submitted {app.submittedAt ? formatDate(app.submittedAt) : "—"}
                 {app.halalStandard && ` · ${app.halalStandard}`}
               </p>

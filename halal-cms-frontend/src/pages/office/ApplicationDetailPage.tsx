@@ -1018,11 +1018,11 @@ export default function ApplicationDetailPage() {
       </div>
 
       {/* Header card with app info */}
-      <div style={{ ...card(), marginBottom: 0 }}>
+      <div style={{ ...card(), marginBottom: 0, background: '#0f2170', borderColor: '#0f2170' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: C.textDark, margin: 0 }}>{app.companyName}</h1>
-            <p style={{ fontFamily: 'monospace', color: C.primary, fontSize: 13, marginTop: 4 }}>{app.applicationNumber}</p>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', margin: 0 }}>{app.companyName}</h1>
+            <p style={{ fontFamily: 'monospace', color: '#60a5fa', fontSize: 13, marginTop: 4 }}>{app.applicationNumber}</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
               <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: `${typeColor[app.type] ?? C.muted}18`, color: typeColor[app.type] ?? C.muted }}>{app.type}</span>
               {app.country && <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20, background: C.bg, color: C.muted }}>{app.country}</span>}

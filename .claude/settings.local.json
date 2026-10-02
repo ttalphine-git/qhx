@@ -273,7 +273,8 @@
       "PowerShell(git push)",
       "PowerShell(git add halal-cms-frontend/src/pages/office/ApplicationDetailPage.tsx)",
       "PowerShell(git add halal-cms-frontend/src/pages/office/OfficeLogin.tsx halal-cms-frontend/src/pages/customer/CustomerLogin.tsx halal-cms-frontend/src/pages/customer/CustomerBatchCertificatesPage.tsx halal-cms-frontend/src/pages/customer/CustomerDashboard.tsx halal-cms-frontend/src/pages/customer/CustomerApplicationsPage.tsx)",
-      "PowerShell(git add -A)"
+      "PowerShell(git add -A)",
+      "PowerShell(git commit -m \"Change application detail header background to dark blue\")"
     ]
   }
 }
