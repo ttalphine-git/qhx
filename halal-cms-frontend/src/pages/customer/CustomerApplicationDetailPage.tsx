@@ -493,6 +493,24 @@ export default function CustomerApplicationDetailPage() {
                   </div>
                 )}
 
+                {/* Products */}
+                {a.products && a.products.length > 0 && (
+                  <div style={cardSt}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, paddingBottom: 10, borderBottom: `1px solid ${C.border}` }}>
+                      <p style={headSt}>PRODUCTS</p>
+                      <span style={{ fontSize: "0.68rem", color: "#94a3b8", fontStyle: "italic" }}>{a.products.length} product{a.products.length !== 1 ? "s" : ""}</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {a.products.map((p: any, idx: number) => (
+                        <div key={idx} style={{ padding: "10px 14px", background: "#f8fafc", borderRadius: 8, border: `1px solid ${C.border}` }}>
+                          <div style={{ fontSize: "0.82rem", fontWeight: 600, color: C.textDark }}>{p.name || p}</div>
+                          {p.code && <div style={{ fontSize: "0.7rem", color: "#94a3b8", marginTop: 2 }}>{p.code}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Application Details */}
                 <div style={{ ...cardSt, flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, paddingBottom: 10, borderBottom: `1px solid ${C.border}` }}>
