@@ -60,7 +60,7 @@ export default function CustomerDashboard() {
 
   return (
     <CustomerLayout>
-      <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+      <div style={{ display:"flex", flexDirection:"column", gap:20, paddingBottom:40 }}>
 
 
         {/* ── Alert ───────────────────────────────────────────────── */}
@@ -288,32 +288,6 @@ export default function CustomerDashboard() {
                     )
                   })}
                 </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden" }}>
-              <div style={{ padding:"16px 20px", borderBottom:"1px solid #f1f5f9" }}>
-                <p style={{ fontSize:"0.875rem", fontWeight:700, color:C.textDark }}>Quick Actions</p>
-              </div>
-              <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:6 }}>
-                {[
-                  { label:"New Application",    Icon:Plus,        path:"/customer/apply",        ic:A        },
-                  { label:"Track Application",  Icon:FileText,    path:"/customer/applications", ic:"#9333ea" },
-                  { label:"Download Certificate",Icon:Download,   path:"/customer/certificates", ic:"#16a34a" },
-                  { label:"Verify Halal Status",Icon:ShieldCheck, path:"/customer/certificates", ic:"#ea580c" },
-                ].map(({ label, Icon, path, ic }) => (
-                  <button key={label} onClick={() => navigate(path)}
-                    style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:10, border:"1px solid #f1f5f9", background:"transparent", cursor:"pointer", textAlign:"left" }}
-                    onMouseOver={e => { e.currentTarget.style.background="#f8fafc"; e.currentTarget.style.borderColor="#e2e8f0" }}
-                    onMouseOut={e => { e.currentTarget.style.background="transparent"; e.currentTarget.style.borderColor="#f1f5f9" }}>
-                    <div style={{ width:32, height:32, borderRadius:8, background:`${ic}15`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                      <Icon style={{ width:15, height:15, color:ic }} />
-                    </div>
-                    <span style={{ fontSize:"0.75rem", fontWeight:600, color:C.text }}>{label}</span>
-                    <ChevronRight style={{ width:14, height:14, color:"#cbd5e1", marginLeft:"auto" }} />
-                  </button>
-                ))}
               </div>
             </div>
           </div>

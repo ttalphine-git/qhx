@@ -268,7 +268,12 @@
       "Bash(git commit -m 'Fix certificate-service email config and customer batch certificates layout *)",
       "PowerShell(curl -s http://localhost:5173/office/applications-list 2>&1)",
       "PowerShell(\\(Get-Content d:\\\\QHXSASS\\\\halal-cms-frontend\\\\src\\\\pages\\\\office\\\\OfficeBatchCertificateDetailPage.tsx\\).Count)",
-      "PowerShell(tail -20 d:\\\\QHXSASS\\\\halal-cms-frontend\\\\src\\\\pages\\\\customer\\\\CustomerBatchCertificateDetailPage.tsx)"
+      "PowerShell(tail -20 d:\\\\QHXSASS\\\\halal-cms-frontend\\\\src\\\\pages\\\\customer\\\\CustomerBatchCertificateDetailPage.tsx)",
+      "PowerShell(git add halal-cms-frontend/src/pages/customer/CustomerLayout.tsx halal-cms-frontend/src/pages/office/OfficeLayout.tsx)",
+      "PowerShell(git push)",
+      "PowerShell(git add halal-cms-frontend/src/pages/office/ApplicationDetailPage.tsx)",
+      "PowerShell(git add halal-cms-frontend/src/pages/office/OfficeLogin.tsx halal-cms-frontend/src/pages/customer/CustomerLogin.tsx halal-cms-frontend/src/pages/customer/CustomerBatchCertificatesPage.tsx halal-cms-frontend/src/pages/customer/CustomerDashboard.tsx halal-cms-frontend/src/pages/customer/CustomerApplicationsPage.tsx)",
+      "PowerShell(git add -A)"
     ]
   }
 }

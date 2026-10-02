@@ -1995,7 +1995,7 @@ export default function CustomerApplicationsPage() {
 
   return (
     <CustomerLayout title="My Applications">
-      <div style={{ fontFamily: F }}>
+      <div style={{ fontFamily: F, paddingBottom: 40 }}>
 
         {/* Page header */}
         <div style={{ background: "#fff", borderBottom: "1px solid #e9ecef", padding: "18px 24px 0", marginBottom: 20, borderRadius: "12px 12px 0 0", border: "1px solid #e9ecef" }}>
@@ -2062,8 +2062,8 @@ export default function CustomerApplicationsPage() {
         )}
 
         {/* Table */}
-        <div style={{ background: "#fff", border: "1px solid #e9ecef", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div style={{ background: "#fff", border: "1px solid #e9ecef", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", height: "calc(100vh - 420px)", marginBottom: 20 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", flex: 1, overflow: "auto" }}>
             <thead>
               <tr style={{ borderBottom: "2px solid #e9ecef", background: "#fafbfc" }}>
                 {["App #", "Submitted", "Company", "Type", "Location", "Standard", "Products", "Status", "Total", "Updated", "Progress", "-"].map(h => (

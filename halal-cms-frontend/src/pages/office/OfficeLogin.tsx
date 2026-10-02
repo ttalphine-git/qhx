@@ -135,13 +135,6 @@ export default function OfficeLogin() {
               Customer Portal
             </button>
           </p>
-          <p style={{ margin: "0 0 1.75rem", fontSize: "0.85rem", color: "rgba(255,255,255,0.45)" }}>
-            New office user?{" "}
-            <button onClick={() => navigate("/office/register")}
-              style={{ color: "#60a5fa", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", fontSize: "0.85rem" }}>
-              Register here
-            </button>
-          </p>
 
           {error && (
             <div style={{ marginBottom: "1rem", padding: "0.75rem 1rem", background: "rgba(220,38,38,0.2)", border: "1px solid rgba(220,38,38,0.4)", borderRadius: 8, fontSize: "0.85rem", color: "#fca5a5" }}>
@@ -158,8 +151,7 @@ export default function OfficeLogin() {
               <div style={{ position: "relative" }}>
                 <UserRound size={17} color="#2563eb" strokeWidth={2.1} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", zIndex: 1 }} />
                 <input type="text" value={email} onChange={e => setEmail(e.target.value)} required
-                  placeholder="Email or username"
-                  style={{ width: "100%", height: 52, paddingLeft: 44, paddingRight: 16, border: "1.5px solid rgba(255,255,255,0.15)", borderRadius: 8, fontSize: "0.9rem", color: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "rgba(255,255,255,0.08)" }}
+                  style={{ width: "100%", height: 52, paddingLeft: 44, paddingRight: 16, border: "1.5px solid rgba(255,255,255,0.15)", borderRadius: 8, fontSize: "0.9rem", color: "#1f2937", outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "#fff" }}
                   onFocus={e => (e.target.style.borderColor = "#60a5fa")}
                   onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.15)")}
                 />
@@ -173,8 +165,7 @@ export default function OfficeLogin() {
               <div style={{ position: "relative" }}>
                 <KeyRound size={17} color="#2563eb" strokeWidth={2.1} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", zIndex: 1 }} />
                 <input type={showPw ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required
-                  placeholder="••••••••"
-                  style={{ width: "100%", height: 52, paddingLeft: 44, paddingRight: 48, border: "1.5px solid rgba(255,255,255,0.15)", borderRadius: 8, fontSize: "0.9rem", color: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "rgba(255,255,255,0.08)" }}
+                  style={{ width: "100%", height: 52, paddingLeft: 44, paddingRight: 48, border: "1.5px solid rgba(255,255,255,0.15)", borderRadius: 8, fontSize: "0.9rem", color: "#1f2937", outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "#fff" }}
                   onFocus={e => (e.target.style.borderColor = "#60a5fa")}
                   onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.15)")}
                 />

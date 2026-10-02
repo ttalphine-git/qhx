@@ -72,7 +72,7 @@ export default function CustomerBatchCertificatesPage() {
 
   return (
     <CustomerLayout title="Batch Certificates">
-      <div style={{ fontFamily: F, padding: "18px 24px", display: "grid", gridTemplateColumns: "1fr 320px", gap: 20 }}>
+      <div style={{ fontFamily: F, padding: "18px 24px", paddingBottom: 40, display: "grid", gridTemplateColumns: "1fr 320px", gap: 20 }}>
         <div>
         {/* Page Header */}
         <div
@@ -369,35 +369,6 @@ export default function CustomerBatchCertificatesPage() {
 
         {/* Sidebar */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Quick Actions */}
-          <div
-            style={{
-              background: "linear-gradient(180deg, rgba(255,255,255,0.9), rgba(237,245,255,0.88))",
-              border: "1px solid rgba(199, 223, 247, 0.78)",
-              borderRadius: 12,
-              padding: "16px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-            }}
-          >
-            <h3 style={{ margin: "0 0 12px", color: TEXT, fontSize: "0.95rem", fontWeight: 850, display: "flex", alignItems: "center", gap: 8 }}>
-              <Zap size={17} color="#0b5ed7" fill="#0b5ed7" />Quick Actions
-            </h3>
-            <div style={{ display: "grid", gap: 8 }}>
-              {quickActions.map(({ label, helper, icon: Icon, color, path }) => (
-                <button key={label} onClick={() => navigate(path)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: "1px solid #e7eff9", background: "rgba(255, 255, 255, 0.88)", cursor: "pointer", textAlign: "left", fontFamily: F }}>
-                  <span style={{ width: 34, height: 34, borderRadius: 10, background: `${color}14`, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                    <Icon size={16} color={color} strokeWidth={2.4} />
-                  </span>
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: "block", color: "#152238", fontSize: "0.7rem", fontWeight: 800 }}>{label}</span>
-                    <span style={{ display: "block", color: "#63758f", fontSize: "0.6rem", marginTop: 2 }}>{helper}</span>
-                  </span>
-                  <ChevronRight size={15} color="#44617e" />
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Need Help */}
           <div
             style={{

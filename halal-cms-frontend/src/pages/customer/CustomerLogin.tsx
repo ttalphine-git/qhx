@@ -70,7 +70,7 @@ export default function CustomerLogin() {
   const inp: React.CSSProperties = {
     width: "100%", height: 52, paddingLeft: 44, paddingRight: 16,
     border: "1.5px solid rgba(255,255,255,0.15)", borderRadius: 8, fontSize: "0.9rem",
-    color: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "rgba(255,255,255,0.08)",
+    color: "#1f2937", outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "#fff",
   }
 
   return (
@@ -162,7 +162,7 @@ export default function CustomerLogin() {
               <div style={{ position: "relative" }}>
                 <UserRound size={17} color="#2563eb" strokeWidth={2.1} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", zIndex: 1 }} />
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                  placeholder="company@example.com" style={inp}
+                  style={inp}
                   onFocus={e => (e.target.style.borderColor = "#60a5fa")}
                   onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.15)")}
                 />
@@ -176,7 +176,7 @@ export default function CustomerLogin() {
               <div style={{ position: "relative" }}>
                 <KeyRound size={17} color="#2563eb" strokeWidth={2.1} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", zIndex: 1 }} />
                 <input type={showPw ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required
-                  placeholder="••••••••" style={{ ...inp, paddingRight: 48 }}
+                  style={{ ...inp, paddingRight: 48 }}
                   onFocus={e => (e.target.style.borderColor = "#60a5fa")}
                   onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.15)")}
                 />
