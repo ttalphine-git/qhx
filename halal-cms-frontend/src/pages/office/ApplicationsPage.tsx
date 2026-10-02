@@ -2353,7 +2353,8 @@ export default function ApplicationsPage() {
         const newSubtotal = Math.max(0, billing.subtotal - discountAmt)
         const newVat      = newSubtotal * billing.vatPct / 100
         const discountLine = { description: `Discount ${discountType === "%" ? `(${dv}%)` : "(Fixed)"}`, quantity: 1, unitPrice: -discountAmt, total: -discountAmt }
-        saveApplicationBilling({ ...billing, lineItems: [...billing.lineItems, discountLine], subtotal: newSubtotal, vatAmount: newVat, total: newSubtotal + newVat, savedAt: now })
+        const filteredItems = billing.lineItems.filter(li => !li.description.startsWith("Discount"))
+        saveApplicationBilling({ ...billing, lineItems: [...filteredItems, discountLine], subtotal: newSubtotal, vatAmount: newVat, total: newSubtotal + newVat, savedAt: now })
       }
 
       const logs = [...buildInitialLog(a), {
