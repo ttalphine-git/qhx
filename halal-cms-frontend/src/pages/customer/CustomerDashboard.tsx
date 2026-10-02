@@ -145,7 +145,7 @@ export default function CustomerDashboard() {
         <div style={{ display:"grid", gridTemplateColumns:"1.5fr 1.5fr 320px", gap:20 }}>
 
           {/* Applications */}
-          <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden" }}>
+          <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden", minHeight:500 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 22px", borderBottom:"1px solid #f1f5f9" }}>
               <div>
                 <p style={{ fontSize:"0.875rem", fontWeight:700, color:C.textDark }}>My Applications</p>
@@ -200,7 +200,7 @@ export default function CustomerDashboard() {
           </div>
 
           {/* Certificates */}
-          <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden" }}>
+          <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden", minHeight:500 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 22px", borderBottom:"1px solid #f1f5f9" }}>
               <div>
                 <p style={{ fontSize:"0.875rem", fontWeight:700, color:C.textDark }}>My Certificates</p>
@@ -259,7 +259,7 @@ export default function CustomerDashboard() {
           <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
 
             {/* Certification Process */}
-            <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden" }}>
+            <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden", minHeight:500 }}>
               <div style={{ padding:"16px 20px", borderBottom:"1px solid #f1f5f9" }}>
                 <p style={{ fontSize:"0.875rem", fontWeight:700, color:C.textDark }}>Your Progress</p>
                 <p style={{ fontSize:"0.6875rem", color:C.muted, marginTop:2 }}>Certification process</p>
