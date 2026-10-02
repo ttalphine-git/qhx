@@ -2171,6 +2171,11 @@ export default function CustomerApplicationsPage() {
                   </tr>
                 )
               })}
+              {apps.length > 0 && Array.from({ length: Math.max(0, 8 - apps.length) }).map((_, i) => (
+                <tr key={`empty-${i}`} style={{ borderBottom: "1px solid #f1f5f9", height: 55 }}>
+                  <td colSpan={12} style={{ padding: "11px 16px", background: "transparent" }}></td>
+                </tr>
+              ))}
             </tbody>
             </table>
           </div>

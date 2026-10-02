@@ -1118,6 +1118,11 @@ export default function CustomerFactoriesPage(){
                     </tr>
                   )
                 })}
+                {visibleProducts.length > 0 && Array.from({ length: Math.max(0, 8 - visibleProducts.length) }).map((_, i) => (
+                  <tr key={`empty-${i}`} style={{ borderBottom: "1px solid #f1f5f9", height: 55 }}>
+                    <td colSpan={6} style={{ padding: "13px 16px", background: "transparent" }}></td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )
