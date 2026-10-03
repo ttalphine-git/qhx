@@ -313,7 +313,7 @@ export const AuditSummaryTab: React.FC<AuditSummaryTabProps> = ({
                           onClick={() => handleToggleProduct(product.id, true)}
                           style={{
                             padding: "8px 16px",
-                            background: isComplied ? "#16a34a" : "#e5e7eb",
+                            background: isComplied ? "#0f2170" : "#e5e7eb",
                             color: isComplied ? "#fff" : "#374151",
                             border: "none",
                             borderRadius: 6,
@@ -329,8 +329,8 @@ export const AuditSummaryTab: React.FC<AuditSummaryTabProps> = ({
                           onClick={() => handleToggleProduct(product.id, false)}
                           style={{
                             padding: "8px 16px",
-                            background: isNonComplied ? "#dc2626" : "#e5e7eb",
-                            color: isNonComplied ? "#fff" : "#374151",
+                            background: isNonComplied ? "#fff" : "#e5e7eb",
+                            color: isNonComplied ? "#0f2170" : "#374151",
                             border: "none",
                             borderRadius: 6,
                             fontSize: "0.75rem",

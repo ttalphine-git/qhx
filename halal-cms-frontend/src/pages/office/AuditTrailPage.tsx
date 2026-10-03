@@ -120,7 +120,7 @@ export default function AuditTrailPage() {
               <Download size={13} /> Export CSV
             </button>
             <button onClick={handleClear}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1px solid #fecaca", background: "#fef2f2", color: "#dc2626", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: F }}>
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1px solid #fecaca", background: "#fff", color: "#0f2170", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: F }}>
               <Trash2 size={13} /> Clear
             </button>
           </div>

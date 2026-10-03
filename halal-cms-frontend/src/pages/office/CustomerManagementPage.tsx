@@ -386,7 +386,7 @@ export default function CustomerManagementPage() {
                               onMouseOut={e => (e.currentTarget.style.background = "#dcfce7")}
                             ><CheckCircle size={12} />Approve</button>
                             <button onClick={() => { setRejectId(req.id); setRejectNote("") }}
-                              style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 14px", borderRadius: 8, background: "#fee2e2", color: "#dc2626", border: "1px solid #fecaca", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", fontFamily: F }}
+                              style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 14px", borderRadius: 8, background: "#fff", color: "#0f2170", border: "1px solid #fecaca", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", fontFamily: F }}
                               onMouseOver={e => (e.currentTarget.style.background = "#fecaca")}
                               onMouseOut={e => (e.currentTarget.style.background = "#fee2e2")}
                             ><XCircle size={12} />Reject</button>
@@ -411,7 +411,7 @@ export default function CustomerManagementPage() {
                               style={{ width: "100%", boxSizing: "border-box", padding: "8px 11px", borderRadius: 7, border: "1px solid #fdba74", outline: "none", fontSize: "0.8rem", fontFamily: F, marginBottom: 10 }}
                             />
                             <div style={{ display: "flex", gap: 8 }}>
-                              <button onClick={confirmReject} style={{ padding: "6px 14px", borderRadius: 7, background: "#dc2626", color: "#fff", border: "none", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", fontFamily: F }}>Confirm Rejection</button>
+                              <button onClick={confirmReject} style={{ padding: "6px 14px", borderRadius: 7, background: "#fff", color: "#0f2170", border: "1px solid #dc2626", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", fontFamily: F }}>Confirm Rejection</button>
                               <button onClick={() => setRejectId(null)} style={{ padding: "6px 14px", borderRadius: 7, background: "#f3f4f6", color: "#374151", border: "none", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: F }}>Cancel</button>
                             </div>
                           </div>
@@ -517,7 +517,7 @@ export default function CustomerManagementPage() {
                   onMouseOut={e => (e.currentTarget.style.background = "#fff")}
                 >Cancel</button>
                 <button onClick={saveSheet}
-                  style={{ padding: "8px 22px", borderRadius: 9, background: saveTick ? "#16a34a" : "#0f2170", color: "#fff", border: "none", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700, fontFamily: F, transition: "background 0.2s", display: "flex", alignItems: "center", gap: 7 }}>
+                  style={{ padding: "8px 22px", borderRadius: 9, background: saveTick ? "#0f2170" : "#0f2170", color: "#fff", border: "none", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700, fontFamily: F, transition: "background 0.2s", display: "flex", alignItems: "center", gap: 7 }}>
                   {saveTick ? <><CheckCircle size={13} />Saved</> : "Save Changes"}
                 </button>
               </div>

@@ -1774,7 +1774,7 @@ export default function ApplicationDetailPage() {
                         )}
                         {invoice.status !== 'CANCELLED' && invoice.status !== 'PAID' && (
                           <button onClick={() => handleInvoiceStatus('CANCELLED')}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', background: '#fff', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', background: '#fff', color: '#0f2170', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                             <Trash2 size={13} /> Cancel Invoice
                           </button>
                         )}

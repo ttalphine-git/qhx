@@ -293,7 +293,7 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
                             disabled={submitCAMutation.isPending}
                             style={{
                               padding: "10px 16px",
-                              background: "#16a34a",
+                              background: "#0f2170",
                               color: "#fff",
                               border: "none",
                               borderRadius: 6,

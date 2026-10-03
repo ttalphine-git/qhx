@@ -626,7 +626,7 @@ function OfficeBillingTab({ app }: { app: any }) {
         )}
         {invoice && invoice.status !== "CANCELLED" && invoice.status !== "PAID" && (
           <button onClick={() => handleStatus("CANCELLED")}
-            style={{ padding: "8px 16px", background: "#fff", color: "#dc2626", border: "1px solid #fecaca", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            style={{ padding: "8px 16px", background: "#fff", color: "#0f2170", border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             Cancel Invoice
           </button>
         )}
@@ -745,7 +745,7 @@ function OfficeBillingTab({ app }: { app: any }) {
                           Accept
                         </button>
                         <button onClick={() => { setRejectId(ev.id); setRejectNote("") }}
-                          style={{ flex: 1, padding: "7px 0", background: "#fff", color: "#dc2626", border: "1px solid #fecaca", borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                          style={{ flex: 1, padding: "7px 0", background: "#fff", color: "#0f2170", border: "1px solid #cbd5e1", borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
                           Reject
                         </button>
                       </div>
@@ -758,7 +758,7 @@ function OfficeBillingTab({ app }: { app: any }) {
                           rows={2} style={{ width: "100%", padding: "6px 8px", border: "1px solid #fecaca", borderRadius: 6, fontSize: 12, fontFamily: F, resize: "none" as const, boxSizing: "border-box" as const }} />
                         <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                           <button onClick={() => rejectEvidence(ev.id)}
-                            style={{ flex: 1, padding: "6px 0", background: "#dc2626", color: "#fff", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                            style={{ flex: 1, padding: "6px 0", background: "#fff", color: "#0f2170", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                             Confirm Reject
                           </button>
                           <button onClick={() => setRejectId(null)}
@@ -2560,16 +2560,16 @@ export default function ApplicationsPage() {
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
               <button onClick={() => setRejectModal(true)}
-                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:8, background:"#fff", border:"1px solid #fecaca", color:"#dc2626", fontSize:"0.78rem", fontWeight:800, cursor:"pointer", fontFamily:F, boxShadow:"0 1px 2px rgba(15,23,42,0.05)" }}
+                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:8, background:"#fff", border:"1px solid #fecaca", color:"#0f2170", fontSize:"0.78rem", fontWeight:800, cursor:"pointer", fontFamily:F, boxShadow:"0 1px 2px rgba(15,23,42,0.05)" }}
                 onMouseOver={e => (e.currentTarget.style.background = "#fef2f2")}
                 onMouseOut={e  => (e.currentTarget.style.background = "#fff")}>
                 <X style={{ width:14, height:14 }} />
                 Reject
               </button>
               <button onClick={() => setApproveConfirm(true)}
-                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 18px", borderRadius:8, background:"#16a34a", border:"1px solid #15803d", color:"#fff", fontSize:"0.78rem", fontWeight:800, cursor:"pointer", fontFamily:F, boxShadow:"0 1px 2px rgba(15,23,42,0.08)" }}
-                onMouseOver={e => (e.currentTarget.style.background = "#15803d")}
-                onMouseOut={e  => (e.currentTarget.style.background = "#16a34a")}>
+                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 18px", borderRadius:8, background:"#0f2170", border:"1px solid #0a1349", color:"#fff", fontSize:"0.78rem", fontWeight:800, cursor:"pointer", fontFamily:F, boxShadow:"0 1px 2px rgba(15,23,42,0.08)" }}
+                onMouseOver={e => (e.currentTarget.style.background = "#0a1349")}
+                onMouseOut={e  => (e.currentTarget.style.background = "#0f2170")}>
                 <CheckCircle2 style={{ width:14, height:14 }} />
                 Approve
               </button>
@@ -3037,7 +3037,7 @@ export default function ApplicationsPage() {
                    Return for Re-signing
                 </button>
                 <button onClick={approveAgreement}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 18px", background: "#16a34a", border: "none", borderRadius: 9, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: F }}>
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 18px", background: "#0f2170", border: "none", borderRadius: 9, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: F }}>
                   <CheckCircle2 size={14} /> Approve Agreement
                 </button>
               </div>
@@ -3614,7 +3614,7 @@ export default function ApplicationsPage() {
                 Cancel
               </button>
               <button onClick={rejectApp} disabled={!rejectReason.trim() || statusSaving}
-                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 20px", background: rejectReason.trim() ? "#dc2626" : "#f1f5f9", color: rejectReason.trim() ? "#fff" : "#94a3b8", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:700, cursor: rejectReason.trim() && !statusSaving ? "pointer" : "not-allowed", fontFamily:F, transition:"background 0.15s", opacity: statusSaving ? 0.75 : 1 }}>
+                style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 20px", background: rejectReason.trim() ? "#fff" : "#f1f5f9", color: rejectReason.trim() ? "#0f2170" : "#94a3b8", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:700, cursor: rejectReason.trim() && !statusSaving ? "pointer" : "not-allowed", fontFamily:F, transition:"background 0.15s", opacity: statusSaving ? 0.75 : 1 }}>
                 <X style={{ width:14, height:14 }} />
                 {statusSaving ? "Rejecting..." : "Confirm Reject"}
               </button>

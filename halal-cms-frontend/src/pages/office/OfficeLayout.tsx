@@ -286,7 +286,7 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
                   <div style={{ fontSize:"0.75rem", color:"#64748b", marginTop:2 }}>{user?.role ?? "ADMIN"} · {user?.email ?? ""}</div>
                 </div>
                 <button onClick={logout}
-                  style={{ display:"flex", alignItems:"center", gap:"0.5rem", padding:"0.625rem 1rem", width:"100%", background:"transparent", border:"none", cursor:"pointer", color:"#dc2626", fontSize:"0.875rem", fontWeight:500, fontFamily:"inherit" }}
+                  style={{ display:"flex", alignItems:"center", gap:"0.5rem", padding:"0.625rem 1rem", width:"100%", background:"transparent", border:"none", cursor:"pointer", color:"#0f2170", fontSize:"0.875rem", fontWeight:500, fontFamily:"inherit" }}
                   onMouseOver={e => (e.currentTarget.style.background = "#fef2f2")}
                   onMouseOut={e => (e.currentTarget.style.background = "transparent")}
                 >

@@ -1300,7 +1300,7 @@ export default function CustomerFactoriesPage(){
                         {ing.certFile
                           ? <div style={{display:"flex",alignItems:"center",gap:5,padding:"3px 10px",borderRadius:99,background:"#dcfce7",border:"1px solid #bbf7d0"}}>
                               <span style={{fontSize:"0.7rem",fontWeight:700,color:GREEN}}>✓ Halal</span>
-                              <button onClick={()=>removeEditIngCert(ing.id)} style={{background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",color:"#16a34a",marginLeft:2,opacity:0.6}} title="Remove"><X size={10}/></button>
+                              <button onClick={()=>removeEditIngCert(ing.id)} style={{background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",color:"#0f2170",marginLeft:2,opacity:0.6}} title="Remove"><X size={10}/></button>
                             </div>
                           : <label style={{display:"flex",alignItems:"center",gap:5,padding:"3px 10px",borderRadius:99,background:"#f1f5f9",border:"1px solid #e2e8f0",cursor:"pointer",whiteSpace:"nowrap" as const}}>
                               <span style={{fontSize:"0.7rem",fontWeight:600,color:C.muted}}>Upload Cert</span>
@@ -1635,7 +1635,7 @@ export default function CustomerFactoriesPage(){
                                 ? <div style={{display:"flex",alignItems:"center",gap:5,padding:"3px 10px",borderRadius:99,background:"#dcfce7",border:"1px solid #bbf7d0"}}>
                                     <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                     <span style={{fontSize:"0.7rem",fontWeight:700,color:GREEN}}>Halal</span>
-                                    <button onClick={()=>removeIngCert(ing.id)} style={{background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",color:"#16a34a",marginLeft:2,opacity:0.6}} title="Remove certificate"><X size={10}/></button>
+                                    <button onClick={()=>removeIngCert(ing.id)} style={{background:"none",border:"none",cursor:"pointer",padding:0,display:"flex",color:"#0f2170",marginLeft:2,opacity:0.6}} title="Remove certificate"><X size={10}/></button>
                                   </div>
                                 : <label style={{display:"flex",alignItems:"center",gap:5,padding:"3px 10px",borderRadius:99,background:"#f1f5f9",border:"1px solid #e2e8f0",cursor:"pointer",whiteSpace:"nowrap" as const}}>
                                     <svg width="11" height="11" viewBox="0 0 20 20" fill="none"><rect x="4" y="2" width="12" height="16" rx="2" stroke="#94a3b8" strokeWidth="1.5"/><line x1="10" y1="7" x2="10" y2="13" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round"/><line x1="7" y1="10" x2="13" y2="10" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round"/></svg>

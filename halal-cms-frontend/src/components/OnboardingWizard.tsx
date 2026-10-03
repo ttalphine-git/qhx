@@ -143,8 +143,8 @@ export default function OnboardingWizard({ onComplete }: Props) {
                     <div key={s} style={{ display:"flex", alignItems:"center", gap:6 }}>
                       <div style={{
                         width:30, height:30, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
-                        background: step === s ? BLUE : step > s ? "#16a34a" : "rgba(255,255,255,0.7)",
-                        border: step === s ? `2px solid ${BLUE}` : step > s ? "2px solid #16a34a" : "2px solid #bfdbfe",
+                        background: step === s ? BLUE : step > s ? "#0f2170" : "rgba(255,255,255,0.7)",
+                        border: step === s ? `2px solid ${BLUE}` : step > s ? "2px solid #0f2170" : "2px solid #bfdbfe",
                         color: step >= s ? "#fff" : "#93c5fd",
                         fontSize:"0.72rem", fontWeight:800,
                         boxShadow: step === s ? "0 4px 12px rgba(37,99,235,0.3)" : "none",
@@ -153,7 +153,7 @@ export default function OnboardingWizard({ onComplete }: Props) {
                         {step > s ? <CheckCircle2 size={14} /> : s}
                       </div>
                       {s < 3 && (
-                        <div style={{ width:32, height:2.5, borderRadius:2, background: step > s ? "#16a34a" : "rgba(147,197,253,0.6)", transition:"background 0.4s" }} />
+                        <div style={{ width:32, height:2.5, borderRadius:2, background: step > s ? "#0f2170" : "rgba(147,197,253,0.6)", transition:"background 0.4s" }} />
                       )}
                     </div>
                   ))}

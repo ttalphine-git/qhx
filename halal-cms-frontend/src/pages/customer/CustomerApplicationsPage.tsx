@@ -1462,7 +1462,7 @@ function AgreementTab({ app, user, onUpdate }: { app: LocalApp; user: any; onUpd
                     <span style={{ fontSize: 12, color: "#0f172a", fontWeight: 600, lineHeight: 1.5 }}>I confirm all declarations above and authorise this submission on behalf of my organisation.</span>
                   </label>
                   <button onClick={submit} disabled={!sig || !agreed || submitting}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 22px", background: (!sig || !agreed || submitting) ? "#e2e8f0" : "#16a34a", border: "none", borderRadius: 9, fontSize: 13, fontWeight: 700, color: (!sig || !agreed || submitting) ? "#94a3b8" : "#fff", cursor: (!sig || !agreed || submitting) ? "not-allowed" : "pointer", flexShrink: 0 }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 22px", background: (!sig || !agreed || submitting) ? "#e2e8f0" : "#0f2170", border: "none", borderRadius: 9, fontSize: 13, fontWeight: 700, color: (!sig || !agreed || submitting) ? "#94a3b8" : "#fff", cursor: (!sig || !agreed || submitting) ? "not-allowed" : "pointer", flexShrink: 0 }}>
                     {submitting ? <><RefreshCw size={13} style={{ animation:"spin 1s linear infinite" }} />Signing</> : <><Send size={14} />Sign &amp; Submit</>}
                   </button>
               </div>
@@ -2057,7 +2057,7 @@ export default function CustomerApplicationsPage() {
               <p style={{ margin: "2px 0 0", fontSize: "0.71rem", color: "#ef4444" }}>Review the rejection reason and resubmit after corrections.</p>
             </div>
             <button onClick={() => setStatusGroup("REJECTED,SUSPENDED,EXPIRED")}
-              style={{ padding: "4px 10px", borderRadius: 7, background: "#dc2626", color: "#fff", border: "none", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>View</button>
+              style={{ padding: "4px 10px", borderRadius: 7, background: "#fff", color: "#0f2170", border: "1px solid #cbd5e1", border: "none", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>View</button>
           </div>
         )}
 

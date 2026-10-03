@@ -1464,7 +1464,7 @@ export default function OfficeSettingsPage() {
                               </label>
                             )}
                             <button onClick={e => { e.stopPropagation(); removeLang(lang.code) }}
-                              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 7, cursor: "pointer", color: "#dc2626", flexShrink: 0 }}>
+                              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, background: "#fff", border: "1px solid #cbd5e1", borderRadius: 7, cursor: "pointer", color: "#0f2170", flexShrink: 0 }}>
                               <Trash2 size={13} />
                             </button>
                           </div>

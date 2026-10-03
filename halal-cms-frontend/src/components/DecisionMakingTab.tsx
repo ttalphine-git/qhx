@@ -263,8 +263,8 @@ export const DecisionMakingTab: React.FC<DecisionMakingTabProps> = ({
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
                     {[
-                      { value: "APPROVED" as const, label: "✓ APPROVE Certification", color: "#16a34a" },
-                      { value: "REJECTED" as const, label: "✗ REJECT Certification", color: "#dc2626" },
+                      { value: "APPROVED" as const, label: "✓ APPROVE Certification", color: "#0f2170" },
+                      { value: "REJECTED" as const, label: "✗ REJECT Certification", color: "#0f2170" },
                       {
                         value: "CONDITIONAL" as const,
                         label: "⚠ CONDITIONAL - Require Additional Action",

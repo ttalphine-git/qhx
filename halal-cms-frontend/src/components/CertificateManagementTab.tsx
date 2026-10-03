@@ -148,7 +148,7 @@ export const CertificateManagementTab: React.FC<CertificateManagementTabProps> =
           disabled={generateMutation.isPending}
           style={{
             padding: "12px 24px",
-            background: "#16a34a",
+            background: "#0f2170",
             color: "#fff",
             border: "none",
             borderRadius: 6,
@@ -382,7 +382,7 @@ export const CertificateManagementTab: React.FC<CertificateManagementTabProps> =
             disabled={sendMutation.isPending}
             style={{
               padding: "12px 24px",
-              background: "#16a34a",
+              background: "#0f2170",
               color: "#fff",
               border: "none",
               borderRadius: 6,
@@ -419,7 +419,7 @@ export const CertificateManagementTab: React.FC<CertificateManagementTabProps> =
           <button
             style={{
               padding: "10px 16px",
-              background: "#16a34a",
+              background: "#0f2170",
               color: "#fff",
               border: "none",
               borderRadius: 6,

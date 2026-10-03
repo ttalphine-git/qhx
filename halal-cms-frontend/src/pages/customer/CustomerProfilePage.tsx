@@ -431,7 +431,7 @@ export default function CustomerProfilePage() {
           <p style={{ fontSize: "0.78rem", color: C.muted, margin: "4px 0 0" }}>Edit your details and submit for office approval</p>
         </div>
         <button onClick={handleSubmit} disabled={!hasDiff || hasPending}
-          style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 8, background: submitted ? "#16a34a" : hasDiff && !hasPending ? NAV : "#cbd5e1", color: "#fff", border: "none", cursor: hasDiff && !hasPending ? "pointer" : "not-allowed", fontSize: "0.8rem", fontWeight: 700, fontFamily: "inherit", flexShrink: 0, transition: "background 0.2s" }}>
+          style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 8, background: submitted ? "#0f2170" : hasDiff && !hasPending ? NAV : "#cbd5e1", color: "#fff", border: "none", cursor: hasDiff && !hasPending ? "pointer" : "not-allowed", fontSize: "0.8rem", fontWeight: 700, fontFamily: "inherit", flexShrink: 0, transition: "background 0.2s" }}>
           {submitted ? <><CheckCircle size={13} /> Submitted</> : <><Send size={13} /> Submit for Approval</>}
         </button>
       </div>
@@ -559,7 +559,7 @@ export default function CustomerProfilePage() {
                 </div>
                 <button
                   onClick={saveLocation}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 14px", borderRadius: 7, background: locSaved ? "#16a34a" : NAV, color: "#fff", border: "none", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700, fontFamily: "inherit", transition: "background 0.2s", flexShrink: 0 }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 14px", borderRadius: 7, background: locSaved ? "#0f2170" : NAV, color: "#fff", border: "none", cursor: "pointer", fontSize: "0.75rem", fontWeight: 700, fontFamily: "inherit", transition: "background 0.2s", flexShrink: 0 }}
                 >
                   {locSaved ? <><CheckCircle size={11} /> Saved</> : <><MapPin size={11} /> Save Location</>}
                 </button>

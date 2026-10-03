@@ -193,7 +193,7 @@ export default function CustomerLayout({ children, title }: CustomerLayoutProps)
                   <User size={14} strokeWidth={1.75} />Edit Profile
                 </button>
                 <button onClick={logout}
-                  style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", width: "100%", background: "transparent", border: "none", cursor: "pointer", color: "#dc2626", fontSize: "0.875rem", fontWeight: 500 }}
+                  style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", width: "100%", background: "transparent", border: "none", cursor: "pointer", color: "#0f2170", fontSize: "0.875rem", fontWeight: 500 }}
                   onMouseOver={e => (e.currentTarget.style.background = "#fef2f2")}
                   onMouseOut={e => (e.currentTarget.style.background = "transparent")}
                 >

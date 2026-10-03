@@ -1162,7 +1162,7 @@ const lbl: React.CSSProperties    = { display:"block", fontSize:"0.7rem", fontWe
                             <p style={{ margin:"2px 0 0", fontSize:"0.72rem", color:"#64748b" }}>{c.certNumber && `No. ${c.certNumber} · `}{c.issueDate && `Issued ${c.issueDate}`}{c.expiryDate && ` · Expires ${c.expiryDate}`}</p>
                           </div>
                           <button type="button" onClick={() => setHalalCerts(prev => prev.filter(x => x.id !== c.id))}
-                            style={{ width:24, height:24, borderRadius:6, background:"#fee2e2", border:"none", cursor:"pointer", color:"#dc2626", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>
+                            style={{ width:24, height:24, borderRadius:6, background:"#fff", border:"1px solid #cbd5e1", cursor:"pointer", color:"#0f2170", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>
                             ×
                           </button>
                         </div>
@@ -1216,7 +1216,7 @@ const lbl: React.CSSProperties    = { display:"block", fontSize:"0.7rem", fontWe
                             <p style={{ margin:"2px 0 0", fontSize:"0.72rem", color:"#64748b" }}>{t.provider && `${t.provider}`}{t.date && ` · ${t.date}`}</p>
                           </div>
                           <button type="button" onClick={() => setTrainingRecs(prev => prev.filter(x => x.id !== t.id))}
-                            style={{ width:24, height:24, borderRadius:6, background:"#fee2e2", border:"none", cursor:"pointer", color:"#dc2626", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>
+                            style={{ width:24, height:24, borderRadius:6, background:"#fff", border:"1px solid #cbd5e1", cursor:"pointer", color:"#0f2170", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>
                             ×
                           </button>
                         </div>
@@ -1239,7 +1239,7 @@ const lbl: React.CSSProperties    = { display:"block", fontSize:"0.7rem", fontWe
                       }
                       {trainingZip && (
                         <button type="button" onClick={() => setTrainingZip(null)}
-                          style={{ marginLeft:"auto", width:24, height:24, borderRadius:6, background:"#fee2e2", border:"none", cursor:"pointer", color:"#dc2626", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>
+                          style={{ marginLeft:"auto", width:24, height:24, borderRadius:6, background:"#fff", border:"1px solid #cbd5e1", cursor:"pointer", color:"#0f2170", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>
                           ×
                         </button>
                       )}
@@ -1619,7 +1619,7 @@ const lbl: React.CSSProperties    = { display:"block", fontSize:"0.7rem", fontWe
                     </div>
                     <button type="button"
                       onClick={()=>setSelectedProductIds(prev=>added?prev.filter(id=>id!==p.id):[...prev,p.id])}
-                      style={{ padding:"5px 14px", borderRadius:7, border:"none", background:added?"#fee2e2":BLUE, color:added?"#dc2626":"#fff", fontSize:"0.75rem", fontWeight:700, cursor:"pointer", fontFamily:"inherit", flexShrink:0 }}>
+                      style={{ padding:"5px 14px", borderRadius:7, border:"none", background:added?"#fff":BLUE, color:added?"#0f2170":"#fff", fontSize:"0.75rem", fontWeight:700, cursor:"pointer", fontFamily:"inherit", flexShrink:0 }}>
                       {added ? "Remove" : "Add"}
                     </button>
                   </div>

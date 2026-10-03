@@ -556,7 +556,7 @@ export default function CertificateDesignerPage() {
                 </button>
                 <button onClick={() => setDesign(d => ({ ...d, frame: undefined }))}
                   title="Remove frame"
-                  style={{ display:"flex", alignItems:"center", justifyContent:"center", width:26, height:26, borderRadius:6, border:"1px solid #fecaca", background:"#fef2f2", color:"#dc2626", cursor:"pointer" }}>
+                  style={{ display:"flex", alignItems:"center", justifyContent:"center", width:26, height:26, borderRadius:6, border:"1px solid #fecaca", background:"#fff", color:"#0f2170", cursor:"pointer" }}>
                   <X size={12} />
                 </button>
               </>
@@ -582,7 +582,7 @@ export default function CertificateDesignerPage() {
             <Eye size={14} /> Preview
           </button>
           <button onClick={handleSave}
-            style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 14px", borderRadius:7, border:"none", background: saved ? "#16a34a" : NAVY, color:"#fff", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:F }}>
+            style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 14px", borderRadius:7, border:"none", background: saved ? "#0f2170" : NAVY, color:"#fff", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:F }}>
             {saved ? <Check size={14} /> : <Save size={14} />} {saved ? "Saved!" : "Save"}
           </button>
         </div>
@@ -850,7 +850,7 @@ export default function CertificateDesignerPage() {
 
                 {/* Delete */}
                 <button onClick={deleteSelected}
-                  style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"7px", borderRadius:7, border:"1px solid #fecaca", background:"#fef2f2", color:"#dc2626", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:F, marginTop:4 }}>
+                  style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"7px", borderRadius:7, border:"1px solid #fecaca", background:"#fff", color:"#0f2170", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:F, marginTop:4 }}>
                   <Trash2 size={13} /> Delete Element
                 </button>
               </div>
