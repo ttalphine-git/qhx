@@ -423,6 +423,9 @@ export default function CustomerManagementPage() {
               </div>
             ))
           )}
+          {customers.length > 0 && Array.from({ length: Math.max(0, 8 - customers.length) }).map((_, i) => (
+            <div key={`empty-${i}`} style={{ display: "grid", gridTemplateColumns: "130px 1.3fr 0.9fr 1fr 120px 70px 70px 80px 96px 126px 120px 44px", padding: "16px 20px", borderBottom: "1px solid #f1f5f9", height: 55, background: "transparent" }} />
+          ))}
         </div>
 
         {pendingReqs.length > 0 && (

@@ -294,6 +294,11 @@ export default function OfficeBatchCertificatesPage() {
                     </td>
                   </tr>
                 ))}
+                {requests.length > 0 && Array.from({ length: Math.max(0, 8 - requests.length) }).map((_, i) => (
+                  <tr key={`empty-${i}`} className="border-b h-14">
+                    <td colSpan={8} className="px-6 py-3 bg-transparent"></td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

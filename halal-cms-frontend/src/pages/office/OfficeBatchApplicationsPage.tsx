@@ -394,6 +394,11 @@ export default function OfficeBatchApplicationsPage() {
                   )
                 })
               )}
+              {applications.length > 0 && Array.from({ length: Math.max(0, 8 - applications.length) }).map((_, i) => (
+                <tr key={`empty-${i}`} style={{ borderBottom: "1px solid #f1f5f9", height: 55 }}>
+                  <td colSpan={5} style={{ padding: "12px 16px", background: "transparent" }}></td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
