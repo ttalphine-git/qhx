@@ -264,9 +264,14 @@ export default function OfficeBatchApplicationsPage() {
             borderRadius: 12,
             overflow: "hidden",
             boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            display: "flex",
+            flexDirection: "column",
+            height: "calc(100vh - 400px)",
+            minHeight: 430,
           }}
         >
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr
                 style={{
@@ -400,7 +405,8 @@ export default function OfficeBatchApplicationsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
     </OfficeLayout>
