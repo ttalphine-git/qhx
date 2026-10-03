@@ -679,7 +679,6 @@ export default function CustomerApplyPage() {
       savedAt: new Date().toISOString(),
     })
   }
-  void buildBilling
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -688,6 +687,7 @@ export default function CustomerApplyPage() {
     setError(""); setSubmitting(true)
     try {
       const res = await apiClient.post("/applications", buildPayload("SUBMITTED"))
+      buildBilling(String(res.data.id), res.data.applicationNumber || String(res.data.id))
       addAuditLog({
         applicationId: String(res.data.id),
         applicationNumber: res.data.applicationNumber || String(res.data.id),
