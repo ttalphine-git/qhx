@@ -17,10 +17,10 @@ const NAV = "#0f2170"
 const BLUE = "#2563eb"
 
 const STATS = [
-  { label: "Total", value: 0, bg: "#1e3a8a" },
-  { label: "Active", value: 0, bg: "#b45309" },
-  { label: "Approved", value: 0, bg: "#15803d" },
-  { label: "Rejected", value: 0, bg: "#64748b" },
+  { label: "Total", value: 0, bg: "#1e40af" },
+  { label: "Active", value: 0, bg: "#0369a1" },
+  { label: "Approved", value: 0, bg: "#059669" },
+  { label: "Rejected", value: 0, bg: "#0891b2" },
 ]
 
 export default function OfficeBatchApplicationsPage() {
