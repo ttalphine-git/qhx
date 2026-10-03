@@ -2974,7 +2974,7 @@ export default function ApplicationsPage() {
 
       // AGREEMENT_REVIEW - customer signed, HCB must review
       if (a.status === "AGREEMENT_REVIEW") {
-        function approveAgreement() {
+        async function approveAgreement() {
           if (!a) return
           const now = new Date().toISOString()
           const actorName = user?.name ?? "HCB Office"
@@ -2985,11 +2985,16 @@ export default function ApplicationsPage() {
             agreementApprovedAt: now, agreementApprovedBy: actorName,
             logs: [...(a.logs ?? []), { timestamp: now, action: "Agreement Approved", by: actorName, note: "Agreement reviewed and approved by HCB. Proceeding to payment.", color: "#16a34a" }],
           }
-          setViewApp(updated)
+          let nextView = updated
           if ((a as any)._local) {
             const all = JSON.parse(localStorage.getItem("hcs_local_applications") || "[]")
             localStorage.setItem("hcs_local_applications", JSON.stringify(all.map((la: any) => la.id === a.id ? { ...la, ...updated } : la)))
+          } else {
+            const saved = await updateApplicationStatus(Number(a.id), "PENDING_PAYMENT" as ApplicationStatus)
+            nextView = hydrateApplication({ ...updated, ...saved })
+            refetch()
           }
+          setViewApp(nextView)
 
           // Auto-create and issue invoice when agreement is approved
           const billing = loadApplicationBilling(a.id)
@@ -3002,7 +3007,7 @@ export default function ApplicationsPage() {
           addAuditLog({ applicationId: String(a.id), applicationNumber: appRef, companyName: coName, actor: actorName, role: "HCB Office", action: "Agreement Approved", details: "HCB reviewed and approved the signed agreement.", oldStatus: "AGREEMENT_REVIEW", newStatus: "PENDING_PAYMENT", category: "APPLICATION" })
           addNotification("customer", { type: "success", title: "", body: `Your agreement for ${appRef} has been approved. An invoice has been issued  please proceed to payment.` })
         }
-        function rejectAgreement() {
+        async function rejectAgreement() {
           if (!a) return
           const now = new Date().toISOString()
           const actorName = user?.name ?? "HCB Office"
@@ -3013,11 +3018,16 @@ export default function ApplicationsPage() {
             agreementSignedAt: undefined, agreementSignature: undefined, agreementLanguage: undefined,
             logs: [...(a.logs ?? []), { timestamp: now, action: "Agreement Returned", by: actorName, note: "HCB requested the customer to re-sign the agreement.", color: "#f59e0b" }],
           }
-          setViewApp(updated)
+          let nextView = updated
           if ((a as any)._local) {
             const all = JSON.parse(localStorage.getItem("hcs_local_applications") || "[]")
             localStorage.setItem("hcs_local_applications", JSON.stringify(all.map((la: any) => la.id === a.id ? { ...la, ...updated } : la)))
+          } else {
+            const saved = await updateApplicationStatus(Number(a.id), "AGREEMENT_PENDING" as ApplicationStatus)
+            nextView = hydrateApplication({ ...updated, ...saved })
+            refetch()
           }
+          setViewApp(nextView)
           addAuditLog({ applicationId: String(a.id), applicationNumber: appRef, companyName: coName, actor: actorName, role: "HCB Office", action: "Agreement Returned", details: "HCB returned the agreement to customer for re-signing.", oldStatus: "AGREEMENT_REVIEW", newStatus: "AGREEMENT_PENDING", category: "APPLICATION" })
           addNotification("customer", { type: "warning", title: "Agreement Returned", body: `HCB has returned your agreement for ${appRef}. Please re-read and sign again.` })
         }
