@@ -682,16 +682,34 @@ export default function ApplicationDetailPage() {
   // Approval / Rejection
   const [isApproving, setIsApproving] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
+  const [editingBilling, setEditingBilling] = useState(false)
+  const [editedBilling, setEditedBilling] = useState(billing ? { ...billing } : null)
+
+  // ─── Determine next status in workflow ─────────────────────────────────────
+  function getNextApprovalStatus(currentStatus: string): string {
+    const statusWorkflow: Record<string, string> = {
+      'QUOTED': 'AGREEMENT_PENDING',
+      'AGREEMENT_PENDING': 'AGREEMENT_REVIEW',
+      'AGREEMENT_REVIEW': 'AGREEMENT_APPROVED_BY_HCB',
+      'AGREEMENT_APPROVED_BY_HCB': 'PENDING_PAYMENT',
+      'PENDING_PAYMENT': 'PAYMENT_REVIEW',
+      'PAYMENT_REVIEW': 'UNDER_REVIEW',
+      'UNDER_REVIEW': 'CERTIFIED',
+      'INFORMATION_REQUESTED': 'UNDER_REVIEW',
+    }
+    return statusWorkflow[currentStatus] || 'CERTIFIED'
+  }
 
   async function approveApplication() {
     try {
       setIsApproving(true)
-      await updateApplicationStatus(id, 'CERTIFIED')
-      toast.success('Application certified successfully')
+      const nextStatus = getNextApprovalStatus(app.status)
+      await updateApplicationStatus(id, nextStatus)
+      toast.success(`Application moved to ${nextStatus.replace(/_/g, ' ')}`)
       appQ.refetch()
     } catch (error) {
-      console.error('Failed to certify application', error)
-      toast.error('Failed to certify application')
+      console.error('Failed to approve application', error)
+      toast.error('Failed to approve application')
     } finally {
       setIsApproving(false)
     }
@@ -709,6 +727,78 @@ export default function ApplicationDetailPage() {
     } finally {
       setIsRejecting(false)
     }
+  }
+
+  function saveBillingChanges() {
+    if (!editedBilling) return
+    try {
+      // Save to localStorage for now
+      localStorage.setItem(`hcs_billing_${id}`, JSON.stringify(editedBilling))
+      setEditingBilling(false)
+      toast.success('Billing information saved')
+      // Reload the page or trigger a refresh
+      window.location.reload()
+    } catch (error) {
+      console.error('Failed to save billing', error)
+      toast.error('Failed to save billing information')
+    }
+  }
+
+  function updateBillingLineItem(index: number, field: 'description' | 'quantity' | 'unitPrice', value: string | number) {
+    if (!editedBilling) return
+    const newItems = [...editedBilling.lineItems]
+    const item = newItems[index]
+    if (item) {
+      (item[field] as any) = value
+      const subtotal = newItems.reduce((sum, li) => sum + (li.quantity * li.unitPrice), 0)
+      const vatAmount = subtotal * (editedBilling.vatPct / 100)
+      setEditedBilling({
+        ...editedBilling,
+        lineItems: newItems,
+        subtotal,
+        vatAmount,
+        total: subtotal + vatAmount,
+      })
+    }
+  }
+
+  function addBillingLineItem() {
+    if (!editedBilling) return
+    const newItems = [...editedBilling.lineItems, { description: 'New Item', quantity: 1, unitPrice: 0 }]
+    const subtotal = newItems.reduce((sum, li) => sum + (li.quantity * li.unitPrice), 0)
+    const vatAmount = subtotal * (editedBilling.vatPct / 100)
+    setEditedBilling({
+      ...editedBilling,
+      lineItems: newItems,
+      subtotal,
+      vatAmount,
+      total: subtotal + vatAmount,
+    })
+  }
+
+  function removeBillingLineItem(index: number) {
+    if (!editedBilling) return
+    const newItems = editedBilling.lineItems.filter((_, i) => i !== index)
+    const subtotal = newItems.reduce((sum, li) => sum + (li.quantity * li.unitPrice), 0)
+    const vatAmount = subtotal * (editedBilling.vatPct / 100)
+    setEditedBilling({
+      ...editedBilling,
+      lineItems: newItems,
+      subtotal,
+      vatAmount,
+      total: subtotal + vatAmount,
+    })
+  }
+
+  function updateBillingVAT(vatPct: number) {
+    if (!editedBilling) return
+    const vatAmount = editedBilling.subtotal * (vatPct / 100)
+    setEditedBilling({
+      ...editedBilling,
+      vatPct,
+      vatAmount,
+      total: editedBilling.subtotal + vatAmount,
+    })
   }
 
   function handleCreateInvoice() {
@@ -1040,17 +1130,6 @@ export default function ApplicationDetailPage() {
                 <span style={{ fontSize: 12, color: C.muted }}>{app.assignedAuditorName}</span>
               </div>
             )}
-            {billing && (
-              <div style={{ marginTop: 10, padding: '8px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, display: 'inline-block' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 2px' }}>Total Fee</p>
-                <p style={{ fontSize: 18, fontWeight: 700, color: '#15803d', margin: 0 }}>
-                  {billing.currency} {billing.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-                {billing.vatPct > 0 && (
-                  <p style={{ fontSize: 10, color: '#166534', margin: '2px 0 0' }}>incl. {billing.vatPct}% VAT</p>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
@@ -1106,7 +1185,7 @@ export default function ApplicationDetailPage() {
                   <button
                     onClick={approveApplication}
                     disabled={isApproving || isRejecting}
-                    style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, background: '#107c10', color: '#fff', border: 'none', borderRadius: 6, cursor: isApproving || isRejecting ? 'not-allowed' : 'pointer', opacity: isApproving || isRejecting ? 0.7 : 1 }}>
+                    style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, background: '#0f2170', color: '#fff', border: 'none', borderRadius: 6, cursor: isApproving || isRejecting ? 'not-allowed' : 'pointer', opacity: isApproving || isRejecting ? 0.7 : 1 }}>
                     {isApproving ? 'Approving...' : 'Approve'}
                   </button>
                 </div>
@@ -1157,6 +1236,204 @@ export default function ApplicationDetailPage() {
                   </div>
                 ) : <p style={{ color: C.muted, fontSize: 13 }}>No data</p>}
               </div>
+              </div>
+
+              {/* Billing Details Section */}
+              <div style={{ background: C.bg, borderRadius: 10, padding: 16, marginTop: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <CreditCard size={16} color={C.primary} />
+                    <span style={{ fontWeight: 600, fontSize: 14, color: C.textDark }}>Billing Details</span>
+                  </div>
+                  {!editingBilling && billing && (
+                    <button
+                      onClick={() => {
+                        setEditedBilling({ ...billing })
+                        setEditingBilling(true)
+                      }}
+                      style={{ fontSize: 13, padding: '6px 14px', border: `1px solid ${C.border}`, borderRadius: 6, background: '#fff', color: C.primary, cursor: 'pointer', fontWeight: 600 }}>
+                      Edit Billing
+                    </button>
+                  )}
+                </div>
+
+                {!billing && !editingBilling ? (
+                  <p style={{ color: C.muted, fontSize: 13 }}>No billing data found for this application.</p>
+                ) : editingBilling && editedBilling ? (
+                  <div>
+                    {/* Currency Selector */}
+                    <div style={{ marginBottom: 16 }}>
+                      <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>Currency</label>
+                      <select
+                        value={editedBilling.currency}
+                        onChange={(e) => setEditedBilling({ ...editedBilling, currency: e.target.value })}
+                        style={{ width: '150px', padding: '7px 10px', border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit' }}>
+                        <option value="MYR">MYR (Malaysian Ringgit)</option>
+                        <option value="USD">USD (US Dollar)</option>
+                        <option value="EUR">EUR (Euro)</option>
+                        <option value="SGD">SGD (Singapore Dollar)</option>
+                        <option value="AED">AED (UAE Dirham)</option>
+                      </select>
+                    </div>
+
+                    {/* Line Items Table */}
+                    <div style={{ marginBottom: 16, overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                        <thead>
+                          <tr style={{ borderBottom: `1px solid ${C.border}` }}>
+                            <th style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' }}>Description</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' }}>Qty</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' }}>Unit Price</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' }}>Total</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' }}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {editedBilling.lineItems.map((item, idx) => (
+                            <tr key={idx} style={{ borderBottom: `1px solid ${C.border}` }}>
+                              <td style={{ padding: '10px' }}>
+                                <input
+                                  type="text"
+                                  value={item.description}
+                                  onChange={(e) => updateBillingLineItem(idx, 'description', e.target.value)}
+                                  style={{ width: '100%', padding: '6px 8px', border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, fontFamily: 'inherit' }}
+                                  placeholder="Item description"
+                                />
+                              </td>
+                              <td style={{ padding: '10px', textAlign: 'right' }}>
+                                <input
+                                  type="number"
+                                  value={item.quantity}
+                                  onChange={(e) => updateBillingLineItem(idx, 'quantity', parseFloat(e.target.value) || 0)}
+                                  style={{ width: '70px', padding: '6px 8px', border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, fontFamily: 'inherit', textAlign: 'right' }}
+                                  min="0"
+                                  step="0.01"
+                                />
+                              </td>
+                              <td style={{ padding: '10px', textAlign: 'right' }}>
+                                <input
+                                  type="number"
+                                  value={item.unitPrice}
+                                  onChange={(e) => updateBillingLineItem(idx, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                  style={{ width: '100px', padding: '6px 8px', border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, fontFamily: 'inherit', textAlign: 'right' }}
+                                  min="0"
+                                  step="0.01"
+                                />
+                              </td>
+                              <td style={{ padding: '10px', textAlign: 'right', fontWeight: 600 }}>
+                                {editedBilling.currency} {(item.quantity * item.unitPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                              <td style={{ padding: '10px', textAlign: 'center' }}>
+                                <button
+                                  onClick={() => removeBillingLineItem(idx)}
+                                  style={{ color: '#d13438', background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: '2px 6px' }}>
+                                  ×
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Add Line Item Button */}
+                    <button
+                      onClick={addBillingLineItem}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', marginBottom: 16, background: C.white, border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 13, fontWeight: 600, color: C.primary, cursor: 'pointer' }}>
+                      <Plus size={14} /> Add Line Item
+                    </button>
+
+                    {/* Totals and VAT */}
+                    <div style={{ background: '#f8fafc', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+                      <div style={{ display: 'grid', gap: 8, fontSize: 13 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>
+                          <span style={{ color: C.muted }}>Subtotal</span>
+                          <span style={{ fontWeight: 600 }}>{editedBilling.currency} {editedBilling.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                          <label style={{ color: C.muted }}>VAT ({editedBilling.vatPct}%)</label>
+                          <input
+                            type="number"
+                            value={editedBilling.vatPct}
+                            onChange={(e) => updateBillingVAT(parseFloat(e.target.value) || 0)}
+                            style={{ width: '60px', padding: '4px 6px', border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 12, fontFamily: 'inherit', textAlign: 'right' }}
+                            min="0"
+                            max="100"
+                            step="0.1"
+                          />
+                          <span style={{ fontWeight: 600, minWidth: '150px', textAlign: 'right' }}>{editedBilling.currency} {editedBilling.vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8, borderTop: `2px solid ${C.border}` }}>
+                          <span style={{ fontWeight: 700, fontSize: 14 }}>Total</span>
+                          <span style={{ fontWeight: 700, fontSize: 16, color: C.primary }}>{editedBilling.currency} {editedBilling.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Save/Cancel Buttons */}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={saveBillingChanges}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 18px', background: C.primary, color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                        <Save size={14} /> Save Billing
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingBilling(false)
+                          setEditedBilling(null)
+                        }}
+                        style={{ padding: '8px 18px', background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 13, fontWeight: 600, color: C.muted, cursor: 'pointer' }}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : billing ? (
+                  <div>
+                    {/* Display Billing - Read Only */}
+                    <div style={{ marginBottom: 12 }}>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', marginBottom: 6 }}>Currency</p>
+                      <p style={{ fontSize: 13, color: C.textDark, fontWeight: 500 }}>{billing.currency}</p>
+                    </div>
+
+                    <div style={{ marginBottom: 16, overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                        <thead>
+                          <tr style={{ borderBottom: `1px solid ${C.border}` }}>
+                            <th style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' }}>Description</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' }}>Qty</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' }}>Unit Price</th>
+                            <th style={{ padding: '8px 10px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase' }}>Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {billing.lineItems.map((item, idx) => (
+                            <tr key={idx} style={{ borderBottom: `1px solid ${C.border}` }}>
+                              <td style={{ padding: '10px', color: C.textDark }}>{item.description}</td>
+                              <td style={{ padding: '10px', textAlign: 'right', color: C.muted }}>{item.quantity}</td>
+                              <td style={{ padding: '10px', textAlign: 'right', color: C.muted }}>{billing.currency} {item.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                              <td style={{ padding: '10px', textAlign: 'right', fontWeight: 600 }}>{billing.currency} {(item.quantity * item.unitPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colSpan={3} style={{ padding: '8px 10px', textAlign: 'right', fontSize: 12, color: C.muted }}>Subtotal</td>
+                            <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600 }}>{billing.currency} {billing.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan={3} style={{ padding: '8px 10px', textAlign: 'right', fontSize: 12, color: C.muted }}>VAT ({billing.vatPct}%)</td>
+                            <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600 }}>{billing.currency} {billing.vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          </tr>
+                          <tr style={{ background: '#f8fafc' }}>
+                            <td colSpan={3} style={{ padding: '10px', textAlign: 'right', fontWeight: 700, fontSize: 14 }}>Total</td>
+                            <td style={{ padding: '10px', textAlign: 'right', fontWeight: 700, fontSize: 16, color: C.primary }}>{billing.currency} {billing.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <p style={{ marginTop: 8, fontSize: 11, color: C.muted }}>Saved at: {new Date(billing.savedAt).toLocaleString()}</p>
+                  </div>
+                ) : null}
               </div>
             </div>
           )}
