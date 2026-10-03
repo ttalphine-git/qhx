@@ -4,6 +4,7 @@ import { ChevronDown, Power, User, Bell, Search } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { C } from "@/lib/utils"
 import { getNotifications, markRead, markAllRead, clearNotifications, type AppNotification } from "@/lib/notifications"
+import { useActivityTracking } from "@/hooks/useActivityTracking"
 
 const NAV_ITEMS = [
   { label: "Dashboard",       path: "/customer/dashboard"    },
@@ -26,6 +27,9 @@ export default function CustomerLayout({ children, title }: CustomerLayoutProps)
   const navigate  = useNavigate()
   const location  = useLocation()
   const { user, clearAuth } = useAuthStore()
+
+  // Track customer activity for live dashboard
+  useActivityTracking()
 
   const isAuthorized = !!user && user.role?.toUpperCase?.() === 'CUSTOMER'
 

@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: "Customers",              path: "/office/customers"              },
   { label: "Factory Applications",   path: "/office/applications"           },
   { label: "Batch Applications",     path: "/office/batch-applications"     },
+  { label: "Live Activity",          path: "/office/live-activity"          },
 ]
 
 const SETTINGS_ITEMS = [
