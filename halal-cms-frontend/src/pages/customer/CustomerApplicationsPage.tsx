@@ -2074,7 +2074,7 @@ export default function CustomerApplicationsPage() {
             </thead>
             <tbody>
               {!isLoading && apps.length === 0 ? (
-                <tr>
+                <tr style={{ minHeight: 55 }}>
                   <td colSpan={12} style={{ padding: "60px 20px", textAlign: "center" }}>
                     <FileText size={28} color="#cbd5e1" style={{ margin: "0 auto 12px", display: "block" }} />
                     <p style={{ margin: 0, fontSize: "0.9rem", fontWeight: 700, color: "#334155" }}>No applications yet</p>
@@ -2098,7 +2098,7 @@ export default function CustomerApplicationsPage() {
                 return (
                   <tr key={app.id}
                     onClick={() => selectApp((localRaw ?? app) as LocalApp)}
-                    style={{ borderBottom: "1px solid #f1f5f9", cursor: "pointer", background: isSelected ? "#eff6ff" : "transparent", borderLeft: isSelected ? "3px solid #2563eb" : "3px solid transparent", transition: "background 0.1s" }}
+                    style={{ borderBottom: "1px solid #f1f5f9", cursor: "pointer", background: isSelected ? "#eff6ff" : "transparent", borderLeft: isSelected ? "3px solid #2563eb" : "3px solid transparent", transition: "background 0.1s", minHeight: 55 }}
                     onMouseOver={e => { if (!isSelected) e.currentTarget.style.background = "#f8fafc" }}
                     onMouseOut={e  => { if (!isSelected) e.currentTarget.style.background = "transparent" }}>
                     <td style={{ padding: "11px 16px" }}>
