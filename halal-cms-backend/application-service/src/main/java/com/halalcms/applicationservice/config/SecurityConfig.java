@@ -32,6 +32,7 @@ public class SecurityConfig {
                         new AntPathRequestMatcher("/api/**"),
                         new AntPathRequestMatcher("/auth/**"),
                         new AntPathRequestMatcher("/system/**"),
+                        new AntPathRequestMatcher("/applications/**"),
                         new AntPathRequestMatcher("/applications", "POST")))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
