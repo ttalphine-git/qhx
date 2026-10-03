@@ -556,6 +556,17 @@ export default function CustomerApplyPage() {
   }
 
   const buildPayload = (status: "DRAFT" | "SUBMITTED") => {
+    const pricing = loadPricing()
+    const accs = registeredStandards
+    const appFeeRows = selectedStandards.length > 0
+      ? accs.filter(a => a.standard && selectedStandards.includes(a.standard))
+      : []
+    const appFeeTotal = appFeeRows.reduce((s, a) => s + (a.unitPrice ?? 0), 0)
+    const auditFee = pricing.auditDayCost
+    const subtotal = appFeeTotal + auditFee
+    const vatAmount = subtotal * pricing.vatPct / 100
+    const total = subtotal + vatAmount
+
     const regDocs = company ? {
       licenseNo: company.licenseNo,
       licenseExpiry: company.licenseExpiry,
@@ -609,6 +620,8 @@ export default function CustomerApplyPage() {
       snapshotActivities:  selectedActivities,
       snapshotDescription: regDescription,
       snapshotFactories:   applicationFactories,
+      totalFee: total,
+      currency: pricing.currency,
     }
   }
 
