@@ -27,12 +27,12 @@ import { loadActivityCategorySettings, type ActivityCategorySetting } from '@/li
 import {
   loadApplicationBilling, loadInvoiceByApp, createInvoiceFromBilling, saveInvoice,
   invoiceStatusStyle, formatInvoiceDate,
-  type Invoice, type InvoiceStatus,
+  type Invoice, type InvoiceStatus, type BillingLineItem,
 } from '@/lib/billing'
 import type {
   LocalApplicationReview, LocalAuditPlanDetail, LocalNonConformity,
   LocalCorrectiveAction, LocalTechnicalReview, LocalHalalReview,
-  LocalCertDecision, LocalGeneratedCertificate,
+  LocalCertDecision, LocalGeneratedCertificate, ApplicationStatus,
 } from '@/types'
 import { NcsTab } from '@/components/NcsTab'
 import { AuditSummaryTab } from '@/components/AuditSummaryTab'
@@ -703,7 +703,7 @@ export default function ApplicationDetailPage() {
   async function approveApplication() {
     try {
       setIsApproving(true)
-      const nextStatus = getNextApprovalStatus(app.status)
+      const nextStatus = getNextApprovalStatus(app.status) as ApplicationStatus
       await updateApplicationStatus(id, nextStatus)
       toast.success(`Application moved to ${nextStatus.replace(/_/g, ' ')}`)
       appQ.refetch()
@@ -764,7 +764,8 @@ export default function ApplicationDetailPage() {
 
   function addBillingLineItem() {
     if (!editedBilling) return
-    const newItems = [...editedBilling.lineItems, { description: 'New Item', quantity: 1, unitPrice: 0 }]
+    const newItem: BillingLineItem = { description: 'New Item', quantity: 1, unitPrice: 0, total: 0 }
+    const newItems = [...editedBilling.lineItems, newItem]
     const subtotal = newItems.reduce((sum, li) => sum + (li.quantity * li.unitPrice), 0)
     const vatAmount = subtotal * (editedBilling.vatPct / 100)
     setEditedBilling({
