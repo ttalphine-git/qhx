@@ -2057,7 +2057,7 @@ export default function CustomerApplicationsPage() {
               <p style={{ margin: "2px 0 0", fontSize: "0.71rem", color: "#ef4444" }}>Review the rejection reason and resubmit after corrections.</p>
             </div>
             <button onClick={() => setStatusGroup("REJECTED,SUSPENDED,EXPIRED")}
-              style={{ padding: "4px 10px", borderRadius: 7, background: "#fff", color: "#0f2170", border: "1px solid #cbd5e1", border: "none", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>View</button>
+              style={{ padding: "4px 10px", borderRadius: 7, background: "#fff", color: "#0f2170", border: "none", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>View</button>
           </div>
         )}
 
