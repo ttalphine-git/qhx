@@ -1180,7 +1180,7 @@ export default function ApplicationDetailPage() {
                   <button
                     onClick={rejectApplication}
                     disabled={isRejecting || isApproving}
-                    style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, cursor: isRejecting || isApproving ? 'not-allowed' : 'pointer', color: C.muted, opacity: isRejecting || isApproving ? 0.6 : 1 }}>
+                    style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, background: '#fff', border: 'none', borderRadius: 6, cursor: isRejecting || isApproving ? 'not-allowed' : 'pointer', color: C.muted, opacity: isRejecting || isApproving ? 0.6 : 1 }}>
                     {isRejecting ? 'Rejecting...' : 'Reject'}
                   </button>
                   <button
