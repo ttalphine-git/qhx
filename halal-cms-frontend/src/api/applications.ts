@@ -19,7 +19,7 @@ export const deleteApplication = (id: number) =>
   apiClient.delete(`/applications/${id}`).then(r => r.data)
 
 export const updateApplicationStatus = (id: number, status: ApplicationStatus) =>
-  apiClient.post<ApplicationResponseDTO>(`/applications/${id}/approve`, { status }).then(r => r.data)
+  apiClient.post<ApplicationResponseDTO>(`/applications/${id}/approve`, null, { params: { status } }).then(r => r.data)
 
 export const getCompanyInfo = (id: number) =>
   apiClient.get<CompanyInformationDTO>(`/applications/${id}/personal`).then(r => r.data)
