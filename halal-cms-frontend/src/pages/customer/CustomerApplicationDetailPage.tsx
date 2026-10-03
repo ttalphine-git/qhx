@@ -9,7 +9,7 @@ import {
   Shield, Tags, List, AlignLeft,
 } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
-import { getApplication, getCompanyInfo, getPaymentStatus, getEventLogs } from "@/api/applications"
+import { getApplication, getCompanyInfo, getPaymentStatus, getEventLogs, updateApplicationStatus } from "@/api/applications"
 import { C, getStatusStyle, formatDate, formatDateTime } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
 import { addNotification } from "@/lib/notifications"
@@ -249,7 +249,7 @@ export default function CustomerApplicationDetailPage() {
   const handleSign = useCallback((dataUrl: string) => setSignature(dataUrl), [])
   const handleClear = useCallback(() => setSignature(""), [])
 
-  function submitAgreement() {
+  async function submitAgreement() {
     if (!signature || !agreed || !app) return
     const actorName = user?.name ?? "Customer"
     const appNum = app.applicationNumber ?? `#${app.id}`
@@ -274,6 +274,7 @@ export default function CustomerApplicationDetailPage() {
     if (isLocalApp) {
       saveLocalApp(updated)
     } else {
+      await updateApplicationStatus(Number(app.id), "AGREEMENT_REVIEW")
       // For API-backed apps store the signature side-data locally
       saveLocalApp({ ...updated, _signedLocally: true })
     }

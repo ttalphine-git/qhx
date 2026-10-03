@@ -15,7 +15,7 @@ import {
   Tags, List, AlignLeft, Shield,
 } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
-import { getApplications, getCompanyInfo } from "@/api/applications"
+import { getApplications, getCompanyInfo, updateApplicationStatus } from "@/api/applications"
 import { getStatusStyle, formatDate } from "@/lib/utils"
 import {
   loadApplicationBilling, saveApplicationBilling, loadInvoiceByApp,
@@ -1346,6 +1346,9 @@ function AgreementTab({ app, user, onUpdate }: { app: LocalApp; user: any; onUpd
         ...(signedPdfData ? { agreementSignedPdf: signedPdfData } : {}),
         logs: [...(app.logs ?? []), { timestamp: now, action: "Agreement Signed", by: actorName, note: `Signed in ${langMeta?.label ?? lang}`, color: "#2563eb" }],
       }
+      if (!app._local) {
+        await updateApplicationStatus(Number(app.id), "AGREEMENT_REVIEW")
+      }
       try {
         saveLocalApps(loadLocalApps().map(la => la.id === app.id ? updated : la))
       } catch {
@@ -2257,7 +2260,6 @@ export default function CustomerApplicationsPage() {
     </CustomerLayout>
   )
 }
-
 
 
 
