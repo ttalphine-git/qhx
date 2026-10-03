@@ -19,7 +19,7 @@ export const deleteApplication = (id: number) =>
   apiClient.delete(`/applications/${id}`).then(r => r.data)
 
 export const updateApplicationStatus = (id: number, status: ApplicationStatus) =>
-  apiClient.patch<ApplicationResponseDTO>(`/applications/${id}/status`, JSON.stringify(status), {
+  apiClient.patch<ApplicationResponseDTO>(`/applications/${id}/status`, { status }, {
     headers: { 'Content-Type': 'application/json' },
   }).then(r => r.data)
 
