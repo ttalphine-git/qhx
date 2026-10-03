@@ -9,7 +9,7 @@ import {
   Shield, Tags, List, AlignLeft,
 } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
-import { getApplication, getCompanyInfo, getPaymentStatus, getEventLogs, updateApplicationStatus } from "@/api/applications"
+import { getApplication, getCompanyInfo, getPaymentStatus, getEventLogs, signApplicationAgreement } from "@/api/applications"
 import { C, getStatusStyle, formatDate, formatDateTime } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
 import { addNotification } from "@/lib/notifications"
@@ -274,7 +274,11 @@ export default function CustomerApplicationDetailPage() {
     if (isLocalApp) {
       saveLocalApp(updated)
     } else {
-      await updateApplicationStatus(Number(app.id), "AGREEMENT_REVIEW")
+      await signApplicationAgreement(Number(app.id), {
+        agreementSignedAt: updated.agreementSignedAt,
+        agreementSignature: signature,
+        agreementLanguage: agrLang,
+      })
       // For API-backed apps store the signature side-data locally
       saveLocalApp({ ...updated, _signedLocally: true })
     }

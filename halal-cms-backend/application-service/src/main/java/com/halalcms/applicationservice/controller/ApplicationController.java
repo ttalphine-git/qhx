@@ -85,6 +85,13 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.updateStatus(id, newStatus));
     }
 
+    @PatchMapping("/{id}/agreement")
+    public ResponseEntity<ApplicationResponseDTO> signAgreement(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+        return ResponseEntity.ok(applicationService.signAgreement(id, payload != null ? payload : Map.of()));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         applicationService.delete(id);

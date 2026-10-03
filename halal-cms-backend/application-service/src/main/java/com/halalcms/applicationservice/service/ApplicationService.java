@@ -8,6 +8,7 @@ import com.halalcms.applicationservice.model.ApplicationStatus;
 import com.halalcms.applicationservice.model.ApplicationType;
 import com.halalcms.applicationservice.repository.ApplicationRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -185,6 +186,33 @@ public class ApplicationService {
         return toDto(saved);
     }
 
+    public ApplicationResponseDTO signAgreement(Long id, Map<String, Object> agreementPayload) {
+        Application application = findOrThrow(id);
+        String oldStatus = application.getStatus().name();
+
+        Map<String, Object> payload = readPayloadJson(application.getPayloadJson());
+        payload.put("agreementSignedAt", agreementPayload.get("agreementSignedAt"));
+        payload.put("agreementSignature", agreementPayload.get("agreementSignature"));
+        payload.put("agreementLanguage", agreementPayload.get("agreementLanguage"));
+
+        application.setPayloadJson(toPayloadJson(payload));
+        application.setStatus(ApplicationStatus.AGREEMENT_REVIEW);
+
+        Application saved = applicationRepository.save(application);
+
+        String performedBy = getCurrentUserId();
+        eventLogService.log(
+                saved.getId(),
+                ApplicationStatus.AGREEMENT_REVIEW.name(),
+                "Agreement signed by customer",
+                performedBy,
+                oldStatus,
+                ApplicationStatus.AGREEMENT_REVIEW.name()
+        );
+
+        return toDto(saved);
+    }
+
     public void delete(Long id) {
         Application application = findOrThrow(id);
         applicationRepository.delete(application);
@@ -206,6 +234,15 @@ public class ApplicationService {
         return applicationRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Application not found with id: " + id));
+    }
+
+    private Map<String, Object> readPayloadJson(String payloadJson) {
+        if (payloadJson == null || payloadJson.isBlank()) return new java.util.LinkedHashMap<>();
+        try {
+            return objectMapper.readValue(payloadJson, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            return new java.util.LinkedHashMap<>();
+        }
     }
 
     private String getCurrentUserId() {

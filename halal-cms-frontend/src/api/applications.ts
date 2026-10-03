@@ -23,6 +23,13 @@ export const updateApplicationStatus = (id: number, status: ApplicationStatus) =
     headers: { 'Content-Type': 'application/json' }
   }).then(r => r.data)
 
+export const signApplicationAgreement = (id: number, payload: {
+  agreementSignedAt: string
+  agreementSignature: string
+  agreementLanguage: string
+}) =>
+  apiClient.patch<ApplicationResponseDTO>(`/applications/${id}/agreement`, payload).then(r => r.data)
+
 export const getCompanyInfo = (id: number) =>
   apiClient.get<CompanyInformationDTO>(`/applications/${id}/personal`).then(r => r.data)
 
