@@ -3723,13 +3723,13 @@ export default function ApplicationsPage() {
               {/* Footer */}
               <div style={{ padding:"14px 22px", display:"flex", justifyContent:"flex-end", gap:8 }}>
                 <button onClick={() => { setApproveConfirm(false); setDiscountValue(""); setDiscountType("%") }} disabled={statusSaving}
-                  style={{ padding:"8px 18px", background:"#f1f5f9", color:"#374151", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:600, cursor: statusSaving ? "not-allowed" : "pointer", fontFamily:F, opacity: statusSaving ? 0.7 : 1 }}>
-                  Cancel
+                  style={{ padding:"8px 18px", background:"#fff", color:"#374151", border:"1px solid #e2e8f0", borderRadius:8, fontSize:"0.8rem", fontWeight:600, cursor: statusSaving ? "not-allowed" : "pointer", fontFamily:F, opacity: statusSaving ? 0.7 : 1 }}>
+                  Reject
                 </button>
                 <button onClick={approveApp} disabled={statusSaving}
-                  style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 20px", background:"#16a34a", color:"#fff", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:700, cursor: statusSaving ? "not-allowed" : "pointer", fontFamily:F, opacity: statusSaving ? 0.75 : 1 }}>
+                  style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 20px", background:"#0f2170", color:"#fff", border:"none", borderRadius:8, fontSize:"0.8rem", fontWeight:700, cursor: statusSaving ? "not-allowed" : "pointer", fontFamily:F, opacity: statusSaving ? 0.75 : 1 }}>
                   <CheckCircle2 style={{ width:14, height:14 }} />
-                  {statusSaving ? "Approving..." : "Confirm Approval"}
+                  {statusSaving ? "Approving..." : "Approve"}
                 </button>
               </div>
 
