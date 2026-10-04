@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { TrendingUp, DollarSign, AlertCircle, Loader, Calendar } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
+import apiClient from "@/api/client"
 
 interface PaymentMetrics {
   totalBatchSpent: number
@@ -36,11 +37,24 @@ export default function CustomerPaymentsDashboardPage() {
 
   async function loadMetrics() {
     try {
-      const resp = await fetch(`/payments/my-dashboard/metrics?range=${timeRange}`)
-      if (resp.ok) {
-        const data = await resp.json()
-        setMetrics(data)
-      }
+      const data = await apiClient.get("/batch-certificates/requests", { params: { page: 0, size: 1000 } }).then(r => r.data)
+      const rows = data.content || []
+      const paid = rows.filter((request: any) => request.paymentStatus === "PAID")
+      const pending = rows.filter((request: any) => request.paymentStatus !== "PAID")
+      const totalSpent = rows.reduce((sum: number, request: any) => sum + Number(request.totalFee || request.amountOwed || 0), 0)
+      const totalPaid = paid.reduce((sum: number, request: any) => sum + Number(request.totalFee || request.amountOwed || 0), 0)
+      setMetrics({
+        totalBatchSpent: totalSpent,
+        totalFactorySpent: 0,
+        totalBatchPaid: totalPaid,
+        totalFactoryPaid: 0,
+        totalBatchPending: pending.reduce((sum: number, request: any) => sum + Number(request.totalFee || request.amountOwed || 0), 0),
+        totalFactoryPending: 0,
+        batchCertificates: rows.length,
+        factoryCertificates: 0,
+        paymentRateBatch: rows.length ? Math.round((paid.length / rows.length) * 100) : 0,
+        paymentRateFactory: 0,
+      })
     } catch (err) {
       console.error("Failed to load metrics", err)
     }
@@ -49,11 +63,18 @@ export default function CustomerPaymentsDashboardPage() {
   async function loadChartData() {
     try {
       setLoading(true)
-      const resp = await fetch(`/payments/my-dashboard/chart-data?range=${timeRange}`)
-      if (resp.ok) {
-        const data = await resp.json()
-        setChartData(data)
-      }
+      const data = await apiClient.get("/batch-certificates/requests", { params: { page: 0, size: 1000 } }).then(r => r.data)
+      const byMonth = new Map<string, ChartData>()
+      ;(data.content || []).forEach((request: any) => {
+        const date = new Date(request.submittedAt || request.createdAt || Date.now())
+        const month = date.toLocaleString("en", { month: "short", year: "2-digit" })
+        const current = byMonth.get(month) || { month, batchSpent: 0, batchPaid: 0, factorySpent: 0, factoryPaid: 0 }
+        const amount = Number(request.totalFee || request.amountOwed || 0)
+        current.batchSpent += amount
+        if (request.paymentStatus === "PAID") current.batchPaid += amount
+        byMonth.set(month, current)
+      })
+      setChartData(Array.from(byMonth.values()))
     } catch (err) {
       console.error("Failed to load chart data", err)
     } finally {

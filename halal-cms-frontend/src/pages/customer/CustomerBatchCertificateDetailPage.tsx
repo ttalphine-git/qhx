@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Loader, AlertCircle, CheckCircle, Copy } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
+import apiClient from "@/api/client"
 
 interface BatchRequestDetail {
   id: number
@@ -57,13 +58,8 @@ export default function CustomerBatchCertificateDetailPage() {
   async function loadRequest() {
     try {
       setLoading(true)
-      const resp = await fetch(`/api/batch-certificates/requests/${id}`)
-      if (resp.ok) {
-        const data = await resp.json()
-        setRequest(data)
-      } else {
-        setError("Failed to load batch certificate request")
-      }
+      const data = await apiClient.get(`/batch-certificates/requests/${id}`).then(r => r.data)
+      setRequest(data)
     } catch (err) {
       console.error("Failed to load request", err)
       setError("An error occurred while loading the request")

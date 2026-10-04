@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { Search, RefreshCw, Eye, Loader, FileText, Download, Zap, FilePlus2, CalendarDays, ShieldCheck, CircleHelp, Headphones, ChevronRight } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import CustomerLayout from "./CustomerLayout"
+import apiClient from "@/api/client"
 
 interface Certificate {
   id: number
@@ -39,11 +40,19 @@ export default function CustomerBatchCertificatesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["customer-batch-certificates", page, search],
     queryFn: async () => {
-      return {
-        content: [],
-        totalElements: 0,
-        totalPages: 0,
-      }
+      const data = await apiClient.get("/batch-certificates/requests", { params: { page, size: 20 } }).then(r => r.data)
+      const content = (data.content || []).map((request: any) => ({
+        id: request.id,
+        certificateNumber: request.certificateNumber || request.requestNumber,
+        status: request.status === "APPROVED" ? "ACTIVE" : request.status,
+        companyName: request.producerName || request.companyId || "-",
+        expiryDate: request.factoryCertValidTo,
+        halalStandard: "Batch Certificate",
+      })).filter((certificate: Certificate) => {
+        const needle = search.trim().toLowerCase()
+        return !needle || `${certificate.certificateNumber} ${certificate.companyName}`.toLowerCase().includes(needle)
+      })
+      return { ...data, content }
     },
   })
 

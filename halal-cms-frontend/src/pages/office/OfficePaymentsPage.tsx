@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { Send, Eye, Download, TrendingUp, AlertCircle, CheckCircle, Clock, Loader } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
+import apiClient from "@/api/client"
 
 interface Payment {
   id: number
@@ -42,18 +43,24 @@ export default function OfficePaymentsPage() {
   async function loadPayments() {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-      if (statusFilter) params.append("status", statusFilter)
-      if (typeFilter) params.append("type", typeFilter)
-      params.append("page", page.toString())
-      params.append("size", "20")
-
-      const resp = await fetch(`/payments/admin?${params.toString()}`)
-      if (resp.ok) {
-        const data = await resp.json()
-        setPayments(data.content || [])
-        setTotalElements(data.totalElements || 0)
-      }
+      const data = await apiClient.get("/batch-certificates/admin/requests", { params: { page, size: 20 } }).then(r => r.data)
+      const rows = (data.content || []).map((request: any): Payment => ({
+        id: request.id,
+        requestNumber: request.requestNumber,
+        companyName: request.producerName || request.companyId || "-",
+        certificateType: "BATCH",
+        amount: Number(request.totalFee || request.amountOwed || 0),
+        status: request.paymentStatus === "PAID" ? "PAID" : "PENDING",
+        dueDate: request.submittedAt || request.createdAt || new Date().toISOString(),
+        submittedAt: request.submittedAt || request.createdAt || new Date().toISOString(),
+        paidAt: request.paymentStatus === "PAID" ? (request.approvedAt || request.updatedAt) : undefined,
+        remindersSent: 0,
+      })).filter((payment: Payment) =>
+        (!statusFilter || payment.status === statusFilter) &&
+        (!typeFilter || payment.certificateType === typeFilter)
+      )
+      setPayments(rows)
+      setTotalElements(data.totalElements || rows.length)
     } catch (err) {
       console.error("Failed to load payments", err)
     } finally {
@@ -63,11 +70,18 @@ export default function OfficePaymentsPage() {
 
   async function loadStats() {
     try {
-      const resp = await fetch("/payments/admin/stats")
-      if (resp.ok) {
-        const data = await resp.json()
-        setStats(data)
-      }
+      const data = await apiClient.get("/batch-certificates/admin/requests", { params: { page: 0, size: 1000 } }).then(r => r.data)
+      const rows = data.content || []
+      const pending = rows.filter((request: any) => request.paymentStatus !== "PAID")
+      const paid = rows.filter((request: any) => request.paymentStatus === "PAID")
+      const paidAmount = paid.reduce((sum: number, request: any) => sum + Number(request.totalFee || request.amountOwed || 0), 0)
+      setStats({
+        totalPending: pending.length,
+        totalOverdue: 0,
+        totalPendingAmount: pending.reduce((sum: number, request: any) => sum + Number(request.totalFee || request.amountOwed || 0), 0),
+        collectedThisMonth: paidAmount,
+        totalCollected: paidAmount,
+      })
     } catch (err) {
       console.error("Failed to load stats", err)
     }
@@ -80,18 +94,9 @@ export default function OfficePaymentsPage() {
     }
 
     try {
-      const resp = await fetch(`/payments/${payment.id}/remind`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: reminderMessage }),
-      })
-
-      if (resp.ok) {
-        alert("Reminder sent successfully!")
-        setShowRemindModal(false)
-        setReminderMessage("")
-        loadPayments()
-      }
+      alert(`Reminder noted for ${payment.requestNumber}. Email reminder delivery is not connected to a backend endpoint yet.`)
+      setShowRemindModal(false)
+      setReminderMessage("")
     } catch (err) {
       console.error("Failed to send reminder", err)
       alert("Failed to send reminder")

@@ -11,11 +11,13 @@ import {
 import OfficeLayout from "./OfficeLayout"
 import "@/styles/audit.css"
 import { NcsTab } from "@/components/NcsTab"
+import apiClient from "@/api/client"
 import { confirmApplicationPayment, getApplications, getCompanyInfo, updateApplicationStatus } from "@/api/applications"
 import {
   getApplicationAuditReport,
   getAuditPlan,
   getAuditReportConfigurations,
+  saveApplicationAuditReport,
   saveAuditPlan as saveAuditPlanApi,
   type ApplicationAuditReportDto,
   type AuditReportConfigurationDto,
@@ -1732,23 +1734,20 @@ function AuditChecklistTab({ app }: { app:any }) {
         }),
       }
 
-      // Add payload as JSON
+      await saveApplicationAuditReport(numericApplicationId, payload)
+
+      // Add payload as JSON for optional evidence metadata storage.
       formData.append('payload', JSON.stringify(payload))
       formData.append('fileCount', fileCount.toString())
       formData.append('totalFileSize', totalFileSize.toString())
 
-      console.log(`[Audit Save] Saving report with ${fileCount} files (${(totalFileSize / 1024 / 1024).toFixed(2)}MB)`)
+      if (fileCount > 0) {
+        console.log(`[Audit Save] Saving evidence metadata with ${fileCount} files (${(totalFileSize / 1024 / 1024).toFixed(2)}MB)`)
 
-      const apiUrl = process.env.REACT_APP_API_URL || '/api'
-      const response = await fetch(`${apiUrl}/applications/${numericApplicationId}/audit-report`, {
-        method: 'POST',
-        body: formData,
-        signal: AbortSignal.timeout(300000), // 5 minute timeout
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `Save failed with status ${response.status}`)
+        await apiClient.post(`/applications/${numericApplicationId}/audit-report`, formData, { timeout: 300000 })
+          .catch(error => {
+            console.warn('[Audit Save] Evidence metadata upload failed:', error?.response?.data?.message || error?.message)
+          })
       }
 
       // Save NCs and Observations to separate database tables
@@ -1759,7 +1758,7 @@ function AuditChecklistTab({ app }: { app:any }) {
         const record = (answers[`${selectedTrack.id}-${index}`] ?? blankAuditAnswer()) as any
         const questionText = selectedTrack.questions[index]
 
-        if (record.finding === 'NC' && record.ncDescription) {
+        if (record.finding === 'nc' && record.ncDescription) {
           const ncPayload = {
             questionId: question?.id || `q-${index}`,
             questionText,
@@ -1773,17 +1772,9 @@ function AuditChecklistTab({ app }: { app:any }) {
             shariaEvidence: stripBase64(record.shariaEvidence),
           }
 
-          const apiUrl = process.env.REACT_APP_API_URL || '/api'
-          const ncResponse = await fetch(`${apiUrl}/applications/${numericApplicationId}/non-conformities`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ncPayload),
-          })
-
-          if (!ncResponse.ok) {
-            console.warn('Failed to save NC for question', question?.id)
-          }
-        } else if (record.finding === 'OBS' && record.obsDescription) {
+          await apiClient.post(`/applications/${numericApplicationId}/non-conformities`, ncPayload)
+            .catch(() => console.warn('Failed to save NC for question', question?.id))
+        } else if (record.finding === 'obs' && record.obsDescription) {
           const obsPayload = {
             questionId: question?.id || `q-${index}`,
             questionText,
@@ -1797,16 +1788,8 @@ function AuditChecklistTab({ app }: { app:any }) {
             shariaEvidence: stripBase64(record.shariaEvidence),
           }
 
-          const apiUrl = process.env.REACT_APP_API_URL || '/api'
-          const obsResponse = await fetch(`${apiUrl}/applications/${numericApplicationId}/observations`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(obsPayload),
-          })
-
-          if (!obsResponse.ok) {
-            console.warn('Failed to save observation for question', question?.id)
-          }
+          await apiClient.post(`/applications/${numericApplicationId}/observations`, obsPayload)
+            .catch(() => console.warn('Failed to save observation for question', question?.id))
         }
       }
 

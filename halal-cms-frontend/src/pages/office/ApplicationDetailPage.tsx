@@ -8,7 +8,17 @@ import {
   Award, Plus, Trash2, Save, ChevronDown, ChevronUp, CheckSquare, Square, X, Search,
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { getApplication, getCompanyInfo, getServiceInfo, getApplicationDocuments, getPaymentStatus, getEventLogs, updateApplicationStatus } from '@/api/applications'
+import {
+  getApplication,
+  getApplicationWorkflowData,
+  getCompanyInfo,
+  getServiceInfo,
+  getApplicationDocuments,
+  getPaymentStatus,
+  getEventLogs,
+  saveApplicationWorkflowData,
+  updateApplicationStatus,
+} from '@/api/applications'
 import {
   getApplicationAuditReport,
   getAuditReportConfigurations,
@@ -729,15 +739,12 @@ export default function ApplicationDetailPage() {
     }
   }
 
-  function saveBillingChanges() {
+  async function saveBillingChanges() {
     if (!editedBilling) return
     try {
-      // Save to localStorage for now
-      localStorage.setItem(`hcs_billing_${id}`, JSON.stringify(editedBilling))
+      await saveWorkflowData('billing', editedBilling)
       setEditingBilling(false)
       toast.success('Billing information saved')
-      // Reload the page or trigger a refresh
-      window.location.reload()
     } catch (error) {
       console.error('Failed to save billing', error)
       toast.error('Failed to save billing information')
@@ -802,32 +809,36 @@ export default function ApplicationDetailPage() {
     })
   }
 
-  function handleCreateInvoice() {
+  async function handleCreateInvoice() {
     if (!billing || !app) return
     const inv = createInvoiceFromBilling({ ...billing, applicationId: String(id), applicationNumber: app.applicationNumber })
     saveInvoice(inv)
+    await saveWorkflowData('invoice', inv)
     setInvoice(inv)
     toast.success(`Invoice ${inv.invoiceNumber} created`)
   }
 
-  function handleIssueInvoice() {
+  async function handleIssueInvoice() {
     if (!invoice) return
     const updated: Invoice = { ...invoice, status: 'ISSUED', sentAt: new Date().toISOString() }
     saveInvoice(updated); setInvoice(updated)
+    await saveWorkflowData('invoice', updated)
     toast.success('Invoice issued and sent to customer')
   }
 
-  function handleMarkPaid(method: string, ref: string) {
+  async function handleMarkPaid(method: string, ref: string) {
     if (!invoice) return
     const updated: Invoice = { ...invoice, status: 'PAID', paymentMethod: method as Invoice['paymentMethod'], paymentReference: ref, paymentDate: new Date().toISOString() }
     saveInvoice(updated); setInvoice(updated)
+    await saveWorkflowData('invoice', updated)
     toast.success('Invoice marked as paid')
   }
 
-  function handleInvoiceStatus(s: InvoiceStatus) {
+  async function handleInvoiceStatus(s: InvoiceStatus) {
     if (!invoice) return
     const updated: Invoice = { ...invoice, status: s }
     saveInvoice(updated); setInvoice(updated)
+    await saveWorkflowData('invoice', updated)
   }
 
   const [showPaidForm, setShowPaidForm] = useState(false)
@@ -846,6 +857,36 @@ export default function ApplicationDetailPage() {
   const ncsQ     = useQuery({ queryKey: ['app', id, 'ncs'], queryFn: () => getNonConformities(id), enabled: !!id && tab === 'nonconformity' })
   const paymentQ = useQuery({ queryKey: ['app', id, 'payment'], queryFn: () => getPaymentStatus(id), enabled: !!id && tab === 'payment' })
   const eventsQ  = useQuery({ queryKey: ['app', id, 'events', eventPage], queryFn: () => getEventLogs(id, { page: eventPage, size: 20 }), enabled: !!id && tab === 'activity' })
+
+  const saveWorkflowData = async <T,>(key: string, value: T) => {
+    await saveApplicationWorkflowData(id, key, value)
+    lsSave(`hcs_${key}_${id}`, value)
+  }
+
+  useEffect(() => {
+    if (!id) return
+    let alive = true
+    ;(async () => {
+      const entries = await Promise.allSettled([
+        getApplicationWorkflowData<LocalApplicationReview>(id, 'app_review'),
+        getApplicationWorkflowData<LocalTechnicalReview>(id, 'tech_review'),
+        getApplicationWorkflowData<LocalHalalReview>(id, 'halal_review'),
+        getApplicationWorkflowData<LocalCertDecision>(id, 'cert_decision'),
+        getApplicationWorkflowData<LocalNonConformity[]>(id, 'ncs'),
+        getApplicationWorkflowData<Invoice>(id, 'invoice'),
+        getApplicationWorkflowData<any>(id, 'billing'),
+      ])
+      if (!alive) return
+      if (entries[0].status === 'fulfilled') setAppReview(entries[0].value)
+      if (entries[1].status === 'fulfilled') setTechReview(entries[1].value)
+      if (entries[2].status === 'fulfilled') setHalalReview(entries[2].value)
+      if (entries[3].status === 'fulfilled') setCertDecision(entries[3].value)
+      if (entries[4].status === 'fulfilled') setLocalNCs(entries[4].value)
+      if (entries[5].status === 'fulfilled') setInvoice(entries[5].value)
+      if (entries[6].status === 'fulfilled') setEditedBilling(entries[6].value)
+    })()
+    return () => { alive = false }
+  }, [id])
 
   useEffect(() => {
     const plan = auditPlanQ.data
@@ -905,7 +946,7 @@ export default function ApplicationDetailPage() {
     if (mappedTrack) setAuditPlan(plan => ({ ...plan, auditTrack: mappedTrack.id }))
   }
 
-  const saveAppReview  = () => { lsSave(`hcs_app_review_${id}`, appReview);    toast.success('Application review saved') }
+  const saveAppReview  = async () => { await saveWorkflowData('app_review', appReview); toast.success('Application review saved to database') }
   const saveAuditPlan  = async () => {
     const applicationId = Number(id)
     if (!Number.isFinite(applicationId)) {
@@ -931,9 +972,9 @@ export default function ApplicationDetailPage() {
       toast.error('Could not save audit plan to database')
     }
   }
-  const saveTechReview = () => { lsSave(`hcs_tech_review_${id}`, techReview);  toast.success('Technical review saved') }
-  const saveHalalReview= () => { lsSave(`hcs_halal_review_${id}`, halalReview);toast.success('Halal review saved') }
-  const saveCertDecision = () => { lsSave(`hcs_cert_decision_${id}`, certDecision); toast.success('Decision recorded') }
+  const saveTechReview = async () => { await saveWorkflowData('tech_review', techReview); toast.success('Technical review saved to database') }
+  const saveHalalReview= async () => { await saveWorkflowData('halal_review', halalReview); toast.success('Halal review saved to database') }
+  const saveCertDecision = async () => { await saveWorkflowData('cert_decision', certDecision); toast.success('Decision recorded in database') }
   const updateAuditReportAnswer = (questionKey: string, patch: Partial<AuditQuestionAnswer>) => {
     setAuditReportAnswers(prev => ({
       ...prev,
@@ -978,21 +1019,21 @@ export default function ApplicationDetailPage() {
     if (!newNC.description.trim()) { toast.error('Description required'); return }
     const nc: LocalNonConformity = { ...newNC, id: uid(), raisedAt: new Date().toISOString(), status: 'OPEN' }
     const updated = [...localNCs, nc]
-    setLocalNCs(updated); lsSave(`hcs_ncs_${id}`, updated)
+    setLocalNCs(updated); saveWorkflowData('ncs', updated)
     setNewNC({ ...DEF_NC }); setShowNCForm(false)
     toast.success('Nonconformity recorded')
   }
 
   const removeNC = (ncId: string) => {
     const updated = localNCs.filter(n => n.id !== ncId)
-    setLocalNCs(updated); lsSave(`hcs_ncs_${id}`, updated)
+    setLocalNCs(updated); saveWorkflowData('ncs', updated)
   }
 
   const submitCA = (ncId: string) => {
     const ca = caForms[ncId] ?? { ...DEF_CA }
     if (!ca.rootCause.trim()) { toast.error('Root cause required'); return }
     const updated = localNCs.map(n => n.id === ncId ? { ...n, ca, status: 'RESPONSE_SUBMITTED' as const } : n)
-    setLocalNCs(updated); lsSave(`hcs_ncs_${id}`, updated)
+    setLocalNCs(updated); saveWorkflowData('ncs', updated)
     toast.success('Corrective action submitted')
   }
 
@@ -1000,7 +1041,7 @@ export default function ApplicationDetailPage() {
     const updated = localNCs.map(n => n.id === ncId
       ? { ...n, status: 'CLOSED' as const, ca: n.ca ? { ...n.ca, reviewStatus: 'ACCEPTED' as const } : n.ca }
       : n)
-    setLocalNCs(updated); lsSave(`hcs_ncs_${id}`, updated)
+    setLocalNCs(updated); saveWorkflowData('ncs', updated)
     toast.success('Corrective action accepted — NC closed')
   }
 
@@ -1047,7 +1088,7 @@ export default function ApplicationDetailPage() {
     allCerts.push(cert)
     lsSave('hcs_gen_certs', allCerts)
     const updated = { ...certDecision, certificateGenerated: true, certificateKey: key, decisionRef: certDecision.decisionRef || certNum }
-    setCertDecision(updated); lsSave(`hcs_cert_decision_${id}`, updated)
+    setCertDecision(updated); saveWorkflowData('cert_decision', updated)
     toast.success(`Certificate ${certNum} generated!`)
   }
 

@@ -3,7 +3,7 @@ import type {
   ApplicationResponseDTO, ApplicationsPageableDTO,
   ApplicationSmallResponseDTO, CompanyInformationDTO,
   ServiceInformationDTO, UserDocumentsDto, ApplicationPaymentStatusDto,
-  ApplicationStatus, AuditEventLogsResponseDto,
+  ApplicationStatus, AuditEventLogsResponseDto, UserDocumentDto,
 } from '@/types'
 
 export const getApplications = (p?: { statuses?: string; search?: string; page?: number; size?: number }) =>
@@ -46,6 +46,18 @@ export const getServiceInfo = (id: number) =>
 
 export const getApplicationDocuments = (id: number) =>
   apiClient.get<UserDocumentsDto>(`/applications/${id}/documents`).then(r => r.data)
+
+export const saveApplicationDocument = (id: number, document: Omit<UserDocumentDto, 'id' | 'uploadedAt'>) =>
+  apiClient.post<UserDocumentDto>(`/applications/${id}/documents`, document).then(r => r.data)
+
+export const deleteApplicationDocument = (id: number, documentId: number) =>
+  apiClient.delete(`/applications/${id}/documents/${documentId}`).then(r => r.data)
+
+export const getApplicationWorkflowData = <T>(id: number, key: string) =>
+  apiClient.get<T>(`/applications/${id}/workflow-data/${encodeURIComponent(key)}`).then(r => r.data)
+
+export const saveApplicationWorkflowData = <T>(id: number, key: string, value: T) =>
+  apiClient.put<T>(`/applications/${id}/workflow-data/${encodeURIComponent(key)}`, value).then(r => r.data)
 
 export const getPaymentStatus = (id: number) =>
   apiClient.get<ApplicationPaymentStatusDto>(`/applications/${id}/payment-status`).then(r => r.data)

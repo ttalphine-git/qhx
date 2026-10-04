@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { Eye, Download, AlertCircle, CheckCircle, Clock, Loader, CreditCard } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
+import apiClient from "@/api/client"
 
 interface Payment {
   id: number
@@ -35,17 +36,20 @@ export default function CustomerPaymentsPage() {
   async function loadPayments() {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-      if (statusFilter) params.append("status", statusFilter)
-      params.append("page", page.toString())
-      params.append("size", "20")
-
-      const resp = await fetch(`/payments/my-payments?${params.toString()}`)
-      if (resp.ok) {
-        const data = await resp.json()
-        setPayments(data.content || [])
-        setTotalElements(data.totalElements || 0)
-      }
+      const data = await apiClient.get("/batch-certificates/requests", { params: { page, size: 20 } }).then(r => r.data)
+      const rows = (data.content || []).map((request: any): Payment => ({
+        id: request.id,
+        requestNumber: request.requestNumber,
+        certificateType: "BATCH",
+        amount: Number(request.totalFee || request.amountOwed || 0),
+        status: request.paymentStatus === "PAID" ? "PAID" : "PENDING",
+        dueDate: request.submittedAt || request.createdAt || new Date().toISOString(),
+        submittedAt: request.submittedAt || request.createdAt || new Date().toISOString(),
+        paidAt: request.paymentStatus === "PAID" ? (request.approvedAt || request.updatedAt) : undefined,
+        invoiceUrl: request.pdfUrl,
+      })).filter((payment: Payment) => !statusFilter || payment.status === statusFilter)
+      setPayments(rows)
+      setTotalElements(data.totalElements || rows.length)
     } catch (err) {
       console.error("Failed to load payments", err)
     } finally {
@@ -55,11 +59,16 @@ export default function CustomerPaymentsPage() {
 
   async function loadStats() {
     try {
-      const resp = await fetch("/payments/my-payments/stats")
-      if (resp.ok) {
-        const data = await resp.json()
-        setStats(data)
-      }
+      const data = await apiClient.get("/batch-certificates/requests", { params: { page: 0, size: 1000 } }).then(r => r.data)
+      const rows = data.content || []
+      const pending = rows.filter((request: any) => request.paymentStatus !== "PAID")
+      const paid = rows.filter((request: any) => request.paymentStatus === "PAID")
+      setStats({
+        totalPayments: rows.length,
+        pendingPayments: pending.length,
+        totalPendingAmount: pending.reduce((sum: number, request: any) => sum + Number(request.totalFee || request.amountOwed || 0), 0),
+        paidAmount: paid.reduce((sum: number, request: any) => sum + Number(request.totalFee || request.amountOwed || 0), 0),
+      })
     } catch (err) {
       console.error("Failed to load stats", err)
     }

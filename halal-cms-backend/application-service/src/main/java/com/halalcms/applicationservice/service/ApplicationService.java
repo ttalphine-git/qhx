@@ -262,6 +262,30 @@ public class ApplicationService {
         applicationRepository.delete(application);
     }
 
+    public Object getWorkflowData(Long id, String key) {
+        Application application = findOrThrow(id);
+        Map<String, Object> payload = readPayloadJson(application.getPayloadJson());
+        Object workflowData = payload.get("workflowData");
+        if (workflowData instanceof Map<?, ?> map) {
+            return map.get(key);
+        }
+        return null;
+    }
+
+    public Object saveWorkflowData(Long id, String key, Object value) {
+        Application application = findOrThrow(id);
+        Map<String, Object> payload = readPayloadJson(application.getPayloadJson());
+        Object existing = payload.get("workflowData");
+        Map<String, Object> workflowData = existing instanceof Map<?, ?> map
+                ? new java.util.LinkedHashMap<>((Map<String, Object>) map)
+                : new java.util.LinkedHashMap<>();
+        workflowData.put(key, value);
+        payload.put("workflowData", workflowData);
+        application.setPayloadJson(toPayloadJson(payload));
+        applicationRepository.save(application);
+        return value;
+    }
+
     @Transactional(readOnly = true)
     public List<ApplicationSmallResponseDTO> listSmall() {
         return applicationRepository.findAll().stream()

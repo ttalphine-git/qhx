@@ -31,4 +31,29 @@ public class DocumentService {
                 .build()).toList();
         return UserDocumentsDto.builder().documents(dtos).build();
     }
+
+    @Transactional
+    public UserDocumentDto saveDocument(Long applicationId, UserDocumentDto request) {
+        ApplicationDocument doc = ApplicationDocument.builder()
+                .applicationId(applicationId)
+                .filename(request.getFilename())
+                .description(request.getDescription())
+                .url(request.getUrl())
+                .build();
+        ApplicationDocument saved = documentRepository.save(doc);
+        return UserDocumentDto.builder()
+                .id(saved.getId())
+                .filename(saved.getFilename())
+                .description(saved.getDescription())
+                .uploadedAt(saved.getUploadedAt() != null ? saved.getUploadedAt().format(FORMATTER) : null)
+                .url(saved.getUrl())
+                .build();
+    }
+
+    @Transactional
+    public void deleteDocument(Long applicationId, Long documentId) {
+        documentRepository.findById(documentId)
+                .filter(doc -> applicationId.equals(doc.getApplicationId()))
+                .ifPresent(documentRepository::delete);
+    }
 }

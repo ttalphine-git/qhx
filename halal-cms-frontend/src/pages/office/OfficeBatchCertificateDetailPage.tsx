@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Loader, AlertCircle, CheckCircle, XCircle } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
+import apiClient from "@/api/client"
 
 interface BatchRequestDetail {
   id: number
@@ -60,13 +61,8 @@ export default function OfficeBatchCertificateDetailPage() {
   async function loadRequest() {
     try {
       setLoading(true)
-      const resp = await fetch(`/api/batch-certificates/requests/${id}`)
-      if (resp.ok) {
-        const data = await resp.json()
-        setRequest(data)
-      } else {
-        setError("Failed to load batch certificate request")
-      }
+      const data = await apiClient.get(`/batch-certificates/requests/${id}`).then(r => r.data)
+      setRequest(data)
     } catch (err) {
       console.error("Failed to load request", err)
       setError("An error occurred while loading the request")
@@ -80,21 +76,10 @@ export default function OfficeBatchCertificateDetailPage() {
 
     try {
       setApproving(true)
-      const resp = await fetch(`/api/batch-certificates/admin/requests/${id}/approve`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes: approvalNotes }),
-      })
-
-      if (resp.ok) {
-        const updatedRequest = await resp.json()
-        setRequest(updatedRequest)
-        setShowApprovalConfirm(false)
-        setApprovalNotes("")
-      } else {
-        const errorData = await resp.json()
-        setError(errorData.message || "Failed to approve request")
-      }
+      const updatedRequest = await apiClient.patch(`/batch-certificates/admin/requests/${id}/approve`, { notes: approvalNotes }).then(r => r.data)
+      setRequest(updatedRequest)
+      setShowApprovalConfirm(false)
+      setApprovalNotes("")
     } catch (err) {
       console.error("Failed to approve request", err)
       setError("An error occurred while approving")
@@ -111,21 +96,10 @@ export default function OfficeBatchCertificateDetailPage() {
 
     try {
       setRejecting(true)
-      const resp = await fetch(`/api/batch-certificates/admin/requests/${id}/reject`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: rejectionReason }),
-      })
-
-      if (resp.ok) {
-        const updatedRequest = await resp.json()
-        setRequest(updatedRequest)
-        setShowRejectionConfirm(false)
-        setRejectionReason("")
-      } else {
-        const errorData = await resp.json()
-        setError(errorData.message || "Failed to reject request")
-      }
+      const updatedRequest = await apiClient.patch(`/batch-certificates/admin/requests/${id}/reject`, { reason: rejectionReason }).then(r => r.data)
+      setRequest(updatedRequest)
+      setShowRejectionConfirm(false)
+      setRejectionReason("")
     } catch (err) {
       console.error("Failed to reject request", err)
       setError("An error occurred while rejecting")

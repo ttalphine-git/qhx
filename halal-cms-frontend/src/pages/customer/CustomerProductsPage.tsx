@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react"
 import { Trash2, Plus, X, ChevronRight, ArrowLeft } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
+import { getMyCompany } from "@/api/companies"
+import { getFactories } from "@/api/factories"
+import { createProduct, deleteProduct as deleteProductApi, getProducts } from "@/api/products"
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
 const BLUE  = "#2563eb"
@@ -140,6 +143,19 @@ function loadProducts(): StoredProduct[] {
     return JSON.parse(localStorage.getItem("hcs_products") || "[]")
   } catch {
     return []
+  }
+}
+
+function dbProductToStored(product: any): StoredProduct {
+  return {
+    id: product.id,
+    catalogKey: product.category || "database",
+    emoji: "PKG",
+    name: product.name,
+    code: product.sku || "",
+    factoryId: product.factoryId || "",
+    ingredients: (product.ingredients || []).map((name: string) => ({ id: uid(), name, status: "to-verify" as const })),
+    addedAt: product.createdAt || new Date().toISOString(),
   }
 }
 
@@ -312,6 +328,7 @@ function ProductCard({ product, factories, onDelete }: ProductCardProps) {
 export default function CustomerProductsPage() {
   const [factories, setFactories] = useState<AppFactory[]>([])
   const [products,  setProducts]  = useState<StoredProduct[]>([])
+  const [companyId, setCompanyId] = useState("")
   const [selectedFactory, setSelectedFactory] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
 
@@ -328,16 +345,34 @@ export default function CustomerProductsPage() {
   const [formFactoryId,   setFormFactoryId]   = useState("")
   const [formIngredients, setFormIngredients] = useState<IngredientRow[]>([])
 
-  // Load from localStorage on mount
   useEffect(() => {
-    setFactories(loadFactories())
-    setProducts(loadProducts())
+    let alive = true
+    ;(async () => {
+      try {
+        const company = await getMyCompany()
+        if (!alive) return
+        setCompanyId(company.id)
+        const [factoryPage, productPage] = await Promise.all([
+          getFactories(company.id, 0, 1000),
+          getProducts(company.id, 0, 1000),
+        ])
+        if (!alive) return
+        setFactories(factoryPage.content.map(factory => ({
+          id: factory.id,
+          name: factory.name,
+          country: factory.country || "",
+          city: factory.city || "",
+          lat: "",
+          lng: "",
+        })))
+        setProducts(productPage.content.map(dbProductToStored))
+      } catch {
+        setFactories(loadFactories())
+        setProducts(loadProducts())
+      }
+    })()
+    return () => { alive = false }
   }, [])
-
-  // Persist products whenever they change
-  useEffect(() => {
-    localStorage.setItem("hcs_products", JSON.stringify(products))
-  }, [products])
 
   // ── Derived data ────────────────────────────────────────────────────────────
   const filteredProducts = selectedFactory
@@ -407,9 +442,22 @@ export default function CustomerProductsPage() {
     setFormIngredients(prev => prev.map(i => i.id === id ? { ...i, status } : i))
   }
 
-  function saveProduct() {
+  async function saveProduct() {
     if (!formName.trim()) return
     const catalog = isCustom ? null : selectedCatalog
+    const ingredients = formIngredients.filter(i => i.name.trim())
+    if (companyId) {
+      const saved = await createProduct(companyId, {
+        name: formName.trim(),
+        sku: formCode.trim() || undefined,
+        category: catalog?.cat || "Custom",
+        factoryId: formFactoryId || undefined,
+        ingredients: ingredients.map(ingredient => ingredient.name.trim()),
+      })
+      setProducts(prev => [{ ...dbProductToStored(saved), emoji: catalog?.emoji ?? "PKG", catalogKey: catalog?.key ?? saved.category }, ...prev])
+      closeModal()
+      return
+    }
     const newProduct: StoredProduct = {
       id:         uid(),
       catalogKey: catalog?.key ?? "custom-" + uid(),
@@ -417,14 +465,15 @@ export default function CustomerProductsPage() {
       name:       formName.trim(),
       code:       formCode.trim(),
       factoryId:  formFactoryId,
-      ingredients: formIngredients.filter(i => i.name.trim()),
+      ingredients,
       addedAt:    new Date().toISOString(),
     }
     setProducts(prev => [newProduct, ...prev])
     closeModal()
   }
 
-  function deleteProduct(id: string) {
+  async function deleteProduct(id: string) {
+    if (companyId) await deleteProductApi(companyId, id)
     setProducts(prev => prev.filter(p => p.id !== id))
   }
 

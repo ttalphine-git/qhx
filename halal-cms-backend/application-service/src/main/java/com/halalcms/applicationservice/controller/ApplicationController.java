@@ -105,6 +105,22 @@ public class ApplicationController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{id}/workflow-data/{key}")
+    public ResponseEntity<Object> getWorkflowData(
+            @PathVariable Long id,
+            @PathVariable String key) {
+        Object data = applicationService.getWorkflowData(id, key);
+        return data != null ? ResponseEntity.ok(data) : ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{id}/workflow-data/{key}")
+    public ResponseEntity<Object> saveWorkflowData(
+            @PathVariable Long id,
+            @PathVariable String key,
+            @RequestBody Object value) {
+        return ResponseEntity.ok(applicationService.saveWorkflowData(id, key, value));
+    }
+
     @GetMapping("/{id}/personal")
     public ResponseEntity<CompanyInformationDTO> getPersonalInfo(@PathVariable Long id) {
         Application application = applicationRepository.findById(id)
@@ -178,6 +194,21 @@ public class ApplicationController {
     @GetMapping("/{id}/documents")
     public ResponseEntity<UserDocumentsDto> getDocuments(@PathVariable Long id) {
         return ResponseEntity.ok(documentService.getDocuments(id));
+    }
+
+    @PostMapping("/{id}/documents")
+    public ResponseEntity<UserDocumentDto> saveDocument(
+            @PathVariable Long id,
+            @RequestBody UserDocumentDto document) {
+        return ResponseEntity.ok(documentService.saveDocument(id, document));
+    }
+
+    @DeleteMapping("/{id}/documents/{documentId}")
+    public ResponseEntity<Void> deleteDocument(
+            @PathVariable Long id,
+            @PathVariable Long documentId) {
+        documentService.deleteDocument(id, documentId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/payment-status")

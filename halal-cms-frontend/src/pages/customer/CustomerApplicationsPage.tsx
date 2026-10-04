@@ -15,7 +15,14 @@ import {
   Tags, List, AlignLeft, Shield,
 } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
-import { getApplications, getCompanyInfo, signApplicationAgreement } from "@/api/applications"
+import {
+  deleteApplicationDocument,
+  getApplicationDocuments,
+  getApplications,
+  getCompanyInfo,
+  saveApplicationDocument,
+  signApplicationAgreement,
+} from "@/api/applications"
 import {
   getApplicationAuditReport,
   getAuditPlan,
@@ -781,6 +788,26 @@ function CustomerDocumentsTab({ app }: { app:any }) {
   const guideComments = Array.isArray(guideStored)
     ? guideStored
     : guideStored ? [{ id:"legacy", text:guideStored, by:"HCB", at:"" }] : []
+  useEffect(() => {
+    const applicationId = Number(app.id)
+    if (!Number.isFinite(applicationId)) return
+    let alive = true
+    getApplicationDocuments(applicationId)
+      .then(data => {
+        if (!alive) return
+        setDocuments((data.documents || []).map(doc => ({
+          id: String(doc.id),
+          fileName: doc.filename,
+          type: doc.description || "Extra required documents",
+          uploadedOn: doc.uploadedAt,
+          base64: doc.url || "",
+          mimeType: "application/octet-stream",
+        })))
+      })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [app.id])
+
   function saveDocuments(next: CustomerDocumentUpload[]) {
     setDocuments(next)
     localStorage.setItem(storageKey, JSON.stringify(next))
@@ -790,7 +817,8 @@ function CustomerDocumentsTab({ app }: { app:any }) {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = () => {
+    reader.onload = async () => {
+      const applicationId = Number(app.id)
       const item: CustomerDocumentUpload = {
         id: `doc_${Date.now()}_${Math.random().toString(36).slice(2)}`,
         fileName: file.name,
@@ -798,6 +826,17 @@ function CustomerDocumentsTab({ app }: { app:any }) {
         uploadedOn: new Date().toISOString(),
         base64: reader.result as string,
         mimeType: file.type || "application/octet-stream",
+      }
+      if (Number.isFinite(applicationId)) {
+        try {
+          const saved = await saveApplicationDocument(applicationId, {
+            filename: item.fileName,
+            description: type,
+            url: item.base64,
+          })
+          item.id = String(saved.id)
+          item.uploadedOn = saved.uploadedAt
+        } catch {}
       }
       const next = type === "Extra required documents"
         ? [item, ...documents]
@@ -812,7 +851,12 @@ function CustomerDocumentsTab({ app }: { app:any }) {
     reader.readAsDataURL(file)
   }
 
-  function removeDocument(id: string) {
+  async function removeDocument(id: string) {
+    const applicationId = Number(app.id)
+    const documentId = Number(id)
+    if (Number.isFinite(applicationId) && Number.isFinite(documentId)) {
+      try { await deleteApplicationDocument(applicationId, documentId) } catch {}
+    }
     saveDocuments(documents.filter(d => d.id !== id))
   }
 

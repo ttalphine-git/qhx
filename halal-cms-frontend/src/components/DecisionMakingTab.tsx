@@ -2,10 +2,9 @@ import React, { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { CheckCircle2, XCircle, Clock, Send, AlertCircle, Loader } from "lucide-react"
 import toast from "react-hot-toast"
+import apiClient from "@/api/client"
 
 const F = "'Inter', system-ui, sans-serif"
-const API_BASE = "/api"
-
 interface DecisionRequestData {
   id: number
   auditId: number
@@ -51,12 +50,7 @@ export const DecisionMakingTab: React.FC<DecisionMakingTabProps> = ({
   const { data: myRequests = [], isLoading: myRequestsLoading } = useQuery({
     queryKey: ["my-decisions"],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/decisions/my-requests`, {
-        headers: { "Accept": "application/json" },
-        credentials: "include",
-      })
-      if (!res.ok) throw new Error("Failed to fetch decisions")
-      return res.json()
+      return apiClient.get("/decisions/my-requests").then(r => r.data)
     },
   })
 
@@ -65,12 +59,7 @@ export const DecisionMakingTab: React.FC<DecisionMakingTabProps> = ({
     queryKey: ["audit-decisions", auditId],
     queryFn: async () => {
       if (!auditId) return []
-      const res = await fetch(`${API_BASE}/decisions/audit/${auditId}`, {
-        headers: { "Accept": "application/json" },
-        credentials: "include",
-      })
-      if (!res.ok) throw new Error("Failed to fetch audit decisions")
-      return res.json()
+      return apiClient.get(`/decisions/audit/${auditId}`).then(r => r.data)
     },
     enabled: !!auditId && userRole === "admin",
   })
@@ -78,14 +67,7 @@ export const DecisionMakingTab: React.FC<DecisionMakingTabProps> = ({
   // Submit decision mutation
   const submitDecisionMutation = useMutation({
     mutationFn: async ({ requestId, decision, reasoning, conditions }: { requestId: number; decision: string; reasoning: string; conditions?: string }) => {
-      const res = await fetch(`${API_BASE}/decisions/${requestId}/decide`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ decision, reasoning, conditions }),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      return res.json()
+      return apiClient.post(`/decisions/${requestId}/decide`, { decision, reasoning, conditions }).then(r => r.data)
     },
     onSuccess: () => {
       toast.success("Decision submitted!")

@@ -2,10 +2,9 @@ import React, { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { FileText, CheckCircle, Send, AlertCircle, Loader } from "lucide-react"
 import toast from "react-hot-toast"
+import apiClient from "@/api/client"
 
 const F = "'Inter', system-ui, sans-serif"
-const API_BASE = "/api"
-
 interface Product {
   id: number
   name: string
@@ -50,12 +49,7 @@ export const AuditSummaryTab: React.FC<AuditSummaryTabProps> = ({
     queryKey: ["ncs-cleared", auditId],
     queryFn: async () => {
       if (!auditId) return { allNCsCleared: false }
-      const res = await fetch(`${API_BASE}/audit-summary/${auditId}/check-ncs`, {
-        headers: { "Accept": "application/json" },
-        credentials: "include",
-      })
-      if (!res.ok) throw new Error("Failed to check NCs")
-      return res.json()
+      return apiClient.get(`/audit-summary/${auditId}/check-ncs`).then(r => r.data)
     },
     enabled: !!auditId,
   })
@@ -66,12 +60,7 @@ export const AuditSummaryTab: React.FC<AuditSummaryTabProps> = ({
     queryFn: async () => {
       if (!auditId) return null
       try {
-        const res = await fetch(`${API_BASE}/audit-summary/${auditId}`, {
-          headers: { "Accept": "application/json" },
-          credentials: "include",
-        })
-        if (!res.ok) return null
-        return res.json() as Promise<AuditReportSummary>
+        return apiClient.get<AuditReportSummary>(`/audit-summary/${auditId}`).then(r => r.data)
       } catch {
         return null
       }
@@ -101,17 +90,10 @@ export const AuditSummaryTab: React.FC<AuditSummaryTabProps> = ({
       if (!summaryData.mainAuditorSummary || !summaryData.shariaSummary) {
         throw new Error("Please fill in both summaries")
       }
-      const res = await fetch(`${API_BASE}/audit-summary/${auditId}/draft`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+      return apiClient.post(`/audit-summary/${auditId}/draft`, {
           mainAuditorSummary: summaryData.mainAuditorSummary,
           shariaSummary: summaryData.shariaSummary,
-        }),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      return res.json()
+      }).then(r => r.data)
     },
     onSuccess: () => {
       toast.success("Draft saved!")
@@ -137,19 +119,12 @@ export const AuditSummaryTab: React.FC<AuditSummaryTabProps> = ({
         throw new Error("Please mark at least one product")
       }
 
-      const res = await fetch(`${API_BASE}/audit-summary/${auditId}/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+      return apiClient.post(`/audit-summary/${auditId}/submit`, {
           mainAuditorSummary: summaryData.mainAuditorSummary,
           shariaSummary: summaryData.shariaSummary,
           compliedProducts: JSON.stringify(compliedIds),
           nonCompliedProducts: JSON.stringify(nonCompliedIds),
-        }),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      return res.json()
+      }).then(r => r.data)
     },
     onSuccess: () => {
       toast.success("Audit summary submitted!")

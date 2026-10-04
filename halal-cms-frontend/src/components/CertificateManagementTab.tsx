@@ -2,10 +2,9 @@ import React, { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Download, Send, CheckCircle2, AlertCircle, Eye, Clock, FileText } from "lucide-react"
 import toast from "react-hot-toast"
+import apiClient from "@/api/client"
 
 const F = "'Inter', system-ui, sans-serif"
-const API_BASE = "/api"
-
 interface Certificate {
   id: number
   auditId: number
@@ -42,14 +41,7 @@ export const CertificateManagementTab: React.FC<CertificateManagementTabProps> =
   const generateMutation = useMutation({
     mutationFn: async () => {
       if (!auditId || !applicationId) throw new Error("Missing audit or application ID")
-      const res = await fetch(`${API_BASE}/certificates/generate/${auditId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ applicationId }),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      return res.json()
+      return apiClient.post(`/certificates/generate/${auditId}`, { applicationId }).then(r => r.data)
     },
     onSuccess: () => {
       toast.success("Certificate generated!")
@@ -66,14 +58,7 @@ export const CertificateManagementTab: React.FC<CertificateManagementTabProps> =
       if (!certificate?.id) throw new Error("Certificate ID required")
       if (!approvalNotes) throw new Error("Please provide approval notes")
 
-      const res = await fetch(`${API_BASE}/certificates/${certificate.id}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ approvalNotes }),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      return res.json()
+      return apiClient.post(`/certificates/${certificate.id}/approve`, { approvalNotes }).then(r => r.data)
     },
     onSuccess: () => {
       setCertificate((prev) => prev ? { ...prev, status: "APPROVED" } : null)
@@ -90,14 +75,7 @@ export const CertificateManagementTab: React.FC<CertificateManagementTabProps> =
   const sendMutation = useMutation({
     mutationFn: async () => {
       if (!certificate?.id) throw new Error("Certificate ID required")
-      const res = await fetch(`${API_BASE}/certificates/${certificate.id}/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ customerEmail: "customer@example.com", applicationId }),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      return res.json()
+      return apiClient.post(`/certificates/${certificate.id}/send`, { customerEmail: "customer@example.com", applicationId }).then(r => r.data)
     },
     onSuccess: () => {
       setCertificate((prev) => prev ? { ...prev, status: "SENT", sentToCustomerAt: new Date().toISOString() } : null)

@@ -28,7 +28,7 @@ public class ApplicationDocument {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String url;
 
     @CreationTimestamp

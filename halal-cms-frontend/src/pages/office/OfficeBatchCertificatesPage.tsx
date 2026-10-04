@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Eye, CheckCircle, XCircle, Clock, AlertCircle, Download, Loader, ArrowLeft } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
+import apiClient from "@/api/client"
 
 interface BatchRequest {
   id: number
@@ -52,12 +53,10 @@ export default function OfficeBatchCertificatesPage() {
       params.append("page", page.toString())
       params.append("size", "20")
 
-      const resp = await fetch(`/api/batch-certificates/admin/requests?${params.toString()}`)
-      if (resp.ok) {
-        const data = await resp.json()
-        setRequests(data.content || [])
-        setTotalElements(data.totalElements || 0)
-      }
+      const data = await apiClient.get("/batch-certificates/admin/requests", { params: Object.fromEntries(params) }).then(r => r.data)
+      const rows = (data.content || []).filter((request: BatchRequest) => !paymentStatus || request.paymentStatus === paymentStatus)
+      setRequests(rows)
+      setTotalElements(data.totalElements || rows.length)
     } catch (err) {
       console.error("Failed to load requests", err)
     } finally {
@@ -67,26 +66,23 @@ export default function OfficeBatchCertificatesPage() {
 
   async function loadStats() {
     try {
-      const resp = await fetch("/api/batch-certificates/admin/requests?page=0&size=1000")
-      if (resp.ok) {
-        const data = await resp.json()
-        const allRequests = data.content || []
+      const data = await apiClient.get("/batch-certificates/admin/requests", { params: { page: 0, size: 1000 } }).then(r => r.data)
+      const allRequests = data.content || []
 
-        const pendingPayments = allRequests.filter((r: any) => r.paymentStatus === "PENDING")
-        const totalPendingAmount = pendingPayments.reduce((sum: number, r: any) => sum + (r.totalFee || 0), 0)
-        const paidRequests = allRequests.filter((r: any) => r.paymentStatus === "PAID")
+      const pendingPayments = allRequests.filter((r: any) => r.paymentStatus === "PENDING")
+      const totalPendingAmount = pendingPayments.reduce((sum: number, r: any) => sum + (r.totalFee || 0), 0)
+      const paidRequests = allRequests.filter((r: any) => r.paymentStatus === "PAID")
 
-        setStats({
-          pendingApproval: allRequests.filter((r: any) => r.status === "PENDING").length,
-          approvedThisMonth: allRequests.filter((r: any) => r.status === "APPROVED").length,
-          totalFeesThisMonth: allRequests
-            .filter((r: any) => r.status === "APPROVED")
-            .reduce((sum: number, r: any) => sum + (r.totalFee || 0), 0),
-          pendingPayments: pendingPayments.length,
-          totalPendingAmount: totalPendingAmount,
-          paidThisMonth: paidRequests.length,
-        })
-      }
+      setStats({
+        pendingApproval: allRequests.filter((r: any) => r.status === "PENDING").length,
+        approvedThisMonth: allRequests.filter((r: any) => r.status === "APPROVED").length,
+        totalFeesThisMonth: allRequests
+          .filter((r: any) => r.status === "APPROVED")
+          .reduce((sum: number, r: any) => sum + (r.totalFee || 0), 0),
+        pendingPayments: pendingPayments.length,
+        totalPendingAmount: totalPendingAmount,
+        paidThisMonth: paidRequests.length,
+      })
     } catch (err) {
       console.error("Failed to load stats", err)
     }

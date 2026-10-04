@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { Eye, CheckCircle, XCircle, Clock, AlertCircle, Download, Loader } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
 import { useAuthStore } from "@/store/authStore"
+import apiClient from "@/api/client"
 
 interface BatchRequest {
   id: number
@@ -47,12 +48,10 @@ export default function CustomerBatchCertificatesPaymentPage() {
       params.append("page", page.toString())
       params.append("size", "20")
 
-      const resp = await fetch(`/api/batch-certificates/my-requests?${params.toString()}`)
-      if (resp.ok) {
-        const data = await resp.json()
-        setRequests(data.content || [])
-        setTotalElements(data.totalElements || 0)
-      }
+      const data = await apiClient.get("/batch-certificates/requests", { params: Object.fromEntries(params) }).then(r => r.data)
+      const rows = (data.content || []).filter((request: BatchRequest) => !paymentStatusFilter || request.paymentStatus === paymentStatusFilter)
+      setRequests(rows)
+      setTotalElements(data.totalElements || rows.length)
     } catch (err) {
       console.error("Failed to load requests", err)
     } finally {
@@ -62,11 +61,19 @@ export default function CustomerBatchCertificatesPaymentPage() {
 
   async function loadStats() {
     try {
-      const resp = await fetch("/api/batch-certificates/my-requests/stats")
-      if (resp.ok) {
-        const data = await resp.json()
-        setStats(data)
-      }
+      const data = await apiClient.get("/batch-certificates/requests", { params: { page: 0, size: 1000 } }).then(r => r.data)
+      const rows = data.content || []
+      const pending = rows.filter((request: any) => request.status === "PENDING")
+      const approved = rows.filter((request: any) => request.status === "APPROVED")
+      const pendingFees = rows.filter((request: any) => request.paymentStatus !== "PAID")
+      const paidFees = rows.filter((request: any) => request.paymentStatus === "PAID")
+      setStats({
+        totalRequests: rows.length,
+        pendingApproval: pending.length,
+        approvedRequests: approved.length,
+        totalFeesPending: pendingFees.reduce((sum: number, request: any) => sum + Number(request.totalFee || request.amountOwed || 0), 0),
+        totalFeesCollected: paidFees.reduce((sum: number, request: any) => sum + Number(request.totalFee || request.amountOwed || 0), 0),
+      })
     } catch (err) {
       console.error("Failed to load stats", err)
     }

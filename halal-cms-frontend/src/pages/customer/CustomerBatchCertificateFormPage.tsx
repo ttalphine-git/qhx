@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/authStore"
 import { getMyCompany } from "@/api/companies"
 import { getFactories, type Factory } from "@/api/factories"
 import { getCertificates, type CertificateDto } from "@/api/certificates"
+import apiClient from "@/api/client"
 
 interface Product {
   sku: string
@@ -94,11 +95,8 @@ export default function CustomerBatchCertificateFormPage() {
       setCertificates((certData as any).content || [])
 
       // Fetch batch settings for unit price
-      const settingsResp = await fetch("/api/batch-certificates/settings")
-      if (settingsResp.ok) {
-        const settings = await settingsResp.json()
-        setUnitPrice(parseFloat(settings.unitPricePerKg))
-      }
+      const settings = await apiClient.get("/batch-certificates/settings").then(r => r.data)
+      setUnitPrice(parseFloat(settings.unitPricePerKg))
     } catch (err) {
       console.error("Failed to load data", err)
       setError("Failed to load factories and certificates")
@@ -217,18 +215,7 @@ export default function CustomerBatchCertificateFormPage() {
         totalWeightKg: form.totalWeightKg,
       }
 
-      const resp = await fetch("/api/batch-certificates/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-
-      if (!resp.ok) {
-        const errorData = await resp.json()
-        throw new Error(errorData.message || "Failed to submit batch certificate request")
-      }
-
-      const result = await resp.json()
+      const result = await apiClient.post("/batch-certificates/request", payload).then(r => r.data)
       setSuccess(true)
 
       setTimeout(() => {
