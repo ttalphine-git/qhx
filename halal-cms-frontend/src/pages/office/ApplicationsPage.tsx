@@ -2680,6 +2680,80 @@ export default function ApplicationsPage() {
                 })}
               </div>
             </div>
+
+            {/* Application Breakdown */}
+            <div style={{ marginTop:16, paddingTop:16, borderTop:"1px solid #e2e8f0" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+                <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>APPLICATION BREAKDOWN</p>
+                <span style={{ fontSize:"0.68rem", color:"#94a3b8", fontWeight:700 }}>Summary</span>
+              </div>
+
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(3, minmax(0,1fr))", gap:14 }}>
+                <div>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
+                    <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Target Market</p>
+                    {markets.length > 0 && <span style={{ fontSize:"0.68rem", fontWeight:700, color:BLUE }}>{markets.length}</span>}
+                  </div>
+                  {markets.length > 0 ? (
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                      {markets.map((m:string) => {
+                        const iso = COUNTRY_ISO[m] || "un"
+                        return (
+                          <span key={m} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 8px", borderRadius:8, background:"#eff6ff", border:"1px solid #bfdbfe", color:"#1d4ed8", fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>
+                            <img src={`https://flagcdn.com/w20/${iso}.png`} alt="" style={{ width:18, height:12, objectFit:"cover", borderRadius:2, border:"1px solid #dbeafe" }} />
+                            {m}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No target market selected</p>
+                  )}
+                </div>
+
+                <div>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
+                    <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Certification Category</p>
+                    <button onClick={() => openModal("certCat")}
+                      style={{ padding:"4px 10px", background:BLUE, color:"#fff", border:"none", borderRadius:6, fontSize:"0.68rem", fontWeight:800, cursor:"pointer", fontFamily:F }}>
+                      Replace
+                    </button>
+                  </div>
+                  {editCertCats.length > 0 ? (
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                      {editCertCats.map(cat => (
+                        <span key={cat} style={{ padding:"5px 8px", borderRadius:8, background:"#f8fafc", border:"1px solid #e2e8f0", color:DARK, fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No certification category selected</p>
+                  )}
+                </div>
+
+                <div>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
+                    <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Halal Standards</p>
+                    <button onClick={() => openModal("standard")}
+                      style={{ padding:"4px 10px", background:BLUE, color:"#fff", border:"none", borderRadius:6, fontSize:"0.68rem", fontWeight:800, cursor:"pointer", fontFamily:F }}>
+                      Replace
+                    </button>
+                  </div>
+                  {editStandards.length > 0 ? (
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                      {editStandards.map(std => (
+                        <span key={std} style={{ padding:"5px 8px", borderRadius:8, background:"#f8fafc", border:"1px solid #e2e8f0", color:DARK, fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>
+                          {std}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No halal standards selected</p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right column: Services & Activities + Application Details stacked */}
@@ -2782,80 +2856,6 @@ export default function ApplicationsPage() {
               ) : (
                 <p style={{ margin:0, fontSize:"0.8rem", color:"#94a3b8", fontFamily:F }}>No billing information has been created for this application yet.</p>
               )}
-            </div>
-
-            {/* Application Breakdown */}
-            <div style={{ ...card, marginBottom:0 }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12, paddingBottom:10, borderBottom:"1px solid #e2e8f0" }}>
-                <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>APPLICATION BREAKDOWN</p>
-                <span style={{ fontSize:"0.68rem", color:"#94a3b8", fontWeight:700 }}>Summary</span>
-              </div>
-
-              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-                <div>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-                    <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Target Market</p>
-                    {markets.length > 0 && <span style={{ fontSize:"0.68rem", fontWeight:700, color:BLUE }}>{markets.length} selected</span>}
-                  </div>
-                  {markets.length > 0 ? (
-                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                      {markets.map((m:string) => {
-                        const iso = COUNTRY_ISO[m] || "un"
-                        return (
-                          <span key={m} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 8px", borderRadius:8, background:"#eff6ff", border:"1px solid #bfdbfe", color:"#1d4ed8", fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>
-                            <img src={`https://flagcdn.com/w20/${iso}.png`} alt="" style={{ width:18, height:12, objectFit:"cover", borderRadius:2, border:"1px solid #dbeafe" }} />
-                            {m}
-                          </span>
-                        )
-                      })}
-                    </div>
-                  ) : (
-                    <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No target market selected</p>
-                  )}
-                </div>
-
-                <div style={{ borderTop:"1px solid #f1f5f9", paddingTop:14 }}>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:8 }}>
-                    <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Certification Category</p>
-                    <button onClick={() => openModal("certCat")}
-                      style={{ padding:"4px 10px", background:BLUE, color:"#fff", border:"none", borderRadius:6, fontSize:"0.68rem", fontWeight:800, cursor:"pointer", fontFamily:F }}>
-                      Replace
-                    </button>
-                  </div>
-                  {editCertCats.length > 0 ? (
-                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                      {editCertCats.map(cat => (
-                        <span key={cat} style={{ padding:"5px 8px", borderRadius:8, background:"#f8fafc", border:"1px solid #e2e8f0", color:DARK, fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>
-                          {cat}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No certification category selected</p>
-                  )}
-                </div>
-
-                <div style={{ borderTop:"1px solid #f1f5f9", paddingTop:14 }}>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:8 }}>
-                    <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Halal Standards</p>
-                    <button onClick={() => openModal("standard")}
-                      style={{ padding:"4px 10px", background:BLUE, color:"#fff", border:"none", borderRadius:6, fontSize:"0.68rem", fontWeight:800, cursor:"pointer", fontFamily:F }}>
-                      Replace
-                    </button>
-                  </div>
-                  {editStandards.length > 0 ? (
-                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                      {editStandards.map(std => (
-                        <span key={std} style={{ padding:"5px 8px", borderRadius:8, background:"#f8fafc", border:"1px solid #e2e8f0", color:DARK, fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>
-                          {std}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No halal standards selected</p>
-                  )}
-                </div>
-              </div>
             </div>
 
           </div>
@@ -3393,9 +3393,9 @@ export default function ApplicationsPage() {
                       style={{ borderBottom:`1px solid ${C.border}`, borderLeft: isSelected?`3px solid ${BLUE}`:"3px solid transparent", background: isSelected?"#eff6ff":"transparent", cursor:"pointer", transition:"background 0.12s" }}
                       onMouseOver={e => { if (!isSelected) e.currentTarget.style.background = "#f9fafb" }}
                       onMouseOut={e  => { e.currentTarget.style.background = isSelected ? "#eff6ff" : "transparent" }}>
-                      <td style={{ padding:"13px 14px" }}>
+                      <td style={{ padding:"13px 14px", minWidth:130 }}>
                         <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
-                          <span style={{ fontFamily:"monospace", fontSize:"0.72rem", fontWeight:700, color:C.primary }}>{app.applicationNumber}</span>
+                          <span style={{ fontFamily:"monospace", fontSize:"0.72rem", fontWeight:700, color:C.primary, whiteSpace:"nowrap" }}>{app.applicationNumber}</span>
                           {isLoc && <span style={{ fontSize:"0.6rem", color:"#94a3b8", fontWeight:600 }}>Pending sync</span>}
                         </div>
                       </td>
