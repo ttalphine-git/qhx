@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   Search, RefreshCw, FileText,
   ChevronLeft, ChevronRight, X, ChevronDown,
@@ -1027,6 +1027,7 @@ function OfficeDocumentsTab({ app }: { app:any }) {
 }
 
 function AuditPlanTab({ app }: { app:any }) {
+  const queryClient = useQueryClient()
   const today = new Date()
   const existingPlan = ls<any>(`hcs_audit_plan_${app.id}`, {})
   const preferredDates = loadAuditDatePreference(app.id ?? 0)
@@ -1136,8 +1137,13 @@ function AuditPlanTab({ app }: { app:any }) {
           leadAuditor?.name ? `Lead auditor: ${leadAuditor.name}` : "",
           shariaAuditor?.name ? `Sharia auditor: ${shariaAuditor.name}` : "",
         ].filter(Boolean).join("\n"),
-        status: "DRAFT",
+        status: "CONFIRMED",
       })
+      if (app.status === "AUDIT_SCHEDULED") {
+        await updateApplicationStatus(numericApplicationId, "DOCUMENT_SUBMISSION")
+        queryClient.invalidateQueries({ queryKey: ["applications"] })
+        queryClient.invalidateQueries({ queryKey: ["off-apps-active"] })
+      }
       if (preferredDates && (preferredDates.preferredStartDate !== startDate || preferredDates.preferredEndDate !== endDate)) {
         markAuditDatePreferenceOverwritten(app.id ?? 0)
       }

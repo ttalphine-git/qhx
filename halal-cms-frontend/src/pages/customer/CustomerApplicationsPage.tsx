@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react"
+import React, { useState, useRef, useCallback, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { addNotification } from "@/lib/notifications"
@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
 import { getApplications, getCompanyInfo, signApplicationAgreement } from "@/api/applications"
+import { getAuditPlan } from "@/api/audits"
 import { getStatusStyle, formatDate } from "@/lib/utils"
 import {
   loadApplicationBilling, saveApplicationBilling, loadInvoiceByApp,
@@ -897,8 +898,31 @@ function CustomerAuditPlanTab({ app }: { app:any }) {
   const today = new Date()
   const savedPlan = ls<any>(`hcs_audit_plan_${app.id}`, {})
   const savedPreference = loadAuditDatePreference(app.id ?? 0)
+  const numericApplicationId = Number(app.id)
+  const canUseDatabasePlan = Number.isFinite(numericApplicationId)
+  const auditPlanQ = useQuery({
+    queryKey: ["audit-plan", numericApplicationId],
+    queryFn: () => getAuditPlan(numericApplicationId),
+    enabled: canUseDatabasePlan,
+    retry: false,
+  })
+  const officialPlan = auditPlanQ.data
+  const officialStartDate = officialPlan?.scheduledDate || savedPlan.startDate || savedPlan.plannedDate || ""
+  const officialDuration = Math.max(1, officialPlan?.durationDays || savedPlan.durationDays || 1)
+  const officialEndDate = officialStartDate
+    ? (() => {
+        const end = new Date(officialStartDate)
+        end.setDate(end.getDate() + officialDuration - 1)
+        return dateKey(end.getFullYear(), end.getMonth(), end.getDate())
+      })()
+    : ""
+  const officialStatus = officialPlan?.status || savedPlan.status || ""
+  const officialScope = officialPlan?.scope || savedPlan.scope || ""
+  const officialLeadAuditor = officialPlan?.auditorName || savedPlan.leadAuditor || ""
+  const officialShariaAuditor = officialScope.match(/Sharia auditor:\s*(.+)/i)?.[1]?.trim() || savedPlan.shariaAuditor || ""
   const initialPreferredDate = savedPreference?.preferredStartDate ? new Date(savedPreference.preferredStartDate) : null
-  const initialMonth = initialPreferredDate ?? (savedPlan.calendarMonth ? new Date(savedPlan.calendarMonth) : new Date(today.getFullYear(), today.getMonth(), 1))
+  const initialOfficialDate = officialStartDate ? new Date(officialStartDate) : null
+  const initialMonth = initialOfficialDate ?? initialPreferredDate ?? (savedPlan.calendarMonth ? new Date(savedPlan.calendarMonth) : new Date(today.getFullYear(), today.getMonth(), 1))
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(initialMonth.getFullYear(), initialMonth.getMonth(), 1))
   const [preferredStartDate, setPreferredStartDate] = useState(() => savedPreference?.preferredStartDate || "")
   const [preferredEndDate, setPreferredEndDate] = useState(() => savedPreference?.preferredEndDate || "")
@@ -909,6 +933,12 @@ function CustomerAuditPlanTab({ app }: { app:any }) {
   const submitted = app.savedAt || app.submittedAt
   const evidenceUploaded = loadPaymentEvidences(app.id ?? 0).length > 0
   const canChoosePreferred = evidenceUploaded || ["PAYMENT_REVIEW", "AUDIT_SCHEDULED", "DOCUMENT_SUBMISSION", "AUDIT_IN_PROGRESS"].includes(app.status)
+
+  useEffect(() => {
+    if (!officialStartDate) return
+    const officialDate = new Date(officialStartDate)
+    setVisibleMonth(new Date(officialDate.getFullYear(), officialDate.getMonth(), 1))
+  }, [officialStartDate])
 
   const pickPreferredDate = (date: string) => {
     if (!canChoosePreferred) return
@@ -977,7 +1007,7 @@ function CustomerAuditPlanTab({ app }: { app:any }) {
           <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
             <CustomerAuditInfo label="Application No" value={appRef} />
             <CustomerAuditInfo label="Company" value={app.companyName || "-"} />
-            <CustomerAuditInfo label="Status" value={savedPlan.status || "Pending"} />
+            <CustomerAuditInfo label="Status" value={officialStatus || "Pending"} />
             <CustomerAuditInfo label="Submitted" value={submitted ? new Date(submitted).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) : "-"} />
             <CustomerAuditInfo label="Preferred Start" value={preferredStartDate ? formatDate(preferredStartDate) : "Not selected"} />
             <CustomerAuditInfo label="Preferred End" value={preferredEndDate ? formatDate(preferredEndDate) : "Not selected"} />
@@ -997,10 +1027,15 @@ function CustomerAuditPlanTab({ app }: { app:any }) {
 
           <div style={{ marginTop:14 }}>
             <p style={{ margin:"0 0 8px", fontSize:"0.7rem", fontWeight:800, color:"#64748b", textTransform:"uppercase" as const, letterSpacing:"0.08em" }}>Confirmed by HCB</p>
-            {["Lead auditor", "Sharia auditor", "Official audit date", "Duration"].map(item => (
-              <div key={item} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"8px 0", borderBottom:"1px solid #e2e8f0" }}>
-                <span style={{ fontSize:"0.74rem", fontWeight:700, color:"#334155" }}>{item}</span>
-                <span style={{ fontSize:"0.72rem", color:"#94a3b8" }}>Pending</span>
+            {[
+              ["Lead auditor", officialLeadAuditor || "Pending"],
+              ["Sharia auditor", officialShariaAuditor || "Pending"],
+              ["Official audit date", officialStartDate ? (officialEndDate && officialEndDate !== officialStartDate ? `${formatDate(officialStartDate)} - ${formatDate(officialEndDate)}` : formatDate(officialStartDate)) : "Pending"],
+              ["Duration", officialStartDate ? `${officialDuration} day(s)` : "Pending"],
+            ].map(([label, value]) => (
+              <div key={label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"8px 0", borderBottom:"1px solid #e2e8f0" }}>
+                <span style={{ fontSize:"0.74rem", fontWeight:700, color:"#334155" }}>{label}</span>
+                <span style={{ fontSize:"0.72rem", color:value === "Pending" ? "#94a3b8" : DARK, fontWeight:value === "Pending" ? 500 : 800, textAlign:"right" }}>{value}</span>
               </div>
             ))}
             {(preferredStartDate || preferredEndDate) && (
@@ -1036,6 +1071,8 @@ function CustomerAuditPlanTab({ app }: { app:any }) {
               month={visibleMonth.getMonth()}
               startDate={preferredStartDate}
               endDate={preferredEndDate}
+              officialStartDate={officialStartDate}
+              officialEndDate={officialEndDate}
               disabled={!canChoosePreferred}
               onDateClick={pickPreferredDate}
             />
@@ -1064,6 +1101,8 @@ function CustomerMonthCalendar({
   month,
   startDate = "",
   endDate = "",
+  officialStartDate = "",
+  officialEndDate = "",
   disabled = false,
   onDateClick,
 }: {
@@ -1071,6 +1110,8 @@ function CustomerMonthCalendar({
   month:number
   startDate?: string
   endDate?: string
+  officialStartDate?: string
+  officialEndDate?: string
   disabled?: boolean
   onDateClick?: (date:string) => void
 }) {
@@ -1100,16 +1141,19 @@ function CustomerMonthCalendar({
           const key = day ? dateKey(year, month, day) : ""
           const isEdge = !!day && (key === startDate || key === endDate)
           const inRange = !!day && !!startDate && !!endDate && key >= startDate && key <= endDate
+          const isOfficialEdge = !!day && (key === officialStartDate || key === officialEndDate)
+          const inOfficialRange = !!day && !!officialStartDate && !!officialEndDate && key >= officialStartDate && key <= officialEndDate
           return (
             <button
               key={i}
               type="button"
               disabled={!day || disabled}
               onClick={() => day && onDateClick?.(key)}
-              style={{ minHeight:0, height:"100%", display:"flex", flexDirection:"column", alignItems:"flex-start", justifyContent:"flex-start", borderRadius:8, padding:7, border:day ? `1px solid ${isEdge ? BLUE : inRange ? "#93c5fd" : "#e2e8f0"}` : "1px solid transparent", background:isEdge ? BLUE : inRange ? "#dbeafe" : isToday ? "#eff6ff" : day ? "#f8fafc" : "transparent", color:isEdge ? "#fff" : isToday ? BLUE : day ? "#334155" : "transparent", fontSize:"0.76rem", fontWeight:isToday ? 900 : 700, cursor:day && !disabled ? "pointer" : "default", fontFamily:F, textAlign:"left" }}
+              style={{ minHeight:0, height:"100%", display:"flex", flexDirection:"column", alignItems:"flex-start", justifyContent:"flex-start", borderRadius:8, padding:7, border:day ? `1px solid ${isOfficialEdge ? "#15803d" : inOfficialRange ? "#86efac" : isEdge ? BLUE : inRange ? "#93c5fd" : "#e2e8f0"}` : "1px solid transparent", background:isOfficialEdge ? "#16a34a" : inOfficialRange ? "#dcfce7" : isEdge ? BLUE : inRange ? "#dbeafe" : isToday ? "#eff6ff" : day ? "#f8fafc" : "transparent", color:isOfficialEdge ? "#fff" : inOfficialRange ? "#166534" : isEdge ? "#fff" : isToday ? BLUE : day ? "#334155" : "transparent", fontSize:"0.76rem", fontWeight:isToday || isOfficialEdge ? 900 : 700, cursor:day && !disabled ? "pointer" : "default", fontFamily:F, textAlign:"left" }}
             >
               <span>{day ?? ""}</span>
-              {isEdge && <span style={{ marginTop:"auto", fontSize:"0.58rem", fontWeight:900, color:"#fff" }}>Preferred</span>}
+              {isOfficialEdge && <span style={{ marginTop:"auto", fontSize:"0.58rem", fontWeight:900, color:"#fff" }}>HCB</span>}
+              {!isOfficialEdge && isEdge && <span style={{ marginTop:"auto", fontSize:"0.58rem", fontWeight:900, color:"#fff" }}>Preferred</span>}
             </button>
           )
         })}
