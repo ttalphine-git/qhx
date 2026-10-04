@@ -2784,86 +2784,81 @@ export default function ApplicationsPage() {
               )}
             </div>
 
-          </div>
-        </div>
+            {/* Application Breakdown */}
+            <div style={{ ...card, marginBottom:0 }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12, paddingBottom:10, borderBottom:"1px solid #e2e8f0" }}>
+                <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>APPLICATION BREAKDOWN</p>
+                <span style={{ fontSize:"0.68rem", color:"#94a3b8", fontWeight:700 }}>Summary</span>
+              </div>
 
-        {/* " 3. Target Market " */}
-        {markets.length > 0 && (
-          <div style={card}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, paddingBottom:12, borderBottom:"1px solid #dbeafe" }}>
-              <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>TARGET MARKET</p>
-              <span style={{ fontSize:"0.72rem", fontWeight:600, color:BLUE, background:"#eff6ff", padding:"2px 10px", borderRadius:20 }}>{markets.length} selected</span>
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:8 }}>
-              {markets.map((m:string) => {
-                const iso = COUNTRY_ISO[m] || "un"
-                return (
-                  <div key={m} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, padding:"12px 8px", borderRadius:12,
-                    border:"2px solid #2563eb", background:"#eff6ff", boxShadow:"0 0 0 3px rgba(37,99,235,0.1)" }}>
-                    <img src={`https://flagcdn.com/w40/${iso}.png`} alt={m}
-                      style={{ width:36, height:24, objectFit:"cover", borderRadius:5, border:"1px solid #e2e8f0", flexShrink:0 }} />
-                    <span style={{ fontSize:"0.72rem", fontWeight:600, color:"#1d4ed8", textAlign:"center" as const, lineHeight:1.3, fontFamily:F }}>{m}</span>
+              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                <div>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                    <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Target Market</p>
+                    {markets.length > 0 && <span style={{ fontSize:"0.68rem", fontWeight:700, color:BLUE }}>{markets.length} selected</span>}
                   </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* " 3b. Certification Category " */}
-        <div style={card}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, paddingBottom:12, borderBottom:"1px solid #dbeafe" }}>
-            <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>CERTIFICATION CATEGORY</p>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              {editCertCats.length > 0 && <span style={{ fontSize:"0.72rem", fontWeight:600, color:BLUE, background:"#eff6ff", padding:"2px 10px", borderRadius:20 }}>{editCertCats.length} selected</span>}
-              <button onClick={() => openModal("certCat")}
-                style={{ padding:"5px 14px", background:BLUE, color:"#fff", border:"none", borderRadius:7, fontSize:"0.72rem", fontWeight:700, cursor:"pointer", fontFamily:F }}>
-                Replace
-              </button>
-            </div>
-          </div>
-          {editCertCats.length > 0 ? (
-            <div style={{ border:"1px solid #e2e8f0", borderRadius:8, overflow:"hidden" }}>
-              {editCertCats.map((cat, i) => (
-                <div key={cat} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 14px", borderBottom: i < editCertCats.length-1 ? "1px solid #f1f5f9" : "none", background:"#fff" }}>
-                  <div style={{ width:17, height:17, borderRadius:4, border:"2px solid #374151", background:"#374151", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </div>
-                  <span style={{ fontSize:"0.82rem", fontWeight:500, color:DARK, fontFamily:F }}>{cat}</span>
+                  {markets.length > 0 ? (
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                      {markets.map((m:string) => {
+                        const iso = COUNTRY_ISO[m] || "un"
+                        return (
+                          <span key={m} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 8px", borderRadius:8, background:"#eff6ff", border:"1px solid #bfdbfe", color:"#1d4ed8", fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>
+                            <img src={`https://flagcdn.com/w20/${iso}.png`} alt="" style={{ width:18, height:12, objectFit:"cover", borderRadius:2, border:"1px solid #dbeafe" }} />
+                            {m}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No target market selected</p>
+                  )}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p style={{ margin:0, fontSize:"0.8rem", color:"#94a3b8", fontFamily:F }}>No certification category selected</p>
-          )}
-        </div>
 
-        {/* " 3c. Halal Standards " */}
-        <div style={card}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, paddingBottom:12, borderBottom:"1px solid #dbeafe" }}>
-            <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>HALAL STANDARDS</p>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              {editStandards.length > 0 && <span style={{ fontSize:"0.72rem", fontWeight:600, color:BLUE, background:"#eff6ff", padding:"2px 10px", borderRadius:20 }}>{editStandards.length} selected</span>}
-              <button onClick={() => openModal("standard")}
-                style={{ padding:"5px 14px", background:BLUE, color:"#fff", border:"none", borderRadius:7, fontSize:"0.72rem", fontWeight:700, cursor:"pointer", fontFamily:F }}>
-                Replace
-              </button>
-            </div>
-          </div>
-          {editStandards.length > 0 ? (
-            <div style={{ border:"1px solid #e2e8f0", borderRadius:8, overflow:"hidden" }}>
-              {editStandards.map((std, i) => (
-                <div key={std} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 14px", borderBottom: i < editStandards.length-1 ? "1px solid #f1f5f9" : "none", background:"#fff" }}>
-                  <div style={{ width:17, height:17, borderRadius:4, border:"2px solid #374151", background:"#374151", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <div style={{ borderTop:"1px solid #f1f5f9", paddingTop:14 }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:8 }}>
+                    <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Certification Category</p>
+                    <button onClick={() => openModal("certCat")}
+                      style={{ padding:"4px 10px", background:BLUE, color:"#fff", border:"none", borderRadius:6, fontSize:"0.68rem", fontWeight:800, cursor:"pointer", fontFamily:F }}>
+                      Replace
+                    </button>
                   </div>
-                  <span style={{ fontSize:"0.82rem", fontWeight:500, color:DARK, fontFamily:F }}>{std}</span>
+                  {editCertCats.length > 0 ? (
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                      {editCertCats.map(cat => (
+                        <span key={cat} style={{ padding:"5px 8px", borderRadius:8, background:"#f8fafc", border:"1px solid #e2e8f0", color:DARK, fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No certification category selected</p>
+                  )}
                 </div>
-              ))}
+
+                <div style={{ borderTop:"1px solid #f1f5f9", paddingTop:14 }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:8 }}>
+                    <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Halal Standards</p>
+                    <button onClick={() => openModal("standard")}
+                      style={{ padding:"4px 10px", background:BLUE, color:"#fff", border:"none", borderRadius:6, fontSize:"0.68rem", fontWeight:800, cursor:"pointer", fontFamily:F }}>
+                      Replace
+                    </button>
+                  </div>
+                  {editStandards.length > 0 ? (
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                      {editStandards.map(std => (
+                        <span key={std} style={{ padding:"5px 8px", borderRadius:8, background:"#f8fafc", border:"1px solid #e2e8f0", color:DARK, fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>
+                          {std}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No halal standards selected</p>
+                  )}
+                </div>
+              </div>
             </div>
-          ) : (
-            <p style={{ margin:0, fontSize:"0.8rem", color:"#94a3b8", fontFamily:F }}>No halal standards selected</p>
-          )}
+
+          </div>
         </div>
 
         {/* " 3b. Certification Status " */}
