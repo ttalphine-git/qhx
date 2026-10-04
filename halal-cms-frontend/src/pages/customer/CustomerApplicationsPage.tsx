@@ -1126,12 +1126,10 @@ function CustomerAuditDateCell({ app }: { app:any }) {
     : formatDate(startDate)
 
   return (
-    <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 9px", borderRadius:8, background:"#dcfce7", border:"1px solid #86efac", color:"#166534", boxShadow:"inset 3px 0 0 #16a34a", whiteSpace:"nowrap" }}>
-      <CalendarDays size={13} color="#15803d" />
-      <div style={{ display:"flex", flexDirection:"column", gap:1 }}>
-        <span style={{ fontSize:"0.58rem", fontWeight:900, letterSpacing:"0.06em", textTransform:"uppercase" as const }}>HCB audit</span>
-        <span style={{ fontSize:"0.7rem", fontWeight:900 }}>{dateText}</span>
-      </div>
+    <div style={{ display:"inline-flex", alignItems:"center", gap:7, minWidth:142, padding:"4px 8px", borderRadius:7, background:"#f8fafc", border:"1px solid #bbf7d0", color:"#14532d", whiteSpace:"nowrap" }}>
+      <span style={{ width:7, height:7, borderRadius:"50%", background:"#16a34a", boxShadow:"0 0 0 3px #dcfce7", flexShrink:0 }} />
+      <CalendarDays size={12} color="#15803d" />
+      <span style={{ fontSize:"0.7rem", fontWeight:800, color:"#14532d" }}>{dateText}</span>
     </div>
   )
 }
@@ -2347,7 +2345,7 @@ export default function CustomerApplicationsPage() {
                         <div style={{ display:"flex", alignItems:"center", gap:4, fontSize: "0.63rem", color: "#d97706", fontWeight: 700, marginTop: 4 }}><Zap size={10} color="#d97706" strokeWidth={2.5} /> Signature required</div>
                       )}
                     </td>
-                    <td style={{ padding: "9px 16px", background:["DOCUMENT_SUBMISSION","AUDIT_IN_PROGRESS","AUDIT_COMPLETED","NC_CLEARANCE","DECISION_MAKING","CERTIFICATION_REVIEW","CERTIFIED"].includes(app.status) ? "#f0fdf4" : "transparent" }}>
+                    <td style={{ padding: "9px 16px" }}>
                       <CustomerAuditDateCell app={app} />
                     </td>
                     <td style={{ padding: "11px 16px", whiteSpace: "nowrap" as const }}>
