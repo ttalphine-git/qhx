@@ -418,6 +418,10 @@ export default function CustomerApplicationDetailPage() {
           const standards: string[] = a.selectedStandards  ?? []
           const certCats: string[]  = a.selectedCertCats   ?? []
           const markets: string[]   = a.selectedMarkets    ?? []
+          const billingCurrency = invoice?.currency ?? billing?.currency ?? ""
+          const formatBillingAmount = (n: number | undefined) =>
+            typeof n === "number" ? `${billingCurrency} ${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"
+          const invoiceStatus = invoice ? invoiceStatusStyle(invoice.status) : null
 
           const compEmail   = a.companyEmail  || profile.email      || company?.email  || "-"
           const compPhone   = a.companyPhone  || profile.phone      || company?.phone  || "-"
@@ -542,6 +546,46 @@ export default function CustomerApplicationDetailPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Billing Information */}
+                <div style={cardSt}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, paddingBottom: 10, borderBottom: `1px solid ${C.border}` }}>
+                    <p style={headSt}>BILLING INFORMATION</p>
+                    {invoiceStatus ? (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 10px", borderRadius: 20, fontSize: "0.68rem", fontWeight: 800, background: invoiceStatus.bg, color: invoiceStatus.color }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: invoiceStatus.dot }} />{invoice?.status}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: "0.68rem", padding: "2px 10px", borderRadius: 20, fontWeight: 700, background: "#f1f5f9", color: "#64748b" }}>NO INVOICE</span>
+                    )}
+                  </div>
+                  {billing || invoice ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+                      {[
+                        { Icon: Receipt,      label: "Invoice No",     value: invoice?.invoiceNumber ?? "-" },
+                        { Icon: CreditCard,   label: "Total Amount",   value: formatBillingAmount(invoice?.total ?? billing?.total) },
+                        { Icon: CalendarDays, label: "Issued Date",    value: invoice?.issuedAt ? formatInvoiceDate(invoice.issuedAt) : "-" },
+                        { Icon: CalendarDays, label: "Due Date",       value: invoice?.dueDate ? formatInvoiceDate(invoice.dueDate) : "-" },
+                        { Icon: CreditCard,   label: "Payment Method", value: invoice?.paymentMethod?.replace("_", " ") ?? "-" },
+                        { Icon: Hash,         label: "Payment Ref",    value: invoice?.paymentReference || (a as any).paymentReference || "-" },
+                        { Icon: CalendarDays, label: "Paid Date",      value: invoice?.paymentDate ? formatInvoiceDate(invoice.paymentDate) : ((a as any).paymentPaidAt ? formatInvoiceDate((a as any).paymentPaidAt) : "-") },
+                        { Icon: List,         label: "Line Items",     value: String(invoice?.lineItems?.length ?? billing?.lineItems?.length ?? 0) },
+                      ].map(r => (
+                        <div key={r.label} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "11px 14px" }}>
+                          <div style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <r.Icon size={13} color="#64748b" strokeWidth={1.9} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: "0.62rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.07em", marginBottom: 3 }}>{r.label}</div>
+                            <div style={{ fontSize: "0.82rem", fontWeight: 600, color: r.value === "-" ? "#cbd5e1" : C.textDark, wordBreak: "break-word" as const }}>{r.value}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8" }}>No billing information has been created for this application yet.</p>
+                  )}
                 </div>
 
               </div>
