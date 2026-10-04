@@ -129,6 +129,56 @@ public class AuditReportService {
         return toReportDto(reportRepository.save(report));
     }
 
+    @Transactional
+    public ApplicationAuditReportDto saveCustomerComments(Long applicationId, ApplicationAuditReportDto request) {
+        AuditReport report = reportRepository.findByApplicationId(applicationId)
+                .orElseGet(() -> AuditReport.builder()
+                        .applicationId(applicationId)
+                        .status("DRAFT")
+                        .build());
+
+        if (report.getConfiguration() == null) {
+            if (request.getConfigurationId() != null) {
+                configurationRepository.findById(request.getConfigurationId()).ifPresent(report::setConfiguration);
+            } else if (request.getActivityCategoryKey() != null) {
+                applyConfiguration(report, request.getActivityCategoryKey());
+            }
+        }
+        if (report.getActivityCategoryKey() == null && request.getActivityCategoryKey() != null) {
+            report.setActivityCategoryKey(request.getActivityCategoryKey());
+        }
+
+        List<AuditAnswerDto> updates = request.getAnswers() == null ? List.of() : request.getAnswers();
+        for (AuditAnswerDto update : updates) {
+            if (update.getQuestionText() == null || update.getQuestionText().isBlank()) continue;
+
+            AuditAnswer answer = findMatchingAnswer(report, update)
+                    .orElseGet(() -> {
+                        AuditQuestion question = update.getQuestionId() == null ? null : questionRepository.findById(update.getQuestionId()).orElse(null);
+                        AuditAnswer created = AuditAnswer.builder()
+                                .report(report)
+                                .question(question)
+                                .questionText(update.getQuestionText())
+                                .build();
+                        report.getAnswers().add(created);
+                        return created;
+                    });
+
+            answer.setCustomerComment(update.getCustomerComment());
+        }
+
+        return toReportDto(reportRepository.save(report));
+    }
+
+    private Optional<AuditAnswer> findMatchingAnswer(AuditReport report, AuditAnswerDto update) {
+        return report.getAnswers().stream()
+                .filter(answer ->
+                        (update.getId() != null && update.getId().equals(answer.getId())) ||
+                        (update.getQuestionId() != null && answer.getQuestion() != null && update.getQuestionId().equals(answer.getQuestion().getId())) ||
+                        update.getQuestionText().equals(answer.getQuestionText()))
+                .findFirst();
+    }
+
     private AuditReport createReport(Long applicationId, String activityCategoryKey) {
         AuditReport report = AuditReport.builder()
                 .applicationId(applicationId)

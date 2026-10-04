@@ -94,3 +94,6 @@ export const getApplicationAuditReport = (applicationId: number, activityCategor
 
 export const saveApplicationAuditReport = (applicationId: number, data: ApplicationAuditReportDto) =>
   apiClient.put<ApplicationAuditReportDto>(`/audits/reports/application/${applicationId}`, data).then(r => r.data)
+
+export const saveCustomerAuditComments = (applicationId: number, data: ApplicationAuditReportDto) =>
+  apiClient.patch<ApplicationAuditReportDto>(`/audits/reports/application/${applicationId}/customer-comments`, data).then(r => r.data)

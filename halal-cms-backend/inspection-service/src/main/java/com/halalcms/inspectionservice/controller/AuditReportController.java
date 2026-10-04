@@ -45,4 +45,11 @@ public class AuditReportController {
             @RequestBody ApplicationAuditReportDto report) {
         return ResponseEntity.ok(auditReportService.saveReportForApplication(applicationId, report));
     }
+
+    @PatchMapping("/reports/application/{applicationId}/customer-comments")
+    public ResponseEntity<ApplicationAuditReportDto> saveCustomerComments(
+            @PathVariable Long applicationId,
+            @RequestBody ApplicationAuditReportDto report) {
+        return ResponseEntity.ok(auditReportService.saveCustomerComments(applicationId, report));
+    }
 }

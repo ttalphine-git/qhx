@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { addNotification } from "@/lib/notifications"
 import { addAuditLog } from "@/lib/auditLog"
 import { useAuthStore } from "@/store/authStore"
@@ -16,8 +16,14 @@ import {
 } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
 import { getApplications, getCompanyInfo, signApplicationAgreement } from "@/api/applications"
-import { getAuditPlan } from "@/api/audits"
+import {
+  getApplicationAuditReport,
+  getAuditPlan,
+  saveCustomerAuditComments,
+  type ApplicationAuditReportDto,
+} from "@/api/audits"
 import { getStatusStyle, formatDate } from "@/lib/utils"
+import { DEFAULT_ACTIVITY_CATEGORY_SETTINGS } from "@/lib/activityOptions"
 import {
   loadApplicationBilling, saveApplicationBilling, loadInvoiceByApp,
   invoiceStatusStyle, formatInvoiceDate, loadStripeConfig, downloadInvoicePDF,
@@ -150,7 +156,28 @@ const TABS = [
   { label: "Rejected",  value: "REJECTED,SUSPENDED,EXPIRED", badge: false },
 ]
 
-const APP_TABS = ["Application","Agreement","Billing","Audit plan","Documents","Logs","Certificate"]
+const APP_TABS = ["Application","Agreement","Billing","Audit plan","Documents","Audit","Logs","Certificate"]
+
+const normalizeActivityCategory = (key?: string) => {
+  const raw = (key ?? "").trim().toLowerCase()
+  if (!raw) return ""
+  if (["manufacturing", "factory", "mfg"].includes(raw)) return "mfg"
+  if (["slaughterhouse", "slaughter"].includes(raw)) return "slaughter"
+  if (["meat", "meatprocessing", "meat-processing"].includes(raw)) return "meat-processing"
+  return raw
+}
+
+const activityCategoriesFromApp = (app: any): string[] => {
+  const factory = (app?.snapshotFactories ?? []).find((f:any) => !app?.factoryId || f.id === app.factoryId)
+  const values = [
+    ...(Array.isArray(factory?.activityCategories) ? factory.activityCategories : []),
+    ...(Array.isArray(app?.activityCategories) ? app.activityCategories : []),
+    ...(Array.isArray(app?.snapshotCategories) ? app.snapshotCategories : []),
+    ...(app?.activityCategoryKey ? [app.activityCategoryKey] : []),
+    ...(app?.activityCategory ? [app.activityCategory] : []),
+  ].map(normalizeActivityCategory).filter(Boolean)
+  return Array.from(new Set(values))
+}
 
 const PAGE_SIZE = 15
 
@@ -1092,6 +1119,158 @@ function CustomerAuditInfo({ label, value }: { label:string; value:React.ReactNo
   )
 }
 
+function CustomerAuditQuestionsTab({ app }: { app:any }) {
+  const queryClient = useQueryClient()
+  const numericApplicationId = Number(app.id)
+  const canUseDatabase = Number.isFinite(numericApplicationId)
+  const appCategoryKeys = activityCategoriesFromApp(app)
+  const fallbackCategory = DEFAULT_ACTIVITY_CATEGORY_SETTINGS.find(category => appCategoryKeys.includes(category.key))?.key || appCategoryKeys[0] || "mfg"
+  const [comments, setComments] = useState<Record<string, string>>({})
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState("")
+  const [savedAt, setSavedAt] = useState("")
+
+  const reportQ = useQuery({
+    queryKey: ["application-audit-report", numericApplicationId, fallbackCategory],
+    queryFn: () => getApplicationAuditReport(numericApplicationId, fallbackCategory),
+    enabled: canUseDatabase,
+  })
+
+  const report = reportQ.data
+  const configQuestions = report?.configuration?.questions ?? []
+  const answers = report?.answers ?? []
+  const rows = configQuestions.length
+    ? configQuestions.map((question, index) => {
+        const answer = answers.find(item =>
+          (question.id && item.questionId === question.id) || item.questionText === question.questionText
+        )
+        return { key: String(question.id ?? question.questionText ?? index), questionId: question.id, questionText: question.questionText, answer }
+      })
+    : answers.map((answer, index) => ({
+        key: String(answer.questionId ?? answer.questionText ?? index),
+        questionId: answer.questionId,
+        questionText: answer.questionText,
+        answer,
+      }))
+
+  useEffect(() => {
+    if (!report) return
+    const next: Record<string, string> = {}
+    rows.forEach(row => {
+      next[row.key] = row.answer?.customerComment ?? ""
+    })
+    setComments(next)
+    setSavedAt("")
+  }, [report?.id, report?.answers?.length, rows.map(row => row.key).join("|")])
+
+  const saveComments = async () => {
+    if (!canUseDatabase || !report) return
+    setSaving(true)
+    setSaveError("")
+    try {
+      const payload: ApplicationAuditReportDto = {
+        id: report.id,
+        applicationId: numericApplicationId,
+        configurationId: report.configurationId,
+        activityCategoryKey: report.activityCategoryKey || fallbackCategory,
+        status: report.status || "DRAFT",
+        generalComment: report.generalComment,
+        completedAt: report.completedAt,
+        answers: rows.map(row => ({
+          id: row.answer?.id,
+          questionId: row.questionId,
+          questionText: row.questionText,
+          customerComment: comments[row.key] ?? "",
+        })),
+      }
+      await saveCustomerAuditComments(numericApplicationId, payload)
+      setSavedAt(new Date().toISOString())
+      queryClient.invalidateQueries({ queryKey: ["application-audit-report", numericApplicationId, fallbackCategory] })
+    } catch {
+      setSaveError("Could not save customer comments.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const chip = (value?: string, empty = "Pending") => {
+    const normalized = (value || "").toLowerCase()
+    const label = normalized === "yes" ? "Yes" : normalized === "no" ? "No" : normalized === "na" ? "N/A" : value || empty
+    const color = normalized === "yes" ? "#15803d" : normalized === "no" ? "#dc2626" : normalized === "na" ? "#64748b" : "#94a3b8"
+    const bg = normalized === "yes" ? "#dcfce7" : normalized === "no" ? "#fee2e2" : normalized === "na" ? "#f1f5f9" : "#f8fafc"
+    return <span style={{ minWidth:54, height:28, display:"inline-flex", alignItems:"center", justifyContent:"center", padding:"0 10px", borderRadius:7, background:bg, color, border:"1px solid #e2e8f0", fontSize:"0.72rem", fontWeight:800 }}>{label}</span>
+  }
+
+  if (!canUseDatabase) {
+    return <PlaceholderTab icon="" label="Audit questions are available after the application is synced." />
+  }
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:12, height:"100%", fontFamily:F }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, background:"#fff", border:"1px solid #e2e8f0", borderRadius:10, padding:"11px 14px", flexShrink:0 }}>
+        <div>
+          <p style={{ margin:0, fontSize:"0.76rem", fontWeight:900, color:BLUE, letterSpacing:"0.08em", textTransform:"uppercase" as const }}>Audit Questions</p>
+          <p style={{ margin:"3px 0 0", fontSize:"0.7rem", color:"#64748b", fontWeight:600 }}>Review auditor answers and add your customer comments.</p>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          {savedAt && <span style={{ fontSize:"0.68rem", fontWeight:800, color:"#15803d", background:"#dcfce7", padding:"5px 10px", borderRadius:999 }}>Comments saved</span>}
+          <button onClick={saveComments} disabled={saving || reportQ.isLoading || rows.length === 0}
+            style={{ height:34, padding:"0 16px", borderRadius:8, border:"none", background:saving || reportQ.isLoading || rows.length === 0 ? "#cbd5e1" : BLUE, color:"#fff", fontSize:"0.76rem", fontWeight:800, cursor:saving || reportQ.isLoading || rows.length === 0 ? "not-allowed" : "pointer", fontFamily:F }}>
+            {saving ? "Saving..." : "Save comments"}
+          </button>
+        </div>
+      </div>
+
+      {saveError && <div style={{ padding:"10px 12px", border:"1px solid #fecaca", background:"#fef2f2", color:"#b91c1c", borderRadius:8, fontSize:"0.75rem", fontWeight:800 }}>{saveError}</div>}
+
+      <div style={{ flex:1, minHeight:0, overflow:"auto", display:"flex", flexDirection:"column", gap:10 }}>
+        {reportQ.isLoading ? (
+          <div style={{ ...card, marginBottom:0, color:"#64748b", fontWeight:700 }}>Loading audit questions...</div>
+        ) : rows.length === 0 ? (
+          <div style={{ ...card, marginBottom:0, color:"#64748b", fontWeight:700 }}>No audit questions are available yet.</div>
+        ) : rows.map((row, index) => {
+          const answer = row.answer
+          const finding = answer?.finding === "nc" ? "NC" : answer?.finding === "obs" ? "Observation" : ""
+          return (
+            <div key={row.key} style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:10, overflow:"hidden" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"56px minmax(0, 1fr) auto", gap:12, alignItems:"start", padding:"13px 14px", borderBottom:"1px solid #e2e8f0" }}>
+                <span style={{ height:28, display:"inline-flex", alignItems:"center", justifyContent:"center", borderRadius:7, background:"#eff6ff", color:BLUE, fontSize:"0.72rem", fontWeight:900 }}>{index + 1}</span>
+                <p style={{ margin:0, color:"#0f172a", fontSize:"0.86rem", fontWeight:800, lineHeight:1.45 }}>{row.questionText}</p>
+                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                  {chip(answer?.answer)}
+                  {finding ? chip(finding) : null}
+                </div>
+              </div>
+
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:0, background:"#f8fafc" }}>
+                <div style={{ padding:12, borderRight:"1px solid #e2e8f0" }}>
+                  <p style={{ margin:"0 0 6px", fontSize:"0.68rem", fontWeight:900, color:"#d97706", textTransform:"uppercase" as const }}>Customer comment</p>
+                  <textarea value={comments[row.key] ?? ""} onChange={e => setComments(prev => ({ ...prev, [row.key]: e.target.value }))}
+                    placeholder="Add your comment for HCB..."
+                    style={{ width:"100%", minHeight:82, resize:"vertical", border:"1px solid #cbd5e1", borderRadius:8, background:"#fff", padding:"9px 10px", color:"#0f172a", fontSize:"0.78rem", lineHeight:1.45, fontFamily:F, boxSizing:"border-box" as const }} />
+                </div>
+                <ReadonlyAuditComment title="Auditor comment" color={BLUE} value={answer?.auditorComment} />
+                <ReadonlyAuditComment title="Sharia comment" color="#7c3aed" value={answer?.shariaComment} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function ReadonlyAuditComment({ title, value, color }: { title:string; value?: string; color:string }) {
+  return (
+    <div style={{ padding:12, borderRight:"1px solid #e2e8f0" }}>
+      <p style={{ margin:"0 0 6px", fontSize:"0.68rem", fontWeight:900, color, textTransform:"uppercase" as const }}>{title}</p>
+      <div style={{ minHeight:82, border:"1px solid #e2e8f0", borderRadius:8, background:"#fff", padding:"9px 10px", color:value ? "#334155" : "#94a3b8", fontSize:"0.78rem", lineHeight:1.45, whiteSpace:"pre-wrap" as const }}>
+        {value?.trim() || "No comment yet."}
+      </div>
+    </div>
+  )
+}
+
 function CustomerAuditDateCell({ app }: { app:any }) {
   const numericApplicationId = Number(app.id)
   const canUseDatabasePlan = Number.isFinite(numericApplicationId) && !(app as any)._local
@@ -1670,6 +1849,10 @@ export default function CustomerApplicationsPage() {
       AGREEMENT_APPROVED_BY_HCB: "Billing",
       PENDING_PAYMENT:           "Billing",
       PAYMENT_REVIEW:            "Billing",
+      DOCUMENT_SUBMISSION:       "Documents",
+      AUDIT_IN_PROGRESS:         "Audit",
+      AUDIT_COMPLETED:           "Audit",
+      NC_CLEARANCE:              "Audit",
     }
     setAppTab(CUSTOMER_STATUS_TAB[hydrated.status] ?? "Application")
     setTimeout(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60)
@@ -2175,6 +2358,7 @@ export default function CustomerApplicationsPage() {
     "Billing":     <BillingTab app={a} onPaymentUploaded={() => setAppTab("Audit plan")} />,
     "Audit plan":  <CustomerAuditPlanTab app={a} />,
     "Documents":   <CustomerDocumentsTab app={a} />,
+    "Audit":       <CustomerAuditQuestionsTab app={a} />,
     "Certificate": <PlaceholderTab icon="" label="Certificate" />,
     "Logs": (() => {
       const entries = a.logs?.length ? [...a.logs].reverse() : [{
