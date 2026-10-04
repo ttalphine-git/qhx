@@ -23,6 +23,7 @@ import {
   Eye,
   Calendar,
   DollarSign,
+  Hash,
   Percent,
   Tag,
   UserPlus,
@@ -66,7 +67,7 @@ import {
 } from "@/api/system"
 import { getUserRoles } from "@/api/auth"
 
-type SettingsTab = "certificate" | "audits" | "employees" | "scope" | "activity" | "pricelist" | "agreement" | "payments" | "database"
+type SettingsTab = "certificate" | "audits" | "employees" | "scope" | "activity" | "pricelist" | "agreement" | "payments" | "transaction" | "database"
 
 const SYSTEM_DATABASES = [
   "halalcms_auth",
@@ -76,6 +77,23 @@ const SYSTEM_DATABASES = [
   "halalcms_inspections",
   "halalcms_notifications",
 ]
+
+const TRANSACTION_NUMBER_STORAGE = "hcs_transaction_number_settings"
+interface TransactionNumberSettings {
+  prefix: string
+  nextNumber: number
+  padding: number
+}
+function loadTransactionNumberSettings(): TransactionNumberSettings {
+  try {
+    return { prefix: "TXN", nextNumber: 1, padding: 6, ...JSON.parse(localStorage.getItem(TRANSACTION_NUMBER_STORAGE) || "{}") }
+  } catch {
+    return { prefix: "TXN", nextNumber: 1, padding: 6 }
+  }
+}
+function formatTransactionNumber(settings: TransactionNumberSettings) {
+  return `${settings.prefix || "TXN"}-${String(Math.max(0, settings.nextNumber || 0)).padStart(Math.max(1, settings.padding || 1), "0")}`
+}
 
 // ── Agreement Template (multi-language) ───────────────────────────────────────
 const AGR_STORAGE = "hcs_agreement_pdfs"
@@ -467,11 +485,22 @@ export default function OfficeSettingsPage() {
   const [bank, setBank] = useState<BankDetails>(loadBankDetails)
   const [bankSaved, setBankSaved] = useState(false)
   const [selectedScopeId, setSelectedScopeId] = useState<string>("")
+  const [transactionNumber, setTransactionNumber] = useState<TransactionNumberSettings>(loadTransactionNumberSettings)
+  const [transactionSaved, setTransactionSaved] = useState(false)
   function savePricing(p: PricingConfig) {
     localStorage.setItem(PRICING_STORAGE, JSON.stringify(p))
     setPricing(p)
     setPricingSaved(true)
     setTimeout(() => setPricingSaved(false), 2000)
+  }
+  function saveTransactionNumberSettings() {
+    localStorage.setItem(TRANSACTION_NUMBER_STORAGE, JSON.stringify(transactionNumber))
+    setTransactionSaved(true)
+    setSaved("Transaction number settings saved")
+    setTimeout(() => {
+      setTransactionSaved(false)
+      setSaved("")
+    }, 1800)
   }
 
   // ── HCB Accreditations state ──
@@ -901,6 +930,7 @@ export default function OfficeSettingsPage() {
             { key: "activity" as const,    label: "Activity Category",    Icon: Tag            },
             { key: "pricelist" as const,   label: "Price List",           Icon: DollarSign     },
             { key: "payments" as const,    label: "Payments",             Icon: CreditCard     },
+            { key: "transaction" as const, label: "Transaction Number",    Icon: Hash           },
             { key: "certificate" as const, label: "Certificate Template", Icon: Award          },
             { key: "agreement" as const,   label: "Agreement Template",   Icon: FileText       },
             { key: "audits" as const,      label: "Audit Templates",      Icon: ClipboardCheck },
@@ -2022,6 +2052,68 @@ export default function OfficeSettingsPage() {
               <button onClick={() => { saveBankDetails(bank); setBankSaved(true); setTimeout(() => setBankSaved(false), 2000) }}
                 style={{ marginTop: 20, display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 22px", background: "#0f2170", color: "#fff", border: "none", borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
                 <Save size={14} /> {bankSaved ? "Saved!" : "Save Bank Details"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {tab === "transaction" && (
+          <div style={{ maxWidth: 720 }}>
+            <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+                <Hash size={18} color="#0f2170" />
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: "#0f2170" }}>Transaction Number</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 12, color: "#64748b" }}>Configure the number format used for payment and invoice transactions.</p>
+                </div>
+                {transactionSaved && (
+                  <span style={{ marginLeft: "auto", fontSize: "0.72rem", fontWeight: 600, color: "#16a34a", background: "#dcfce7", padding: "3px 10px", borderRadius: 20 }}>Saved</span>
+                )}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Prefix</label>
+                  <input
+                    value={transactionNumber.prefix}
+                    onChange={e => setTransactionNumber(s => ({ ...s, prefix: e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "") }))}
+                    placeholder="TXN"
+                    style={{ width: "100%", padding: "8px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13, boxSizing: "border-box" as const, color: "#111827", fontWeight: 700 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Next Number</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={transactionNumber.nextNumber}
+                    onChange={e => setTransactionNumber(s => ({ ...s, nextNumber: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
+                    style={{ width: "100%", padding: "8px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13, boxSizing: "border-box" as const, color: "#111827" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5 }}>Digits</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={transactionNumber.padding}
+                    onChange={e => setTransactionNumber(s => ({ ...s, padding: Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)) }))}
+                    style={{ width: "100%", padding: "8px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13, boxSizing: "border-box" as const, color: "#111827" }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginTop: 18, padding: "14px 16px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10 }}>
+                <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" }}>Preview</p>
+                <p style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "#0f2170", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
+                  {formatTransactionNumber(transactionNumber)}
+                </p>
+              </div>
+
+              <button onClick={saveTransactionNumberSettings}
+                style={{ marginTop: 20, display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 22px", background: "#0f2170", color: "#fff", border: "none", borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                <Save size={14} />Save Transaction Number
               </button>
             </div>
           </div>

@@ -546,7 +546,15 @@ function A4Invoice({ invoice, fmt }: { invoice: Invoice; fmt: (n: number) => str
   )
 }
 
-function OfficeBillingTab({ app, onApplicationUpdated }: { app: any; onApplicationUpdated?: (updated: any) => void }) {
+function OfficeBillingTab({
+  app,
+  onApplicationUpdated,
+  onPaymentConfirmed,
+}: {
+  app: any
+  onApplicationUpdated?: (updated: any) => void
+  onPaymentConfirmed?: (updated: any) => void
+}) {
   const billing = loadApplicationBilling(app.id ?? 0)
   const [invoice, setInvoice] = React.useState<Invoice | null>(() => loadInvoiceByApp(app.id ?? 0))
   const [showPaidForm, setShowPaidForm] = React.useState(false)
@@ -578,6 +586,7 @@ function OfficeBillingTab({ app, onApplicationUpdated }: { app: any; onApplicati
         const updated = { ...app, status: "AUDIT_SCHEDULED" as ApplicationStatus, paymentStatus: "PAID", paymentPaidAt: now }
         localStorage.setItem("hcs_local_applications", JSON.stringify(all.map((la: any) => String(la.id) === String(app.id) ? { ...la, ...updated } : la)))
         onApplicationUpdated?.(updated)
+        onPaymentConfirmed?.(updated)
       } else {
         const saved = await confirmApplicationPayment(Number(app.id), {
           method: "BANK_TRANSFER",
@@ -585,7 +594,9 @@ function OfficeBillingTab({ app, onApplicationUpdated }: { app: any; onApplicati
           amount: invoice?.total,
           currency: invoice?.currency,
         })
-        onApplicationUpdated?.(hydrateApplication({ ...app, ...saved }))
+        const updated = hydrateApplication({ ...app, ...saved })
+        onApplicationUpdated?.(updated)
+        onPaymentConfirmed?.(updated)
       }
 
       updatePaymentEvidence(app.id ?? 0, id, { status: "ACCEPTED", reviewedAt: now })
@@ -622,10 +633,33 @@ function OfficeBillingTab({ app, onApplicationUpdated }: { app: any; onApplicati
     const u: Invoice = { ...invoice, status: s }
     saveInvoice(u); setInvoice(u)
   }
-  function handleMarkPaid() {
+  async function handleMarkPaid() {
     if (!invoice) return
-    const u: Invoice = { ...invoice, status: "PAID", paymentMethod: paidMethod as Invoice["paymentMethod"], paymentReference: paidRef, paymentDate: new Date().toISOString() }
+    const now = new Date().toISOString()
+    const u: Invoice = { ...invoice, status: "PAID", paymentMethod: paidMethod as Invoice["paymentMethod"], paymentReference: paidRef, paymentDate: now }
     saveInvoice(u); setInvoice(u); setShowPaidForm(false)
+    try {
+      if ((app as any)._local) {
+        const all = JSON.parse(localStorage.getItem("hcs_local_applications") || "[]")
+        const updated = { ...app, status: "AUDIT_SCHEDULED" as ApplicationStatus, paymentStatus: "PAID", paymentPaidAt: now }
+        localStorage.setItem("hcs_local_applications", JSON.stringify(all.map((la: any) => String(la.id) === String(app.id) ? { ...la, ...updated } : la)))
+        onApplicationUpdated?.(updated)
+        onPaymentConfirmed?.(updated)
+      } else {
+        const saved = await confirmApplicationPayment(Number(app.id), {
+          method: paidMethod,
+          reference: paidRef,
+          amount: invoice.total,
+          currency: invoice.currency,
+        })
+        const updated = hydrateApplication({ ...app, ...saved })
+        onApplicationUpdated?.(updated)
+        onPaymentConfirmed?.(updated)
+      }
+    } catch (error) {
+      console.error("Failed to update application after manual payment", error)
+      alert("Payment was marked paid locally, but the application stage could not be updated. Please try again.")
+    }
   }
 
   const sym = billing?.currency ?? ""
@@ -1003,6 +1037,7 @@ function AuditPlanTab({ app }: { app:any }) {
   const [saveError, setSaveError] = useState("")
   const [savingPlan, setSavingPlan] = useState(false)
   const [teamModalOpen, setTeamModalOpen] = useState(false)
+  const [datePromptOpen, setDatePromptOpen] = useState(() => app.status === "AUDIT_SCHEDULED" && !existingPlan.startDate && !existingPlan.plannedDate)
   const auditorQ = useQuery({
     queryKey: ["audit-plan-staff", "AUDITOR"],
     queryFn: () => getMgmtUsers({ page: 0, size: 200, filterByRole: "AUDITOR" }),
@@ -1030,6 +1065,7 @@ function AuditPlanTab({ app }: { app:any }) {
     retry: false,
   })
   const datesReady = !!startDate && !!endDate
+  const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate())
   const goNextMonth = () => {
     if (!canGoNext) return
     setVisibleMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))
@@ -1076,6 +1112,22 @@ function AuditPlanTab({ app }: { app:any }) {
     setShariaAuditorId("")
     setSaveError("")
     setTeamModalOpen(false)
+    setDatePromptOpen(true)
+  }
+  const continueFromDatePrompt = () => {
+    if (!startDate || !endDate) {
+      setSaveError("Choose the audit start date and end date first.")
+      return
+    }
+    if (endDate < startDate) {
+      setSaveError("Audit end date cannot be before the start date.")
+      return
+    }
+    const start = new Date(startDate)
+    setVisibleMonth(new Date(start.getFullYear(), start.getMonth(), 1))
+    setSaveError("")
+    setDatePromptOpen(false)
+    setTeamModalOpen(true)
   }
   const savePlan = async () => {
     if (!canUseDatabasePlan) {
@@ -1256,6 +1308,59 @@ function AuditPlanTab({ app }: { app:any }) {
         </div>
       </div>
       </div>
+      {datePromptOpen && !datesReady && (
+        <div style={{ position:"fixed", inset:0, zIndex:9998, background:"rgba(15,23,42,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:18 }}>
+          <div style={{ width:"min(460px, 96vw)", background:"#fff", borderRadius:12, boxShadow:"0 24px 70px rgba(15,23,42,0.32)", border:"1px solid #dbeafe", overflow:"hidden", fontFamily:F }}>
+            <div style={{ padding:"16px 18px", borderBottom:"1px solid #e2e8f0", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+              <div>
+                <p style={{ margin:0, fontSize:"1rem", fontWeight:800, color:DARK }}>Choose audit dates</p>
+                <p style={{ margin:"5px 0 0", fontSize:"0.76rem", fontWeight:500, color:"#64748b" }}>
+                  Payment is confirmed. Select the audit start and end date to continue.
+                </p>
+              </div>
+              <button onClick={() => setDatePromptOpen(false)}
+                style={{ width:30, height:30, borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"#64748b" }}>
+                <X size={15} />
+              </button>
+            </div>
+            <div style={{ padding:"18px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+              <div>
+                <label style={{ display:"block", fontSize:"0.68rem", fontWeight:800, color:"#64748b", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>Start date</label>
+                <input
+                  type="date"
+                  min={todayKey}
+                  value={startDate}
+                  onChange={e => {
+                    setStartDate(e.target.value)
+                    if (endDate && e.target.value && endDate < e.target.value) setEndDate(e.target.value)
+                  }}
+                  style={{ width:"100%", height:36, padding:"0 10px", border:"1px solid #cbd5e1", borderRadius:8, color:DARK, fontSize:"0.82rem", fontFamily:F, boxSizing:"border-box" }}
+                />
+              </div>
+              <div>
+                <label style={{ display:"block", fontSize:"0.68rem", fontWeight:800, color:"#64748b", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>End date</label>
+                <input
+                  type="date"
+                  min={startDate || todayKey}
+                  value={endDate}
+                  onChange={e => setEndDate(e.target.value)}
+                  style={{ width:"100%", height:36, padding:"0 10px", border:"1px solid #cbd5e1", borderRadius:8, color:DARK, fontSize:"0.82rem", fontFamily:F, boxSizing:"border-box" }}
+                />
+              </div>
+            </div>
+            <div style={{ padding:"12px 18px", borderTop:"1px solid #e2e8f0", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, background:"#f8fafc" }}>
+              <button onClick={() => setDatePromptOpen(false)}
+                style={{ height:34, padding:"0 13px", borderRadius:8, border:"1px solid #cbd5e1", background:"#fff", color:"#475569", fontSize:"0.74rem", fontWeight:600, cursor:"pointer", fontFamily:F }}>
+                Later
+              </button>
+              <button onClick={continueFromDatePrompt}
+                style={{ height:34, padding:"0 18px", borderRadius:8, border:"none", background:BLUE, color:"#fff", fontSize:"0.76rem", fontWeight:800, cursor:"pointer", fontFamily:F }}>
+                Continue to Audit Team
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {teamModalOpen && datesReady && (
         <div style={{ position:"fixed", inset:0, zIndex:9999, background:"rgba(15,23,42,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:18 }}>
           <div style={{ width:"min(500px, 96vw)", background:"#fff", borderRadius:12, boxShadow:"0 24px 70px rgba(15,23,42,0.32)", border:"1px solid #dbeafe", overflow:"hidden", fontFamily:F }}>
@@ -3243,7 +3348,15 @@ export default function ApplicationsPage() {
 
       return <PlaceholderTab icon="" label="Agreement" />
     })(),
-    "Billing":        <OfficeBillingTab app={a} onApplicationUpdated={(updated) => { setViewApp(updated); refetch() }} />,
+    "Billing":        <OfficeBillingTab
+      app={a}
+      onApplicationUpdated={(updated) => { setViewApp(updated); refetch() }}
+      onPaymentConfirmed={(updated) => {
+        setViewApp(updated)
+        setAppTab("Audit plan")
+        refetch()
+      }}
+    />,
     "Audit plan":     <AuditPlanTab app={a} />,
     "Documents":      <OfficeDocumentsTab app={a} />,
     "Audit":          <AuditChecklistTab app={a} />,
