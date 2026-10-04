@@ -1114,21 +1114,6 @@ function AuditPlanTab({ app }: { app:any }) {
     setTeamModalOpen(false)
     setDatePromptOpen(true)
   }
-  const continueFromDatePrompt = () => {
-    if (!startDate || !endDate) {
-      setSaveError("Choose the audit start date and end date first.")
-      return
-    }
-    if (endDate < startDate) {
-      setSaveError("Audit end date cannot be before the start date.")
-      return
-    }
-    const start = new Date(startDate)
-    setVisibleMonth(new Date(start.getFullYear(), start.getMonth(), 1))
-    setSaveError("")
-    setDatePromptOpen(false)
-    setTeamModalOpen(true)
-  }
   const savePlan = async () => {
     if (!canUseDatabasePlan) {
       setSaveError("This application is still local. Submit/create it in the database before saving an audit plan.")
@@ -1139,13 +1124,14 @@ function AuditPlanTab({ app }: { app:any }) {
     const now = new Date().toISOString()
     try {
       await saveAuditPlanApi(numericApplicationId, {
-        auditorId: leadAuditorId || undefined,
+        auditorId: undefined,
         auditorName: leadAuditor?.name || undefined,
         scheduledDate: startDate || undefined,
         durationDays: startDate && endDate ? Math.max(1, Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) + 1) : 1,
         scope: [
           app.companyName ? `Company: ${app.companyName}` : "",
           endDate ? `Audit window: ${startDate} to ${endDate}` : startDate ? `Audit date: ${startDate}` : "",
+          leadAuditor?.name ? `Lead auditor: ${leadAuditor.name}` : "",
           shariaAuditor?.name ? `Sharia auditor: ${shariaAuditor.name}` : "",
         ].filter(Boolean).join("\n"),
         status: "DRAFT",
@@ -1310,12 +1296,12 @@ function AuditPlanTab({ app }: { app:any }) {
       </div>
       {datePromptOpen && !datesReady && (
         <div style={{ position:"fixed", inset:0, zIndex:9998, background:"rgba(15,23,42,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:18 }}>
-          <div style={{ width:"min(460px, 96vw)", background:"#fff", borderRadius:12, boxShadow:"0 24px 70px rgba(15,23,42,0.32)", border:"1px solid #dbeafe", overflow:"hidden", fontFamily:F }}>
+          <div style={{ width:"min(430px, 96vw)", background:"#fff", borderRadius:12, boxShadow:"0 24px 70px rgba(15,23,42,0.32)", border:"1px solid #dbeafe", overflow:"hidden", fontFamily:F }}>
             <div style={{ padding:"16px 18px", borderBottom:"1px solid #e2e8f0", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
               <div>
                 <p style={{ margin:0, fontSize:"1rem", fontWeight:800, color:DARK }}>Choose audit dates</p>
                 <p style={{ margin:"5px 0 0", fontSize:"0.76rem", fontWeight:500, color:"#64748b" }}>
-                  Payment is confirmed. Select the audit start and end date to continue.
+                  Payment is confirmed. Use the calendar to select the audit start date, then select the audit end date.
                 </p>
               </div>
               <button onClick={() => setDatePromptOpen(false)}
@@ -1323,29 +1309,15 @@ function AuditPlanTab({ app }: { app:any }) {
                 <X size={15} />
               </button>
             </div>
-            <div style={{ padding:"18px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-              <div>
-                <label style={{ display:"block", fontSize:"0.68rem", fontWeight:800, color:"#64748b", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>Start date</label>
-                <input
-                  type="date"
-                  min={todayKey}
-                  value={startDate}
-                  onChange={e => {
-                    setStartDate(e.target.value)
-                    if (endDate && e.target.value && endDate < e.target.value) setEndDate(e.target.value)
-                  }}
-                  style={{ width:"100%", height:36, padding:"0 10px", border:"1px solid #cbd5e1", borderRadius:8, color:DARK, fontSize:"0.82rem", fontFamily:F, boxSizing:"border-box" }}
-                />
-              </div>
-              <div>
-                <label style={{ display:"block", fontSize:"0.68rem", fontWeight:800, color:"#64748b", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>End date</label>
-                <input
-                  type="date"
-                  min={startDate || todayKey}
-                  value={endDate}
-                  onChange={e => setEndDate(e.target.value)}
-                  style={{ width:"100%", height:36, padding:"0 10px", border:"1px solid #cbd5e1", borderRadius:8, color:DARK, fontSize:"0.82rem", fontFamily:F, boxSizing:"border-box" }}
-                />
+            <div style={{ padding:"18px" }}>
+              <div style={{ display:"flex", gap:12, padding:"14px", border:"1px solid #bfdbfe", background:"#eff6ff", borderRadius:10 }}>
+                <CalendarDays size={20} color={BLUE} style={{ flexShrink:0, marginTop:2 }} />
+                <div>
+                  <p style={{ margin:"0 0 6px", fontSize:"0.84rem", fontWeight:800, color:DARK }}>Select dates from the calendar</p>
+                  <p style={{ margin:0, fontSize:"0.76rem", lineHeight:1.55, color:"#475569" }}>
+                    First click the audit start date. Then click the audit end date. After that, the employee selection popup will open automatically.
+                  </p>
+                </div>
               </div>
             </div>
             <div style={{ padding:"12px 18px", borderTop:"1px solid #e2e8f0", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, background:"#f8fafc" }}>
@@ -1353,9 +1325,9 @@ function AuditPlanTab({ app }: { app:any }) {
                 style={{ height:34, padding:"0 13px", borderRadius:8, border:"1px solid #cbd5e1", background:"#fff", color:"#475569", fontSize:"0.74rem", fontWeight:600, cursor:"pointer", fontFamily:F }}>
                 Later
               </button>
-              <button onClick={continueFromDatePrompt}
+              <button onClick={() => setDatePromptOpen(false)}
                 style={{ height:34, padding:"0 18px", borderRadius:8, border:"none", background:BLUE, color:"#fff", fontSize:"0.76rem", fontWeight:800, cursor:"pointer", fontFamily:F }}>
-                Continue to Audit Team
+                Choose on Calendar
               </button>
             </div>
           </div>
