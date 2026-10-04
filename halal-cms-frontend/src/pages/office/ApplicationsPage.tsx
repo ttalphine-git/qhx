@@ -3352,7 +3352,7 @@ export default function ApplicationsPage() {
           <table style={{ width:"100%", borderCollapse:"collapse", fontFamily:F }}>
             <thead>
               <tr style={{ borderBottom:`1px solid ${C.border}`, background:"#fafbfc" }}>
-                {["App #","Company","Type","Status","Country","Factory Location","Standard","Products","Submitted","Updated","Auditor","Approved By","Progress"].map(h => (
+                {["App #","Company","Contact","Type","Status","Country","Factory Location","Standard","Products","Total Price","Submitted","Updated","Auditor","Approved By","Progress"].map(h => (
                   <th key={h} style={{ padding:"13px 14px", textAlign:"left", fontSize:"0.64rem", fontWeight:700, color:C.muted, letterSpacing:"0.06em", textTransform:"uppercase", whiteSpace:"nowrap", fontFamily:F }}>{h}</th>
                 ))}
               </tr>
@@ -3361,16 +3361,16 @@ export default function ApplicationsPage() {
               {isLoading ? (
                 Array.from({ length: 8 }).map((_,i) => (
                   <tr key={i} style={{ borderBottom:`1px solid ${C.border}` }}>
-                    {Array.from({ length: 14 }).map((_,j) => (
+                    {Array.from({ length: 15 }).map((_,j) => (
                       <td key={j} style={{ padding:"14px 14px" }}>
-                        <div className="animate-pulse" style={{ height:12, borderRadius:4, background:"#f0f0f0", width: j===13?50:"75%" }} />
+                        <div className="animate-pulse" style={{ height:12, borderRadius:4, background:"#f0f0f0", width: j===14?50:"75%" }} />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : applications.length === 0 ? (
                 <tr>
-                  <td colSpan={13} style={{ padding:"60px 20px", textAlign:"center" }}>
+                  <td colSpan={15} style={{ padding:"60px 20px", textAlign:"center" }}>
                     <FileText style={{ width:34, height:34, margin:"0 auto 10px", display:"block", color:"#d1d5db" }} />
                     <p style={{ margin:0, fontSize:"0.8rem", fontWeight:600, color:C.muted, fontFamily:F }}>No applications found</p>
                     <p style={{ margin:"4px 0 0", fontSize:"0.7rem", color:"#9ca3af", fontFamily:F }}>Try adjusting your search or filters</p>
@@ -3378,9 +3378,16 @@ export default function ApplicationsPage() {
                 </tr>
               ) : (
                 applications.map(app => {
+                  const rowApp = hydrateApplication(app)
                   const isLoc = (app as any)._local
                   const isSelected = viewApp?.id === app.id
-                  const flow = STATUS_FLOW[app.status] ?? { done: app.status, upcoming: "-" }
+                  const flow = STATUS_FLOW[rowApp.status] ?? { done: rowApp.status, upcoming: "-" }
+                  const rowInvoice = loadInvoiceByApp(rowApp.id)
+                  const rowBilling = loadApplicationBilling(rowApp.id)
+                  const rowCurrency = rowInvoice?.currency ?? rowBilling?.currency ?? ""
+                  const rowTotal = rowInvoice?.total ?? rowBilling?.total
+                  const contactEmail = rowApp.companyEmail || rowApp.snapshotProfile?.email || "-"
+                  const contactPhone = rowApp.companyPhone || rowApp.snapshotProfile?.phone || "-"
                   return (
                     <tr key={app.id} onClick={() => selectApp(app)}
                       style={{ borderBottom:`1px solid ${C.border}`, borderLeft: isSelected?`3px solid ${BLUE}`:"3px solid transparent", background: isSelected?"#eff6ff":"transparent", cursor:"pointer", transition:"background 0.12s" }}
@@ -3393,17 +3400,17 @@ export default function ApplicationsPage() {
                         </div>
                       </td>
                       <td style={{ padding:"13px 14px", minWidth:200 }}><span style={{ fontSize:"0.78rem", fontWeight:600, color:C.textDark, fontFamily:F }}>{app.companyName}</span></td>
+                      <td style={{ padding:"13px 14px", minWidth:170 }}>
+                        <div style={{ display:"flex", flexDirection:"column", gap:3, maxWidth:190 }}>
+                          <span style={{ fontSize:"0.7rem", fontWeight:600, color: contactEmail === "-" ? "#cbd5e1" : C.textDark, fontFamily:F, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }} title={contactEmail}>{contactEmail}</span>
+                          <span style={{ fontSize:"0.68rem", color: contactPhone === "-" ? "#cbd5e1" : C.muted, fontFamily:F, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }} title={contactPhone}>{contactPhone}</span>
+                        </div>
+                      </td>
                       <td style={{ padding:"13px 14px" }}><span style={{ fontSize:"0.7rem", padding:"2px 8px", borderRadius:20, background:"#f3f4f6", color:C.muted, fontFamily:F, fontWeight:500, whiteSpace:"nowrap" }}>{app.type}</span></td>
                       <td style={{ padding:"13px 14px" }}>
-                        <div style={{ display:"flex", alignItems:"center", gap:12, whiteSpace:"nowrap" }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:5 }}>
-                            <span style={{ fontSize:"0.62rem", fontWeight:700, color:"#16a34a" }}></span>
-                            <span style={{ fontSize:"0.68rem", fontWeight:600, color:"#374151", fontFamily:F }}>{flow.done}</span>
-                          </div>
-                          <div style={{ display:"flex", alignItems:"center", gap:5 }}>
-                            <span style={{ fontSize:"0.62rem", fontWeight:700, color:BLUE }}></span>
-                            <span style={{ fontSize:"0.68rem", fontWeight:600, color:BLUE, fontFamily:F }}>{flow.upcoming}</span>
-                          </div>
+                        <div style={{ display:"flex", flexDirection:"column", gap:4, minWidth:165 }}>
+                          <span style={{ fontSize:"0.68rem", fontWeight:700, color:"#374151", fontFamily:F, lineHeight:1.25 }}>{flow.done}</span>
+                          <span style={{ fontSize:"0.67rem", fontWeight:700, color:BLUE, fontFamily:F, lineHeight:1.25, paddingTop:4, borderTop:"1px solid #e2e8f0" }}>{flow.upcoming}</span>
                         </div>
                       </td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F }}>{app.country ?? "-"}</td>
@@ -3413,6 +3420,9 @@ export default function ApplicationsPage() {
                         <span style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", minWidth:24, height:22, padding:"0 8px", borderRadius:20, background:"#eef2ff", color:"#3730a3", fontSize:"0.7rem", fontWeight:700, fontFamily:F }}>
                           {app.productCount ?? 0}
                         </span>
+                      </td>
+                      <td style={{ padding:"13px 14px", fontSize:"0.74rem", color: typeof rowTotal === "number" ? C.textDark : "#cbd5e1", fontWeight:700, fontFamily:F, whiteSpace:"nowrap" }}>
+                        {typeof rowTotal === "number" ? `${rowCurrency} ${rowTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
                       </td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F, whiteSpace:"nowrap" }}>{app.submittedAt ? formatDate(app.submittedAt) : "-"}</td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F, whiteSpace:"nowrap" }}>{app.updatedAt ? formatDate(app.updatedAt) : "-"}</td>
@@ -3446,7 +3456,7 @@ export default function ApplicationsPage() {
               )}
               {applications.length > 0 && Array.from({ length: Math.max(0, 8 - applications.length) }).map((_, i) => (
                 <tr key={`empty-${i}`} style={{ borderBottom: "1px solid #f1f5f9", height: 55 }}>
-                  <td colSpan={13} style={{ padding: "13px 14px", background: "transparent" }}></td>
+                  <td colSpan={15} style={{ padding: "13px 14px", background: "transparent" }}></td>
                 </tr>
               ))}
             </tbody>
