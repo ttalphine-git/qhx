@@ -1092,6 +1092,50 @@ function CustomerAuditInfo({ label, value }: { label:string; value:React.ReactNo
   )
 }
 
+function CustomerAuditDateCell({ app }: { app:any }) {
+  const numericApplicationId = Number(app.id)
+  const canUseDatabasePlan = Number.isFinite(numericApplicationId) && !(app as any)._local
+  const auditPlanQ = useQuery({
+    queryKey: ["audit-plan", numericApplicationId],
+    queryFn: () => getAuditPlan(numericApplicationId),
+    enabled: canUseDatabasePlan,
+    retry: false,
+  })
+  const localPlan = ls<any>(`hcs_audit_plan_${app.id}`, {})
+  const plan = auditPlanQ.data
+  const startDate = plan?.scheduledDate || localPlan.startDate || localPlan.plannedDate || ""
+  const durationDays = Math.max(1, plan?.durationDays || localPlan.durationDays || 1)
+  const endDate = startDate
+    ? (() => {
+        const end = new Date(startDate)
+        end.setDate(end.getDate() + durationDays - 1)
+        return dateKey(end.getFullYear(), end.getMonth(), end.getDate())
+      })()
+    : ""
+
+  if (auditPlanQ.isLoading) {
+    return <span style={{ fontSize:"0.68rem", color:"#94a3b8", fontWeight:700 }}>Loading</span>
+  }
+
+  if (!startDate) {
+    return <span style={{ fontSize:"0.69rem", color:"#cbd5e1", fontFamily:F }}>-</span>
+  }
+
+  const dateText = endDate && endDate !== startDate
+    ? `${formatDate(startDate)} - ${formatDate(endDate)}`
+    : formatDate(startDate)
+
+  return (
+    <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 9px", borderRadius:8, background:"#dcfce7", border:"1px solid #86efac", color:"#166534", boxShadow:"inset 3px 0 0 #16a34a", whiteSpace:"nowrap" }}>
+      <CalendarDays size={13} color="#15803d" />
+      <div style={{ display:"flex", flexDirection:"column", gap:1 }}>
+        <span style={{ fontSize:"0.58rem", fontWeight:900, letterSpacing:"0.06em", textTransform:"uppercase" as const }}>HCB audit</span>
+        <span style={{ fontSize:"0.7rem", fontWeight:900 }}>{dateText}</span>
+      </div>
+    </div>
+  )
+}
+
 function dateKey(year:number, month:number, day:number) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
 }
@@ -2240,7 +2284,7 @@ export default function CustomerApplicationsPage() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead style={{ position: "sticky", top: 0, background: "#fafbfc", zIndex: 1 }}>
                 <tr style={{ borderBottom: "2px solid #e9ecef", background: "#fafbfc" }}>
-                {["App #", "Submitted", "Company", "Type", "Location", "Standard", "Products", "Status", "Total", "Updated", "Progress", "-"].map(h => (
+                {["App #", "Submitted", "Company", "Type", "Location", "Standard", "Products", "Status", "Audit Date", "Total", "Updated", "Progress", "-"].map(h => (
                   <th key={h} style={{ padding: "9px 16px", textAlign: "left", fontSize: "0.62rem", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.07em", textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>{h}</th>
                 ))}
               </tr>
@@ -2248,7 +2292,7 @@ export default function CustomerApplicationsPage() {
             <tbody>
               {!isLoading && apps.length === 0 ? (
                 <tr>
-                  <td colSpan={12} style={{ padding: "60px 20px", textAlign: "center" }}>
+                  <td colSpan={13} style={{ padding: "60px 20px", textAlign: "center" }}>
                     <FileText size={28} color="#cbd5e1" style={{ margin: "0 auto 12px", display: "block" }} />
                     <p style={{ margin: 0, fontSize: "0.9rem", fontWeight: 700, color: "#334155" }}>No applications yet</p>
                     <button onClick={() => navigate("/customer/factories")}
@@ -2303,6 +2347,9 @@ export default function CustomerApplicationsPage() {
                         <div style={{ display:"flex", alignItems:"center", gap:4, fontSize: "0.63rem", color: "#d97706", fontWeight: 700, marginTop: 4 }}><Zap size={10} color="#d97706" strokeWidth={2.5} /> Signature required</div>
                       )}
                     </td>
+                    <td style={{ padding: "9px 16px", background:["DOCUMENT_SUBMISSION","AUDIT_IN_PROGRESS","AUDIT_COMPLETED","NC_CLEARANCE","DECISION_MAKING","CERTIFICATION_REVIEW","CERTIFIED"].includes(app.status) ? "#f0fdf4" : "transparent" }}>
+                      <CustomerAuditDateCell app={app} />
+                    </td>
                     <td style={{ padding: "11px 16px", whiteSpace: "nowrap" as const }}>
                       {billTotal != null
                         ? <span style={{ fontSize:"0.78rem", fontWeight:700, color:"#0f172a", fontFamily:F }}>{billCur} {billTotal.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}</span>
@@ -2346,7 +2393,7 @@ export default function CustomerApplicationsPage() {
               })}
               {apps.length > 0 && Array.from({ length: Math.max(0, 8 - apps.length) }).map((_, i) => (
                 <tr key={`empty-${i}`} style={{ borderBottom: "1px solid #f1f5f9", height: 55 }}>
-                  <td colSpan={12} style={{ padding: "11px 16px", background: "transparent" }}></td>
+                  <td colSpan={13} style={{ padding: "11px 16px", background: "transparent" }}></td>
                 </tr>
               ))}
             </tbody>
