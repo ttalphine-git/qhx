@@ -2095,6 +2095,16 @@ function AuditChecklistTab({ app }: { app:any }) {
                                         ))}
                                       </div>
                                     )}
+                                    <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", gap:8, marginTop:12, paddingTop:12, borderTop:"1px solid #e2e8f0" }}>
+                                      <button
+                                        type="button"
+                                        onClick={saveReport}
+                                        disabled={saving}
+                                        style={{ height:34, padding:"0 16px", border:"none", borderRadius:7, background:record.finding === "nc" ? "#dc2626" : "#d97706", color:"#fff", cursor:saving ? "not-allowed" : "pointer", opacity:saving ? 0.65 : 1, fontSize:13, fontWeight:800, fontFamily:F }}
+                                      >
+                                        {saving ? "Saving..." : record.finding === "nc" ? "Save NC" : "Save Observation"}
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               )}
