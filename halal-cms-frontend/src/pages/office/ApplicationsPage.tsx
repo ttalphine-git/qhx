@@ -11,7 +11,7 @@ import {
 import OfficeLayout from "./OfficeLayout"
 import "@/styles/audit.css"
 import { NcsTab } from "@/components/NcsTab"
-import { getApplications, getCompanyInfo, updateApplicationStatus } from "@/api/applications"
+import { confirmApplicationPayment, getApplications, getCompanyInfo, updateApplicationStatus } from "@/api/applications"
 import {
   getApplicationAuditReport,
   getAuditPlan,
@@ -546,7 +546,7 @@ function A4Invoice({ invoice, fmt }: { invoice: Invoice; fmt: (n: number) => str
   )
 }
 
-function OfficeBillingTab({ app }: { app: any }) {
+function OfficeBillingTab({ app, onApplicationUpdated }: { app: any; onApplicationUpdated?: (updated: any) => void }) {
   const billing = loadApplicationBilling(app.id ?? 0)
   const [invoice, setInvoice] = React.useState<Invoice | null>(() => loadInvoiceByApp(app.id ?? 0))
   const [showPaidForm, setShowPaidForm] = React.useState(false)
@@ -556,21 +556,52 @@ function OfficeBillingTab({ app }: { app: any }) {
   const [rejectId, setRejectId]       = React.useState<string | null>(null)
   const [rejectNote, setRejectNote]   = React.useState("")
   const [previewEv, setPreviewEv]     = React.useState<{ base64: string; name: string; isImg: boolean } | null>(null)
+  const [confirmAcceptId, setConfirmAcceptId] = React.useState<string | null>(null)
+  const [acceptingPayment, setAcceptingPayment] = React.useState(false)
 
   React.useEffect(() => {
     setInvoice(loadInvoiceByApp(app.id ?? 0))
     setEvidences(loadPaymentEvidences(app.id ?? 0))
-    setShowPaidForm(false); setPaidRef(""); setRejectId(null)
+    setShowPaidForm(false); setPaidRef(""); setRejectId(null); setConfirmAcceptId(null)
   }, [app.id])
 
-  function acceptEvidence(id: string) {
-    updatePaymentEvidence(app.id ?? 0, id, { status: "ACCEPTED", reviewedAt: new Date().toISOString() })
-    setEvidences(loadPaymentEvidences(app.id ?? 0))
-    // Mark invoice as paid when evidence is accepted
-    if (invoice && invoice.status !== "PAID") {
+  async function confirmEvidencePayment() {
+    if (!confirmAcceptId || acceptingPayment) return
+    setAcceptingPayment(true)
+    try {
+      const id = confirmAcceptId
+      const now = new Date().toISOString()
       const ev = loadPaymentEvidences(app.id ?? 0).find(e => e.id === id)
-      const paid: Invoice = { ...invoice, status: "PAID", paymentMethod: "BANK_TRANSFER", paymentReference: ev?.transactionRef ?? "", paymentDate: new Date().toISOString() }
-      saveInvoice(paid); setInvoice(paid)
+
+      if ((app as any)._local) {
+        const all = JSON.parse(localStorage.getItem("hcs_local_applications") || "[]")
+        const updated = { ...app, status: "AUDIT_SCHEDULED" as ApplicationStatus, paymentStatus: "PAID", paymentPaidAt: now }
+        localStorage.setItem("hcs_local_applications", JSON.stringify(all.map((la: any) => String(la.id) === String(app.id) ? { ...la, ...updated } : la)))
+        onApplicationUpdated?.(updated)
+      } else {
+        const saved = await confirmApplicationPayment(Number(app.id), {
+          method: "BANK_TRANSFER",
+          reference: ev?.transactionRef ?? invoice?.paymentReference ?? "",
+          amount: invoice?.total,
+          currency: invoice?.currency,
+        })
+        onApplicationUpdated?.(hydrateApplication({ ...app, ...saved }))
+      }
+
+      updatePaymentEvidence(app.id ?? 0, id, { status: "ACCEPTED", reviewedAt: now })
+      setEvidences(loadPaymentEvidences(app.id ?? 0))
+
+      if (invoice) {
+        const paid: Invoice = { ...invoice, status: "PAID", paymentMethod: "BANK_TRANSFER", paymentReference: ev?.transactionRef ?? "", paymentDate: now }
+        saveInvoice(paid); setInvoice(paid)
+      }
+
+      setConfirmAcceptId(null)
+    } catch (error) {
+      console.error("Failed to confirm payment", error)
+      alert("Failed to confirm payment. Please try again.")
+    } finally {
+      setAcceptingPayment(false)
     }
   }
   function rejectEvidence(id: string) {
@@ -740,7 +771,7 @@ function OfficeBillingTab({ app }: { app: any }) {
                     {/* Accept / Reject actions for PENDING */}
                     {isPend && rejectId !== ev.id && (
                       <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
-                        <button onClick={() => acceptEvidence(ev.id)}
+                        <button onClick={() => setConfirmAcceptId(ev.id)}
                           style={{ flex: 1, padding: "7px 0", background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                           Accept
                         </button>
@@ -797,6 +828,24 @@ function OfficeBillingTab({ app }: { app: any }) {
               ? <img src={previewEv.base64} alt={previewEv.name} style={{ maxWidth:"100%", maxHeight:"82vh", objectFit:"contain", display:"block" }} />
               : <iframe src={previewEv.base64} title={previewEv.name} style={{ width:"100%", height:"80vh", border:"none", display:"block" }} />
             }
+          </div>
+        </div>
+      </div>
+    )}
+    {confirmAcceptId && (
+      <div style={{ position:"fixed", inset:0, zIndex:99999, background:"rgba(15,23,42,0.55)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+        <div style={{ width:"min(420px, 100%)", background:"#fff", border:"1px solid #e2e8f0", borderRadius:12, boxShadow:"0 24px 64px rgba(0,0,0,0.28)", padding:22 }}>
+          <p style={{ margin:"0 0 8px", fontSize:16, fontWeight:800, color:"#0f172a", fontFamily:F }}>Confirm payment done?</p>
+          <p style={{ margin:"0 0 18px", fontSize:13, color:"#64748b", lineHeight:1.5, fontFamily:F }}>This will mark the invoice as paid and move the application to the next stage.</p>
+          <div style={{ display:"flex", justifyContent:"flex-end", gap:10 }}>
+            <button onClick={() => setConfirmAcceptId(null)} disabled={acceptingPayment}
+              style={{ padding:"9px 16px", background:"#fff", border:"1px solid #cbd5e1", borderRadius:8, fontSize:13, fontWeight:700, color:"#475569", cursor:acceptingPayment ? "not-allowed" : "pointer", fontFamily:F }}>
+              Cancel
+            </button>
+            <button onClick={confirmEvidencePayment} disabled={acceptingPayment}
+              style={{ padding:"9px 18px", background:acceptingPayment ? "#86efac" : "#15803d", border:"none", borderRadius:8, fontSize:13, fontWeight:800, color:"#fff", cursor:acceptingPayment ? "wait" : "pointer", fontFamily:F }}>
+              {acceptingPayment ? "Saving..." : "Yes, payment done"}
+            </button>
           </div>
         </div>
       </div>
@@ -3151,7 +3200,7 @@ export default function ApplicationsPage() {
 
       return <PlaceholderTab icon="" label="Agreement" />
     })(),
-    "Billing":        <OfficeBillingTab app={a} />,
+    "Billing":        <OfficeBillingTab app={a} onApplicationUpdated={(updated) => { setViewApp(updated); refetch() }} />,
     "Audit plan":     <AuditPlanTab app={a} />,
     "Documents":      <OfficeDocumentsTab app={a} />,
     "Audit":          <AuditChecklistTab app={a} />,

@@ -30,6 +30,14 @@ export const signApplicationAgreement = (id: number, payload: {
 }) =>
   apiClient.patch<ApplicationResponseDTO>(`/applications/${id}/agreement`, payload).then(r => r.data)
 
+export const confirmApplicationPayment = (id: number, payload: {
+  method?: string
+  reference?: string
+  amount?: number
+  currency?: string
+}) =>
+  apiClient.patch<ApplicationResponseDTO>(`/applications/${id}/payment/confirm`, payload).then(r => r.data)
+
 export const getCompanyInfo = (id: number) =>
   apiClient.get<CompanyInformationDTO>(`/applications/${id}/personal`).then(r => r.data)
 

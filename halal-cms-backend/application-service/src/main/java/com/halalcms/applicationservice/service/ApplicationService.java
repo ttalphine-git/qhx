@@ -6,7 +6,9 @@ import com.halalcms.applicationservice.dto.ApplicationsPageableDTO;
 import com.halalcms.applicationservice.model.Application;
 import com.halalcms.applicationservice.model.ApplicationStatus;
 import com.halalcms.applicationservice.model.ApplicationType;
+import com.halalcms.applicationservice.model.PaymentInfo;
 import com.halalcms.applicationservice.repository.ApplicationRepository;
+import com.halalcms.applicationservice.repository.PaymentInfoRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -38,6 +41,7 @@ public class ApplicationService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private final ApplicationRepository applicationRepository;
+    private final PaymentInfoRepository paymentInfoRepository;
     private final EventLogService eventLogService;
     private final ObjectMapper objectMapper;
 
@@ -213,6 +217,46 @@ public class ApplicationService {
         return toDto(saved);
     }
 
+    public ApplicationResponseDTO confirmPayment(Long id, Map<String, Object> paymentPayload) {
+        Application application = findOrThrow(id);
+        String oldStatus = application.getStatus().name();
+        String reference = asString(paymentPayload.get("reference"));
+        String currency = asString(paymentPayload.get("currency"));
+        BigDecimal amount = asBigDecimal(paymentPayload.get("amount"));
+
+        Map<String, Object> payload = readPayloadJson(application.getPayloadJson());
+        payload.put("paymentStatus", "PAID");
+        payload.put("paymentMethod", asString(paymentPayload.get("method")) != null ? asString(paymentPayload.get("method")) : "BANK_TRANSFER");
+        payload.put("paymentReference", reference);
+        payload.put("paymentPaidAt", LocalDateTime.now().format(FORMATTER));
+
+        application.setPayloadJson(toPayloadJson(payload));
+        application.setStatus(ApplicationStatus.AUDIT_SCHEDULED);
+
+        PaymentInfo paymentInfo = paymentInfoRepository.findByApplicationId(id)
+                .orElseGet(() -> PaymentInfo.builder().applicationId(id).build());
+        paymentInfo.setPaymentRequired(false);
+        paymentInfo.setPaymentStatus("PAID");
+        paymentInfo.setReference(reference);
+        if (currency != null) paymentInfo.setCurrency(currency);
+        if (amount != null) paymentInfo.setAmount(amount);
+        paymentInfoRepository.save(paymentInfo);
+
+        Application saved = applicationRepository.save(application);
+
+        String performedBy = getCurrentUserId();
+        eventLogService.log(
+                saved.getId(),
+                ApplicationStatus.AUDIT_SCHEDULED.name(),
+                "Payment confirmed by HCB",
+                performedBy,
+                oldStatus,
+                ApplicationStatus.AUDIT_SCHEDULED.name()
+        );
+
+        return toDto(saved);
+    }
+
     public void delete(Long id) {
         Application application = findOrThrow(id);
         applicationRepository.delete(application);
@@ -243,6 +287,18 @@ public class ApplicationService {
         } catch (JsonProcessingException e) {
             return new java.util.LinkedHashMap<>();
         }
+    }
+
+    private BigDecimal asBigDecimal(Object value) {
+        if (value instanceof Number number) return BigDecimal.valueOf(number.doubleValue());
+        if (value instanceof String s && !s.isBlank()) {
+            try {
+                return new BigDecimal(s);
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 
     private String getCurrentUserId() {

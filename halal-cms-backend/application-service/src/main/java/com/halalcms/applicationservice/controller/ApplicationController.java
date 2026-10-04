@@ -92,6 +92,13 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.signAgreement(id, payload != null ? payload : Map.of()));
     }
 
+    @PatchMapping("/{id}/payment/confirm")
+    public ResponseEntity<ApplicationResponseDTO> confirmPayment(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+        return ResponseEntity.ok(applicationService.confirmPayment(id, payload != null ? payload : Map.of()));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         applicationService.delete(id);
