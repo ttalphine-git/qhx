@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { ChevronDown, AlertCircle, CheckCircle, Clock, Upload, Send, FileText, Loader } from "lucide-react"
 import toast from "react-hot-toast"
+import apiClient from "@/api/client"
 
 const F = "'Inter', system-ui, sans-serif"
 
@@ -29,8 +30,6 @@ interface NcsTabProps {
   applicationId: number
 }
 
-const API_BASE = "/api"
-
 export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
   const queryClient = useQueryClient()
   const [expandedId, setExpandedId] = useState<number | null>(null)
@@ -45,14 +44,7 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
   // Fetch all NCs for application
   const { data: ncWorkflows = [], isLoading, error } = useQuery({
     queryKey: ["ncs", applicationId],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE}/nc/application/${applicationId}`, {
-        headers: { "Accept": "application/json" },
-        credentials: "include",
-      })
-      if (!res.ok) throw new Error(`Failed to fetch NCs: ${res.status}`)
-      return res.json()
-    },
+    queryFn: () => apiClient.get<NCWorkflowStatus[]>(`/nc/application/${applicationId}`).then(r => r.data),
     enabled: !!applicationId,
   })
 
@@ -61,12 +53,7 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
     queryKey: ["nc-status", activeWorkflowId],
     queryFn: async () => {
       if (!activeWorkflowId) return null
-      const res = await fetch(`${API_BASE}/nc/${activeWorkflowId}/status`, {
-        headers: { "Accept": "application/json" },
-        credentials: "include",
-      })
-      if (!res.ok) throw new Error("Failed to fetch NC status")
-      return res.json()
+      return apiClient.get<NCWorkflowStatus>(`/nc/${activeWorkflowId}/status`).then(r => r.data)
     },
     enabled: !!activeWorkflowId,
   })
@@ -77,19 +64,10 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
       if (!correctiveAction || !dueDate) {
         throw new Error("Please fill in all fields")
       }
-      const res = await fetch(`${API_BASE}/nc/${ncId}/customer-response`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
+      return apiClient.post(`/nc/${ncId}/customer-response`, {
           correctiveAction,
           dueDate,
-        }),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      return res.json()
+      }).then(r => r.data)
     },
     onSuccess: () => {
       toast.success("Corrective action submitted!")
@@ -110,19 +88,10 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
       if (!evidenceText) {
         throw new Error("Please provide evidence description")
       }
-      const res = await fetch(`${API_BASE}/nc/${ncId}/evidence`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
+      return apiClient.post(`/nc/${ncId}/evidence`, {
           evidenceText,
           evidenceFiles: evidenceFiles.map(f => f.name),
-        }),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      return res.json()
+      }).then(r => r.data)
     },
     onSuccess: () => {
       toast.success("Evidence submitted!")
@@ -142,16 +111,7 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
       if (!decision || !feedback) {
         throw new Error("Please provide decision and feedback")
       }
-      const res = await fetch(`${API_BASE}/nc/${ncId}/auditor-review`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ decision, feedback }),
-      })
-      if (!res.ok) throw new Error(`Failed: ${res.status}`)
-      return res.json()
+      return apiClient.post(`/nc/${ncId}/auditor-review`, { decision, feedback }).then(r => r.data)
     },
     onSuccess: () => {
       toast.success("Evidence reviewed!")
