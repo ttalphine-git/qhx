@@ -21,6 +21,7 @@ import {
   loadApplicationBilling, saveApplicationBilling, loadInvoiceByApp,
   invoiceStatusStyle, formatInvoiceDate, loadStripeConfig, downloadInvoicePDF,
   loadPaymentEvidences, addPaymentEvidence, type Invoice, type PaymentEvidence,
+  loadAuditDatePreference, saveAuditDatePreference,
 } from "@/lib/billing"
 import { loadPricing } from "@/lib/pricing"
 
@@ -342,7 +343,7 @@ function ProductCard({ p, i, fac }: { p:any; i:number; fac:any }) {
   )
 }
 
-function BillingTab({ app }: { app: any }) {
+function BillingTab({ app, onPaymentUploaded }: { app: any; onPaymentUploaded?: () => void }) {
   const [billing, setBilling] = React.useState(() => loadApplicationBilling(app.id ?? 0))
   const [invoice, setInvoice] = React.useState<Invoice | null>(() => loadInvoiceByApp(app.id ?? 0))
   const stripeConfig = loadStripeConfig()
@@ -400,6 +401,7 @@ function BillingTab({ app }: { app: any }) {
     setEvidences(loadPaymentEvidences(app.id ?? 0))
     setNewFile(null); setNewName("")
     addNotification("office", { type: "info", title: "Payment Evidence Uploaded", body: "Customer uploaded evidence: " + added.fileName })
+    onPaymentUploaded?.()
   }
 
   const source   = invoice && invoice.status !== "CANCELLED" ? invoice : null
@@ -894,28 +896,58 @@ function CustomerDocumentsTab({ app }: { app:any }) {
 function CustomerAuditPlanTab({ app }: { app:any }) {
   const today = new Date()
   const savedPlan = ls<any>(`hcs_audit_plan_${app.id}`, {})
-  const initialMonth = savedPlan.calendarMonth ? new Date(savedPlan.calendarMonth) : new Date(today.getFullYear(), today.getMonth(), 1)
+  const savedPreference = loadAuditDatePreference(app.id ?? 0)
+  const initialPreferredDate = savedPreference?.preferredStartDate ? new Date(savedPreference.preferredStartDate) : null
+  const initialMonth = initialPreferredDate ?? (savedPlan.calendarMonth ? new Date(savedPlan.calendarMonth) : new Date(today.getFullYear(), today.getMonth(), 1))
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(initialMonth.getFullYear(), initialMonth.getMonth(), 1))
-  const [requestedAt, setRequestedAt] = useState<string>(() => savedPlan.changeRequestedAt || "")
+  const [preferredStartDate, setPreferredStartDate] = useState(() => savedPreference?.preferredStartDate || "")
+  const [preferredEndDate, setPreferredEndDate] = useState(() => savedPreference?.preferredEndDate || "")
+  const [preferenceSavedAt, setPreferenceSavedAt] = useState<string>(() => savedPreference?.submittedAt || "")
   const canGoNext = visibleMonth.getFullYear() < 2030 || visibleMonth.getMonth() < 11
   const canGoPrev = visibleMonth.getFullYear() > today.getFullYear() || visibleMonth.getMonth() > today.getMonth()
   const appRef = app.applicationNumber ?? `#${app.id}`
   const submitted = app.savedAt || app.submittedAt
+  const evidenceUploaded = loadPaymentEvidences(app.id ?? 0).length > 0
+  const canChoosePreferred = evidenceUploaded || ["PAYMENT_REVIEW", "AUDIT_SCHEDULED", "DOCUMENT_SUBMISSION", "AUDIT_IN_PROGRESS"].includes(app.status)
 
-  const requestChangeDate = () => {
+  const pickPreferredDate = (date: string) => {
+    if (!canChoosePreferred) return
+    if (!preferredStartDate || (preferredStartDate && preferredEndDate)) {
+      setPreferredStartDate(date)
+      setPreferredEndDate("")
+      setPreferenceSavedAt("")
+      return
+    }
+    if (date < preferredStartDate) {
+      setPreferredEndDate(preferredStartDate)
+      setPreferredStartDate(date)
+      setPreferenceSavedAt("")
+      return
+    }
+    setPreferredEndDate(date)
+    setPreferenceSavedAt("")
+  }
+
+  const clearPreferredDates = () => {
+    setPreferredStartDate("")
+    setPreferredEndDate("")
+    setPreferenceSavedAt("")
+  }
+
+  const savePreferredDates = () => {
+    if (!preferredStartDate || !preferredEndDate) return
     const now = new Date().toISOString()
-    const request = {
-      ...savedPlan,
+    saveAuditDatePreference(app.id ?? 0, {
       applicationId: app.id,
       applicationNumber: appRef,
       companyName: app.companyName || "",
-      requestedMonth: visibleMonth.toISOString(),
-      changeRequestedAt: now,
-      changeRequestStatus: "PENDING",
-    }
-    localStorage.setItem(`hcs_audit_plan_${app.id}`, JSON.stringify(request))
-    setRequestedAt(now)
-    addNotification("office", { type: "warning", title: "Audit Date Change Requested", body: `${app.companyName || appRef} requested an audit date change.` })
+      preferredStartDate,
+      preferredEndDate,
+      submittedAt: now,
+      status: "PREFERRED",
+    })
+    setPreferenceSavedAt(now)
+    addNotification("office", { type: "info", title: "Preferred Audit Dates Submitted", body: `${app.companyName || appRef} selected preferred audit dates.` })
   }
 
   return (
@@ -923,19 +955,18 @@ function CustomerAuditPlanTab({ app }: { app:any }) {
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, background:"#fff", border:"1px solid #e2e8f0", borderRadius:12, marginBottom:0, padding:"10px 14px", flexShrink:0 }}>
         <div>
           <p style={{ margin:0, fontSize:"0.72rem", fontWeight:800, color:BLUE, textTransform:"uppercase" as const, letterSpacing:"0.08em" }}>Audit Plan</p>
-          <p style={{ margin:"3px 0 0", fontSize:"0.68rem", color:"#94a3b8", fontWeight:600 }}>Review the planned audit month and request a date change if needed.</p>
+          <p style={{ margin:"3px 0 0", fontSize:"0.68rem", color:"#94a3b8", fontWeight:600 }}>Choose your preferred audit dates after uploading payment proof.</p>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <button
-            onClick={requestChangeDate}
-            style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", height:34, padding:"0 18px", background:"#fff", color:BLUE, border:"1px solid #bfdbfe", borderRadius:8, fontSize:"0.78rem", fontWeight:800, cursor:"pointer", fontFamily:F }}
-            onMouseOver={e => (e.currentTarget.style.background = "#eff6ff")}
-            onMouseOut={e => (e.currentTarget.style.background = "#fff")}
+            onClick={savePreferredDates}
+            disabled={!canChoosePreferred || !preferredStartDate || !preferredEndDate}
+            style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", height:34, padding:"0 18px", background:(!canChoosePreferred || !preferredStartDate || !preferredEndDate) ? "#cbd5e1" : BLUE, color:"#fff", border:"none", borderRadius:8, fontSize:"0.78rem", fontWeight:800, cursor:(!canChoosePreferred || !preferredStartDate || !preferredEndDate) ? "not-allowed" : "pointer", fontFamily:F }}
           >
-            Request change date
+            Save preferred dates
           </button>
-          <span style={{ fontSize:"0.68rem", fontWeight:800, color:requestedAt ? "#a16207" : "#64748b", background:requestedAt ? "#fef3c7" : "#f1f5f9", padding:"5px 12px", borderRadius:999 }}>
-            {requestedAt ? "Request sent" : "No request"}
+          <span style={{ fontSize:"0.68rem", fontWeight:800, color:preferenceSavedAt ? "#15803d" : "#64748b", background:preferenceSavedAt ? "#dcfce7" : "#f1f5f9", padding:"5px 12px", borderRadius:999 }}>
+            {preferenceSavedAt ? "Preferred dates saved" : "No preferred dates"}
           </span>
         </div>
       </div>
@@ -948,26 +979,36 @@ function CustomerAuditPlanTab({ app }: { app:any }) {
             <CustomerAuditInfo label="Company" value={app.companyName || "-"} />
             <CustomerAuditInfo label="Status" value={savedPlan.status || "Pending"} />
             <CustomerAuditInfo label="Submitted" value={submitted ? new Date(submitted).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) : "-"} />
+            <CustomerAuditInfo label="Preferred Start" value={preferredStartDate ? formatDate(preferredStartDate) : "Not selected"} />
+            <CustomerAuditInfo label="Preferred End" value={preferredEndDate ? formatDate(preferredEndDate) : "Not selected"} />
           </div>
 
-          <div style={{ marginTop:14, padding:"11px 13px", borderRadius:10, border:"1px solid #dbeafe", background:"#eff6ff" }}>
+          <div style={{ marginTop:14, padding:"11px 13px", borderRadius:10, border:`1px solid ${canChoosePreferred ? "#dbeafe" : "#fde68a"}`, background:canChoosePreferred ? "#eff6ff" : "#fffbeb" }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-              <CalendarDays size={15} color={BLUE} />
-              <span style={{ fontSize:"0.82rem", fontWeight:800, color:DARK }}>Scheduled Window</span>
+              <CalendarDays size={15} color={canChoosePreferred ? BLUE : "#d97706"} />
+              <span style={{ fontSize:"0.82rem", fontWeight:800, color:DARK }}>Preferred Window</span>
             </div>
             <p style={{ margin:0, fontSize:"0.7rem", color:"#475569", lineHeight:1.45 }}>
-              HCB will confirm the exact audit date. You can request a change from this panel.
+              {canChoosePreferred
+                ? "Click the first preferred audit date, then click the last preferred audit date. HCB may choose these dates or overwrite them."
+                : "Upload payment evidence first, then choose your preferred audit dates."}
             </p>
           </div>
 
           <div style={{ marginTop:14 }}>
-            <p style={{ margin:"0 0 8px", fontSize:"0.7rem", fontWeight:800, color:"#64748b", textTransform:"uppercase" as const, letterSpacing:"0.08em" }}>Audit Team</p>
-            {["Lead auditor", "Sharia auditor", "Audit date", "Duration"].map(item => (
+            <p style={{ margin:"0 0 8px", fontSize:"0.7rem", fontWeight:800, color:"#64748b", textTransform:"uppercase" as const, letterSpacing:"0.08em" }}>Confirmed by HCB</p>
+            {["Lead auditor", "Sharia auditor", "Official audit date", "Duration"].map(item => (
               <div key={item} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"8px 0", borderBottom:"1px solid #e2e8f0" }}>
                 <span style={{ fontSize:"0.74rem", fontWeight:700, color:"#334155" }}>{item}</span>
                 <span style={{ fontSize:"0.72rem", color:"#94a3b8" }}>Pending</span>
               </div>
             ))}
+            {(preferredStartDate || preferredEndDate) && (
+              <button type="button" onClick={clearPreferredDates}
+                style={{ marginTop:12, height:32, padding:"0 12px", borderRadius:8, border:"1px solid #cbd5e1", background:"#fff", color:"#475569", fontSize:"0.72rem", fontWeight:700, cursor:"pointer", fontFamily:F }}>
+                Clear preferred dates
+              </button>
+            )}
           </div>
         </div>
 
@@ -990,7 +1031,14 @@ function CustomerAuditPlanTab({ app }: { app:any }) {
             </div>
           </div>
           <div style={{ flex:1, minHeight:0 }}>
-            <CustomerMonthCalendar year={visibleMonth.getFullYear()} month={visibleMonth.getMonth()} />
+            <CustomerMonthCalendar
+              year={visibleMonth.getFullYear()}
+              month={visibleMonth.getMonth()}
+              startDate={preferredStartDate}
+              endDate={preferredEndDate}
+              disabled={!canChoosePreferred}
+              onDateClick={pickPreferredDate}
+            />
           </div>
         </div>
       </div>
@@ -1007,7 +1055,25 @@ function CustomerAuditInfo({ label, value }: { label:string; value:React.ReactNo
   )
 }
 
-function CustomerMonthCalendar({ year, month }: { year:number; month:number }) {
+function dateKey(year:number, month:number, day:number) {
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+}
+
+function CustomerMonthCalendar({
+  year,
+  month,
+  startDate = "",
+  endDate = "",
+  disabled = false,
+  onDateClick,
+}: {
+  year:number
+  month:number
+  startDate?: string
+  endDate?: string
+  disabled?: boolean
+  onDateClick?: (date:string) => void
+}) {
   const monthName = new Date(year, month, 1).toLocaleString("en-GB", { month:"long" })
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -1031,10 +1097,20 @@ function CustomerMonthCalendar({ year, month }: { year:number; month:number }) {
         ))}
         {cells.map((day, i) => {
           const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear()
+          const key = day ? dateKey(year, month, day) : ""
+          const isEdge = !!day && (key === startDate || key === endDate)
+          const inRange = !!day && !!startDate && !!endDate && key >= startDate && key <= endDate
           return (
-            <div key={i} style={{ minHeight:0, height:"100%", display:"flex", alignItems:"flex-start", justifyContent:"flex-start", borderRadius:8, padding:7, border:day ? "1px solid #e2e8f0" : "1px solid transparent", background:isToday ? BLUE : day ? "#f8fafc" : "transparent", color:isToday ? "#fff" : day ? "#334155" : "transparent", fontSize:"0.76rem", fontWeight:isToday ? 900 : 700 }}>
-              {day ?? ""}
-            </div>
+            <button
+              key={i}
+              type="button"
+              disabled={!day || disabled}
+              onClick={() => day && onDateClick?.(key)}
+              style={{ minHeight:0, height:"100%", display:"flex", flexDirection:"column", alignItems:"flex-start", justifyContent:"flex-start", borderRadius:8, padding:7, border:day ? `1px solid ${isEdge ? BLUE : inRange ? "#93c5fd" : "#e2e8f0"}` : "1px solid transparent", background:isEdge ? BLUE : inRange ? "#dbeafe" : isToday ? "#eff6ff" : day ? "#f8fafc" : "transparent", color:isEdge ? "#fff" : isToday ? BLUE : day ? "#334155" : "transparent", fontSize:"0.76rem", fontWeight:isToday ? 900 : 700, cursor:day && !disabled ? "pointer" : "default", fontFamily:F, textAlign:"left" }}
+            >
+              <span>{day ?? ""}</span>
+              {isEdge && <span style={{ marginTop:"auto", fontSize:"0.58rem", fontWeight:900, color:"#fff" }}>Preferred</span>}
+            </button>
           )
         })}
       </div>
@@ -2010,7 +2086,7 @@ export default function CustomerApplicationsPage() {
   const tabContent: Record<string,React.ReactNode> = !a ? {} : {
     "Application": applicationTab,
     "Agreement":   <AgreementTab app={a} user={user} onUpdate={handleAgreementUpdate} />,
-    "Billing":     <BillingTab app={a} />,
+    "Billing":     <BillingTab app={a} onPaymentUploaded={() => setAppTab("Audit plan")} />,
     "Audit plan":  <CustomerAuditPlanTab app={a} />,
     "Documents":   <CustomerDocumentsTab app={a} />,
     "Certificate": <PlaceholderTab icon="" label="Certificate" />,
@@ -2310,4 +2386,3 @@ export default function CustomerApplicationsPage() {
     </CustomerLayout>
   )
 }
-

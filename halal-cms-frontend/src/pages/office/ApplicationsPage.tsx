@@ -33,6 +33,7 @@ import {
   loadApplicationBilling, saveApplicationBilling, loadInvoiceByApp, createInvoiceFromBilling,
   saveInvoice, invoiceStatusStyle, formatInvoiceDate, downloadInvoicePDF,
   loadPaymentEvidences, updatePaymentEvidence,
+  loadAuditDatePreference, markAuditDatePreferenceOverwritten,
   type Invoice, type InvoiceStatus, type PaymentEvidence,
 } from "@/lib/billing"
 
@@ -1028,6 +1029,7 @@ function OfficeDocumentsTab({ app }: { app:any }) {
 function AuditPlanTab({ app }: { app:any }) {
   const today = new Date()
   const existingPlan = ls<any>(`hcs_audit_plan_${app.id}`, {})
+  const preferredDates = loadAuditDatePreference(app.id ?? 0)
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1))
   const [startDate, setStartDate] = useState<string>(() => existingPlan.startDate || existingPlan.plannedDate || "")
   const [endDate, setEndDate] = useState<string>(() => existingPlan.endDate || existingPlan.plannedDate || "")
@@ -1136,6 +1138,9 @@ function AuditPlanTab({ app }: { app:any }) {
         ].filter(Boolean).join("\n"),
         status: "DRAFT",
       })
+      if (preferredDates && (preferredDates.preferredStartDate !== startDate || preferredDates.preferredEndDate !== endDate)) {
+        markAuditDatePreferenceOverwritten(app.id ?? 0)
+      }
       setSavedAt(now)
     } catch {
       setSaveError("Could not save audit plan to database.")
@@ -1194,9 +1199,10 @@ function AuditPlanTab({ app }: { app:any }) {
 
         <div style={{ marginTop:14 }}>
           <p style={{ margin:"0 0 8px", fontSize:"0.7rem", fontWeight:800, color:"#64748b", textTransform:"uppercase", letterSpacing:"0.08em" }}>Plan Details</p>
-          {[
+          {[ 
             ["Start date", startDate ? formatDate(startDate) : "Click first date"],
             ["End date", endDate ? formatDate(endDate) : "Click last date"],
+            ["Customer preferred", preferredDates ? `${formatDate(preferredDates.preferredStartDate)} to ${formatDate(preferredDates.preferredEndDate)}` : "None"],
             ["Lead auditor", leadAuditor?.name || "Pending"],
             ["Sharia auditor", shariaAuditor?.name || "Pending"],
             ["Duration", startDate && endDate ? `${Math.max(1, Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) + 1)} day(s)` : "Pending"],
@@ -1289,6 +1295,8 @@ function AuditPlanTab({ app }: { app:any }) {
             large
             startDate={startDate}
             endDate={endDate}
+            preferredStartDate={preferredDates?.preferredStartDate}
+            preferredEndDate={preferredDates?.preferredEndDate}
             onDateClick={pickDate}
           />
         </div>
@@ -2234,8 +2242,8 @@ function dateKey(year:number, month:number, day:number) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
 }
 
-function MonthCalendar({ year, month, large = false, startDate = "", endDate = "", onDateClick }: {
-  year:number; month:number; large?:boolean; startDate?:string; endDate?:string; onDateClick?:(date:string) => void
+function MonthCalendar({ year, month, large = false, startDate = "", endDate = "", preferredStartDate = "", preferredEndDate = "", onDateClick }: {
+  year:number; month:number; large?:boolean; startDate?:string; endDate?:string; preferredStartDate?:string; preferredEndDate?:string; onDateClick?:(date:string) => void
 }) {
   const monthName = new Date(year, month, 1).toLocaleString("en-GB", { month:"long" })
   const firstDay = new Date(year, month, 1).getDay()
@@ -2263,15 +2271,20 @@ function MonthCalendar({ year, month, large = false, startDate = "", endDate = "
           const key = day ? dateKey(year, month, day) : ""
           const isEdge = !!day && (key === startDate || key === endDate)
           const inRange = !!day && !!startDate && !!endDate && key >= startDate && key <= endDate
+          const isPreferredEdge = !!day && (key === preferredStartDate || key === preferredEndDate)
+          const inPreferredRange = !!day && !!preferredStartDate && !!preferredEndDate && key >= preferredStartDate && key <= preferredEndDate
           return (
             <button key={i} type="button" onClick={() => day && onDateClick?.(key)} disabled={!day} style={{
               minHeight:large ? 0 : 24, height:large ? "100%" : undefined, display:"flex", alignItems:"flex-start", justifyContent:"flex-start", borderRadius:large ? 8 : 6,
-              padding:large ? 7 : 0, border:large && day ? `1px solid ${isEdge ? BLUE : inRange ? "#93c5fd" : "#e2e8f0"}` : "1px solid transparent",
-              background: isEdge ? BLUE : inRange ? "#dbeafe" : isToday ? "#eff6ff" : day ? "#f8fafc" : "transparent", color: isEdge ? "#fff" : isToday ? BLUE : day ? "#334155" : "transparent",
+              padding:large ? 7 : 0, border:large && day ? `1px solid ${isEdge ? BLUE : inRange ? "#93c5fd" : isPreferredEdge ? "#f59e0b" : inPreferredRange ? "#fde68a" : "#e2e8f0"}` : "1px solid transparent",
+              background: isEdge ? BLUE : inRange ? "#dbeafe" : isPreferredEdge ? "#fef3c7" : inPreferredRange ? "#fffbeb" : isToday ? "#eff6ff" : day ? "#f8fafc" : "transparent", color: isEdge ? "#fff" : isPreferredEdge || inPreferredRange ? "#92400e" : isToday ? BLUE : day ? "#334155" : "transparent",
               fontSize:large ? "0.76rem" : "0.66rem", fontWeight: isToday ? 900 : 700,
-              cursor:day ? "pointer" : "default", fontFamily:F, textAlign:"left",
+              cursor:day ? "pointer" : "default", fontFamily:F, textAlign:"left", flexDirection:"column",
             }}>
-              {day ?? ""}
+              <span>{day ?? ""}</span>
+              {large && (isPreferredEdge || inPreferredRange) && !isEdge && (
+                <span style={{ marginTop:"auto", fontSize:"0.56rem", fontWeight:900, color:"#92400e" }}>Preferred</span>
+              )}
             </button>
           )
         })}

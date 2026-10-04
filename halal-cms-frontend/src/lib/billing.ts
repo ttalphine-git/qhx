@@ -158,6 +158,17 @@ export interface PaymentEvidence {
 }
 
 const EVIDENCE_PREFIX = 'hcs_evidences_'
+const AUDIT_PREF_PREFIX = 'hcs_audit_preference_'
+
+export interface AuditDatePreference {
+  applicationId: string
+  applicationNumber?: string
+  companyName?: string
+  preferredStartDate: string
+  preferredEndDate: string
+  submittedAt: string
+  status: 'PREFERRED' | 'OVERWRITTEN'
+}
 
 export function loadPaymentEvidences(applicationId: string | number): PaymentEvidence[] {
   try {
@@ -197,6 +208,22 @@ export function updatePaymentEvidence(applicationId: string | number, id: string
   const list = loadPaymentEvidences(applicationId)
   const idx  = list.findIndex(e => e.id === id)
   if (idx >= 0) { list[idx] = { ...list[idx], ...patch }; savePaymentEvidences(applicationId, list) }
+}
+
+export function loadAuditDatePreference(applicationId: string | number): AuditDatePreference | null {
+  try {
+    const stored = localStorage.getItem(AUDIT_PREF_PREFIX + String(applicationId))
+    return stored ? JSON.parse(stored) : null
+  } catch { return null }
+}
+
+export function saveAuditDatePreference(applicationId: string | number, preference: AuditDatePreference) {
+  localStorage.setItem(AUDIT_PREF_PREFIX + String(applicationId), JSON.stringify(preference))
+}
+
+export function markAuditDatePreferenceOverwritten(applicationId: string | number) {
+  const preference = loadAuditDatePreference(applicationId)
+  if (preference) saveAuditDatePreference(applicationId, { ...preference, status: 'OVERWRITTEN' })
 }
 
 // ── Stripe Config ─────────────────────────────────────────────────────────────
