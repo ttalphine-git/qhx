@@ -38,6 +38,7 @@ import {
   loadAuditDatePreference, saveAuditDatePreference,
 } from "@/lib/billing"
 import { loadPricing } from "@/lib/pricing"
+import { DEFAULT_AUDIT_TRACKS } from "@/lib/hcbWorkflow"
 
 const F    = "'Inter', system-ui, sans-serif"
 const NAV  = "#0f2170"
@@ -1241,15 +1242,30 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
   const report = reportQ.data
   const configQuestions = report?.configuration?.questions ?? []
   const answers = report?.answers ?? []
-  const rows = configQuestions.length
-    ? configQuestions.map((question, index) => {
+  const fallbackTrack =
+    DEFAULT_AUDIT_TRACKS.find(track => (track.activityCategoryKeys ?? []).includes(fallbackCategory)) ??
+    DEFAULT_AUDIT_TRACKS[0]
+  const fallbackQuestions = fallbackTrack?.questions ?? []
+  const questionRows = configQuestions.length
+    ? configQuestions
+    : answers.length
+      ? []
+      : fallbackQuestions.map((questionText, index) => ({
+          id: undefined,
+          questionText,
+          sortOrder: index,
+        }))
+  const rows = questionRows.length
+    ? questionRows
+        .filter(question => question.questionText?.trim())
+        .map((question, index) => {
         const answer = answers.find(item =>
           (question.id && item.questionId === question.id) || item.questionText === question.questionText
         )
-        return { key: String(question.id ?? question.questionText ?? index), questionId: question.id, questionText: question.questionText, answer }
+        return { key: String(question.id ?? `${fallbackCategory}-${index}`), questionId: question.id, questionText: question.questionText, answer }
       })
-    : answers.map((answer, index) => ({
-        key: String(answer.questionId ?? answer.questionText ?? index),
+    : answers.filter(answer => answer.questionText?.trim()).map((answer, index) => ({
+        key: String(answer.questionId ?? `answer-${index}`),
         questionId: answer.questionId,
         questionText: answer.questionText,
         answer,
@@ -1324,8 +1340,13 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
       </div>
 
       {saveError && <div style={{ padding:"10px 12px", border:"1px solid #fecaca", background:"#fef2f2", color:"#b91c1c", borderRadius:8, fontSize:"0.75rem", fontWeight:800 }}>{saveError}</div>}
+      {reportQ.isError && (
+        <div style={{ padding:"10px 12px", border:"1px solid #fecaca", background:"#fef2f2", color:"#b91c1c", borderRadius:8, fontSize:"0.75rem", fontWeight:800 }}>
+          Could not load audit answers from the server. Showing the default checklist for comments.
+        </div>
+      )}
 
-      <div style={{ flex:1, minHeight:0, overflow:"auto", display:"flex", flexDirection:"column", gap:10 }}>
+      <div style={{ flex:"1 1 auto", minHeight:360, maxHeight:"calc(100vh - 360px)", overflow:"auto", display:"flex", flexDirection:"column", gap:10 }}>
         {reportQ.isLoading ? (
           <div style={{ ...card, marginBottom:0, color:"#64748b", fontWeight:700 }}>Loading audit questions...</div>
         ) : rows.length === 0 ? (
