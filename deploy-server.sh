@@ -58,6 +58,7 @@ git pull origin main
 
 APP_SERVICES="auth-service application-service inspection-service certificate-service company-service frontend"
 BACKEND_SERVICES="auth-service application-service inspection-service certificate-service company-service"
+ALL_SERVICES="postgres $APP_SERVICES"
 
 wait_for_service_health() {
   service="$1"
@@ -92,6 +93,16 @@ wait_for_service_health() {
   docker compose -f docker-compose.prod.yml ps
   docker compose -f docker-compose.prod.yml logs --tail=200 "$service"
   exit 1
+}
+
+wait_for_all_services() {
+  wait_for_service_health postgres 180
+
+  for service in $BACKEND_SERVICES; do
+    wait_for_service_health "$service" 600
+  done
+
+  wait_for_service_health frontend 120
 }
 
 echo "==> Stopping app containers to free memory for the build"
@@ -131,6 +142,17 @@ echo "==> Container status"
 docker compose -f docker-compose.prod.yml ps
 
 echo "==> Auth service connectivity test"
+docker exec qhx-frontend wget -S -O- "http://auth-service:8081/actuator/health"
+
+echo "==> Restarting all containers twice after deployment"
+for restart_round in 1 2; do
+  echo "==> Container restart round $restart_round of 2"
+  docker compose -f docker-compose.prod.yml restart $ALL_SERVICES
+  wait_for_all_services
+  docker compose -f docker-compose.prod.yml ps
+done
+
+echo "==> Final auth service connectivity test"
 docker exec qhx-frontend wget -S -O- "http://auth-service:8081/actuator/health"
 
 echo "==> Deployment script completed"
