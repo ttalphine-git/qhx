@@ -24,11 +24,26 @@ const PROGRESS: Record<string, number> = {
 
 // Certification process steps
 const STEPS = [
-  "Submit Application",
-  "Document Review",
-  "Inspector Assigned",
-  "On-site Audit",
-  "Certificate Issued",
+  {
+    title: "Submit Application",
+    detail: "Complete company, factory, product, market, and halal standard information.",
+  },
+  {
+    title: "Document Review",
+    detail: "HCB reviews submitted documents and confirms whether anything is missing.",
+  },
+  {
+    title: "Inspector Assigned",
+    detail: "An auditor is assigned and the audit plan is prepared for the selected facility.",
+  },
+  {
+    title: "On-site Audit",
+    detail: "The auditor verifies production, records, ingredients, and halal controls on site.",
+  },
+  {
+    title: "Certificate Issued",
+    detail: "After approval, the halal certificate is generated and made available here.",
+  },
 ]
 
 export default function CustomerDashboard() {
@@ -60,6 +75,40 @@ export default function CustomerDashboard() {
 
   return (
     <CustomerLayout>
+      <style>{`
+        .customer-dashboard-main {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 20px;
+          align-items: stretch;
+          height: min(560px, 90vh);
+        }
+        .customer-dashboard-card {
+          height: 100%;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          box-shadow: ${C.cardShadow};
+        }
+        .customer-dashboard-scroll {
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+        }
+        @media (max-width: 900px) {
+          .customer-dashboard-main {
+            grid-template-columns: 1fr;
+            height: auto;
+          }
+          .customer-dashboard-card {
+            height: min(520px, 90vh);
+          }
+        }
+      `}</style>
       <div style={{ display:"flex", flexDirection:"column", gap:20, paddingBottom:40 }}>
 
 
@@ -127,7 +176,7 @@ export default function CustomerDashboard() {
 
             {/* CTAs */}
             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"20px 24px", gap:8 }}>
-              <button onClick={() => navigate("/customer/apply")}
+              <button onClick={() => navigate("/customer/factories")}
                 style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 18px", borderRadius:9, background:"#0f2170", color:"#fff", fontWeight:600, fontSize:"0.8125rem", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}
                 onMouseOver={e => (e.currentTarget.style.background = "#0a1a5c")}
                 onMouseOut={e => (e.currentTarget.style.background = "#0f2170")}>
@@ -142,11 +191,11 @@ export default function CustomerDashboard() {
         </div>
 
         {/* ── Main content ─────────────────────────────────────────── */}
-        <div style={{ display:"grid", gridTemplateColumns:"1.5fr 1.5fr 320px", gap:20 }}>
+        <div className="customer-dashboard-main">
 
           {/* Applications */}
-          <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden", minHeight:500 }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 22px", borderBottom:"1px solid #f1f5f9" }}>
+          <div className="customer-dashboard-card">
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 22px", borderBottom:"1px solid #f1f5f9", flexShrink:0 }}>
               <div>
                 <p style={{ fontSize:"0.875rem", fontWeight:700, color:C.textDark }}>My Applications</p>
                 <p style={{ fontSize:"0.6875rem", color:C.muted, marginTop:2 }}>{pendingApps} in progress</p>
@@ -156,6 +205,7 @@ export default function CustomerDashboard() {
                 View all <ArrowUpRight style={{ width:13, height:13 }} />
               </button>
             </div>
+            <div className="customer-dashboard-scroll">
             {loadingApps ? (
               <div style={{ padding:20 }}>
                 {[1,2,3].map(i => <div key={i} style={{ height:64, borderRadius:8, background:"#f8fafc", marginBottom:10 }} />)}
@@ -164,7 +214,7 @@ export default function CustomerDashboard() {
               <div style={{ padding:"40px 22px", textAlign:"center" }}>
                 <FileText style={{ width:32, height:32, color:"#e2e8f0", margin:"0 auto 10px" }} />
                 <p style={{ fontSize:"0.8125rem", color:C.muted, marginBottom:10 }}>No applications yet</p>
-                <button onClick={() => navigate("/customer/apply")}
+                <button onClick={() => navigate("/customer/factories")}
                   style={{ fontSize:"0.8125rem", fontWeight:600, color:A, background:AL, border:"none", padding:"8px 16px", borderRadius:8, cursor:"pointer" }}>
                   Apply for certification
                 </button>
@@ -197,11 +247,12 @@ export default function CustomerDashboard() {
                 </div>
               )
             })}
+            </div>
           </div>
 
           {/* Certificates */}
-          <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden", minHeight:500 }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 22px", borderBottom:"1px solid #f1f5f9" }}>
+          <div className="customer-dashboard-card">
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 22px", borderBottom:"1px solid #f1f5f9", flexShrink:0 }}>
               <div>
                 <p style={{ fontSize:"0.875rem", fontWeight:700, color:C.textDark }}>My Certificates</p>
                 <p style={{ fontSize:"0.6875rem", color:C.muted, marginTop:2 }}>{activeCerts} active · {totalCerts} total</p>
@@ -211,6 +262,7 @@ export default function CustomerDashboard() {
                 View all <ArrowUpRight style={{ width:13, height:13 }} />
               </button>
             </div>
+            <div className="customer-dashboard-scroll">
             {loadingCerts ? (
               <div style={{ padding:20 }}>
                 {[1,2,3].map(i => <div key={i} style={{ height:64, borderRadius:8, background:"#f8fafc", marginBottom:10 }} />)}
@@ -253,27 +305,26 @@ export default function CustomerDashboard() {
                 </div>
               )
             })}
+            </div>
           </div>
 
-          {/* Right sidebar: Process + Quick Actions */}
-          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-
-            {/* Certification Process */}
-            <div style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:16, boxShadow:C.cardShadow, overflow:"hidden", minHeight:500 }}>
-              <div style={{ padding:"16px 20px", borderBottom:"1px solid #f1f5f9" }}>
+          {/* Certification Process */}
+          <div className="customer-dashboard-card">
+              <div style={{ padding:"16px 20px", borderBottom:"1px solid #f1f5f9", flexShrink:0 }}>
                 <p style={{ fontSize:"0.875rem", fontWeight:700, color:C.textDark }}>Your Progress</p>
                 <p style={{ fontSize:"0.6875rem", color:C.muted, marginTop:2 }}>Certification process</p>
               </div>
-              <div style={{ padding:"16px 20px" }}>
+              <div className="customer-dashboard-scroll" style={{ padding:"16px 20px" }}>
                 <div style={{ position:"relative", paddingLeft:28 }}>
                   <div style={{ position:"absolute", left:9, top:12, bottom:12, width:2, background:"#f1f5f9" }} />
                   {STEPS.map((step, idx) => {
                     const done    = idx < currentStep
                     const current = idx === currentStep
+                    const state = done ? "Completed" : current ? "Current step" : "Pending"
                     return (
-                      <div key={step} style={{ display:"flex", alignItems:"center", gap:12, marginBottom: idx < STEPS.length-1 ? 16 : 0, position:"relative" }}>
+                      <div key={step.title} style={{ display:"flex", alignItems:"flex-start", gap:12, marginBottom: idx < STEPS.length-1 ? 18 : 0, position:"relative" }}>
                         <div style={{
-                          position:"absolute", left:-28, width:20, height:20, borderRadius:"50%",
+                          position:"absolute", left:-28, width:20, height:20, borderRadius:"50%", top:1,
                           background: done ? A : current ? "#fff" : "#f8fafc",
                           border: done ? `2px solid ${A}` : current ? `2px solid ${A}` : "2px solid #e2e8f0",
                           display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, zIndex:1,
@@ -281,15 +332,24 @@ export default function CustomerDashboard() {
                           {done && <div style={{ width:8, height:8, borderRadius:"50%", background:"#fff" }} />}
                           {current && <div style={{ width:8, height:8, borderRadius:"50%", background:A }} />}
                         </div>
-                        <p style={{ fontSize:"0.75rem", fontWeight: current ? 700 : 500, color: done ? C.textDark : current ? C.textDark : C.muted }}>
-                          {step}
-                        </p>
+                        <div style={{ minWidth:0 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                            <p style={{ margin:0, fontSize:"0.78rem", fontWeight: current ? 800 : 700, color: done || current ? C.textDark : C.muted }}>
+                              {step.title}
+                            </p>
+                            <span style={{ fontSize:"0.58rem", fontWeight:800, padding:"2px 7px", borderRadius:999, background: done ? "#dcfce7" : current ? "#eff6ff" : "#f8fafc", color: done ? "#15803d" : current ? A : "#94a3b8" }}>
+                              {state}
+                            </span>
+                          </div>
+                          <p style={{ margin:"4px 0 0", fontSize:"0.68rem", lineHeight:1.5, color:C.muted }}>
+                            {step.detail}
+                          </p>
+                        </div>
                       </div>
                     )
                   })}
                 </div>
               </div>
-            </div>
           </div>
         </div>
 

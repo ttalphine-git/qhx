@@ -147,9 +147,9 @@ export default function OfficeDashboard() {
                 onMouseOut={e=>(e.currentTarget.style.background=C.primary)}>
                 View Applications <ArrowUpRight style={{ width:14, height:14 }} />
               </button>
-              <button onClick={() => navigate("/office/audits")}
+              <button onClick={() => navigate("/office/map-view")}
                 style={{ padding:"8px 18px", borderRadius:9, background:"#f8fafc", color:C.text, fontWeight:500, fontSize:"0.75rem", border:"1px solid #e2e8f0", cursor:"pointer", whiteSpace:"nowrap" }}>
-                Schedule Audit
+                Map View
               </button>
             </div>
           </div>

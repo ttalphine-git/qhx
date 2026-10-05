@@ -8,9 +8,9 @@ import { useActivityTracking } from "@/hooks/useActivityTracking"
 
 const NAV_ITEMS = [
   { label: "Dashboard",       path: "/customer/dashboard"    },
+  { label: "My Factories",    path: "/customer/factories"    },
   { label: "My Applications", path: "/customer/applications" },
   { label: "Batch Certificates", path: "/customer/batch-certificates" },
-  { label: "My Factories",    path: "/customer/factories"    },
 ]
 
 interface CustomerLayoutProps { children: React.ReactNode; title?: string }
@@ -75,7 +75,7 @@ export default function CustomerLayout({ children, title }: CustomerLayoutProps)
           <div style={{ width: 38, height: 38, background: "rgba(255,255,255,0.2)", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.875rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>HC</div>
           <div>
             <div style={{ fontSize: "1rem", fontWeight: 700, color: "#fff", letterSpacing: "0.02em" }}>HalalCMS</div>
-            <div style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.4)" }}>Customer Portal</div>
+            <div style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.4)" }}>Customer Portal v44</div>
           </div>
         </button>
 
@@ -175,7 +175,7 @@ export default function CustomerLayout({ children, title }: CustomerLayoutProps)
               <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,0.18)", border: "1.5px solid rgba(255,255,255,0.28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", flexShrink: 0 }}>{initials}</div>
               <div>
                 <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#fff", lineHeight: 1.2 }}>{user?.name ?? "Customer"}</div>
-                <div style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.2 }}>Customer Portal</div>
+                <div style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.2 }}>Customer Portal v44</div>
               </div>
               <ChevronDown size={12} color="rgba(255,255,255,0.5)" />
             </button>

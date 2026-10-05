@@ -2583,16 +2583,16 @@ export default function CustomerApplicationsPage() {
                       }
                     </td>
                     <td style={{ padding: "11px 16px", fontSize: "0.72rem", color: "#64748b", whiteSpace: "nowrap" as const }}>{app.updatedAt ? formatDate(app.updatedAt) : "--"}</td>
-                    <td style={{ padding: "11px 16px", minWidth: 110 }}>
+                    <td style={{ padding: "11px 18px 11px 16px", width: 118, minWidth: 118 }}>
                       {app.status === "CERTIFIED"
                         ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.69rem", color: "#15803d", fontWeight: 600 }}><Award size={12} />Certified</span>
                         : ["REJECTED","SUSPENDED","EXPIRED"].includes(app.status) ? <span style={{ fontSize: "0.69rem", color: "#94a3b8" }}>-</span>
-                        : <div>
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                        : <div style={{ width: 86, maxWidth: "100%" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
                               <span style={{ fontSize: "0.6rem", color: "#94a3b8" }}>Progress</span>
-                              <span style={{ fontSize: "0.6rem", fontWeight: 700, color: st.color }}>{progress}%</span>
+                              <span style={{ fontSize: "0.6rem", fontWeight: 800, color: st.color, flexShrink: 0 }}>{progress}%</span>
                             </div>
-                            <div style={{ height: 4, borderRadius: 99, overflow: "hidden", background: "#f1f5f9", width: 100 }}>
+                            <div style={{ height: 4, borderRadius: 99, overflow: "hidden", background: "#f1f5f9", width: "100%" }}>
                               <div style={{ height: "100%", width: `${progress}%`, borderRadius: 99, background: st.dot }} />
                             </div>
                           </div>

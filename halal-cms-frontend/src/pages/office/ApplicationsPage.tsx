@@ -205,6 +205,17 @@ function loadConfiguredHalalStandards(): string[] {
     return HALAL_STANDARDS
   }
 }
+function loadConfiguredMarkets(): string[] {
+  try {
+    const rows = JSON.parse(localStorage.getItem(ACCREDITATIONS_STORAGE) || "[]")
+    if (!Array.isArray(rows)) return []
+    return Array.from(new Set(rows
+      .map(row => typeof row?.country === "string" ? row.country.trim() : "")
+      .filter(Boolean)))
+  } catch {
+    return []
+  }
+}
 
 const PAGE_SIZE = 15
 const APP_TABS  = ["Application","Products","Agreement","Billing","Audit plan","Documents","Audit","NCs","Summary","Assignment","Decision","Final Decision","Logs","Chat","Certificate"]
@@ -2361,9 +2372,10 @@ export default function ApplicationsPage() {
   const [viewApp, setViewApp]           = useState<any|null>(null)
   const [appTab, setAppTab]             = useState("Application")
   const [docPreview, setDocPreview]     = useState<{url:string;name:string}|null>(null)
-  const [editCertCats, setEditCertCats]   = useState<string[]>([])
-  const [editStandards, setEditStandards] = useState<string[]>([])
-  const [hcbModal, setHcbModal]           = useState<"certCat"|"standard"|null>(null)
+  const [editMarkets, setEditMarkets]       = useState<string[]>([])
+  const [editCertCats, setEditCertCats]     = useState<string[]>([])
+  const [editStandards, setEditStandards]   = useState<string[]>([])
+  const [hcbModal, setHcbModal]             = useState<"market"|"certCat"|"standard"|null>(null)
   const [modalDraft, setModalDraft]       = useState<string[]>([])
   const [approveConfirm, setApproveConfirm] = useState(false)
   const [discountType,  setDiscountType]    = useState<"%"|"fixed">("%")
@@ -2375,6 +2387,7 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     if (viewApp) {
+      setEditMarkets(viewApp.selectedMarkets ?? [])
       setEditCertCats(viewApp.selectedCertCats ?? [])
       setEditStandards(viewApp.selectedStandards ?? [])
     }
@@ -2454,15 +2467,17 @@ export default function ApplicationsPage() {
   }
 
 
-  function openModal(type: "certCat"|"standard") {
-    setModalDraft(type === "certCat" ? [...editCertCats] : [...editStandards])
+  function openModal(type: "market"|"certCat"|"standard") {
+    setModalDraft(type === "market" ? [...editMarkets] : type === "certCat" ? [...editCertCats] : [...editStandards])
     setHcbModal(type)
   }
   function saveModal() {
-    if (hcbModal === "certCat") setEditCertCats(modalDraft)
+    if (hcbModal === "market") setEditMarkets(modalDraft)
+    else if (hcbModal === "certCat") setEditCertCats(modalDraft)
     else setEditStandards(modalDraft)
     if (viewApp) {
       const updated = { ...viewApp,
+        selectedMarkets:   hcbModal === "market" ? modalDraft : editMarkets,
         selectedCertCats:  hcbModal === "certCat" ? modalDraft : editCertCats,
         selectedStandards: hcbModal === "standard" ? modalDraft : editStandards,
       }
@@ -2788,10 +2803,13 @@ export default function ApplicationsPage() {
               </div>
 
               <div style={{ display:"grid", gridTemplateColumns:"repeat(3, minmax(0,1fr))", gap:14 }}>
-                <div>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
+                <button type="button" onClick={() => openModal("market")}
+                  style={{ minHeight:104, textAlign:"left", padding:14, border:"1px solid #dbe3ef", borderRadius:12, background:"#fff", cursor:"pointer", fontFamily:F, boxShadow:"0 1px 2px rgba(15,33,112,0.05)" }}
+                  onMouseOver={e => { e.currentTarget.style.borderColor = BLUE; e.currentTarget.style.background = "#f8fbff" }}
+                  onMouseOut={e => { e.currentTarget.style.borderColor = "#dbe3ef"; e.currentTarget.style.background = "#fff" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:10 }}>
                     <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Target Market</p>
-                    {markets.length > 0 && <span style={{ fontSize:"0.68rem", fontWeight:700, color:BLUE }}>{markets.length}</span>}
+                    <span style={{ fontSize:"0.62rem", fontWeight:800, color:BLUE }}>Click to update</span>
                   </div>
                   {markets.length > 0 ? (
                     <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
@@ -2808,15 +2826,15 @@ export default function ApplicationsPage() {
                   ) : (
                     <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No target market selected</p>
                   )}
-                </div>
+                </button>
 
-                <div>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
+                <button type="button" onClick={() => openModal("certCat")}
+                  style={{ minHeight:104, textAlign:"left", padding:14, border:"1px solid #dbe3ef", borderRadius:12, background:"#fff", cursor:"pointer", fontFamily:F, boxShadow:"0 1px 2px rgba(15,33,112,0.05)" }}
+                  onMouseOver={e => { e.currentTarget.style.borderColor = BLUE; e.currentTarget.style.background = "#f8fbff" }}
+                  onMouseOut={e => { e.currentTarget.style.borderColor = "#dbe3ef"; e.currentTarget.style.background = "#fff" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:10 }}>
                     <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Certification Category</p>
-                    <button onClick={() => openModal("certCat")}
-                      style={{ padding:"4px 10px", background:BLUE, color:"#fff", border:"none", borderRadius:6, fontSize:"0.68rem", fontWeight:800, cursor:"pointer", fontFamily:F }}>
-                      Replace
-                    </button>
+                    <span style={{ fontSize:"0.62rem", fontWeight:800, color:BLUE }}>Click to update</span>
                   </div>
                   {editCertCats.length > 0 ? (
                     <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
@@ -2829,15 +2847,15 @@ export default function ApplicationsPage() {
                   ) : (
                     <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No certification category selected</p>
                   )}
-                </div>
+                </button>
 
-                <div>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
+                <button type="button" onClick={() => openModal("standard")}
+                  style={{ minHeight:104, textAlign:"left", padding:14, border:"1px solid #dbe3ef", borderRadius:12, background:"#fff", cursor:"pointer", fontFamily:F, boxShadow:"0 1px 2px rgba(15,33,112,0.05)" }}
+                  onMouseOver={e => { e.currentTarget.style.borderColor = BLUE; e.currentTarget.style.background = "#f8fbff" }}
+                  onMouseOut={e => { e.currentTarget.style.borderColor = "#dbe3ef"; e.currentTarget.style.background = "#fff" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:10 }}>
                     <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>Halal Standards</p>
-                    <button onClick={() => openModal("standard")}
-                      style={{ padding:"4px 10px", background:BLUE, color:"#fff", border:"none", borderRadius:6, fontSize:"0.68rem", fontWeight:800, cursor:"pointer", fontFamily:F }}>
-                      Replace
-                    </button>
+                    <span style={{ fontSize:"0.62rem", fontWeight:800, color:BLUE }}>Click to update</span>
                   </div>
                   {editStandards.length > 0 ? (
                     <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
@@ -2850,8 +2868,24 @@ export default function ApplicationsPage() {
                   ) : (
                     <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>No halal standards selected</p>
                   )}
-                </div>
+                </button>
               </div>
+
+              {(appFactories.length > 0 || a.factoryName) && (
+                <div style={{ marginTop:18, paddingTop:16, borderTop:"1px solid #e2e8f0" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+                    <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>FACTORY / FACILITY</p>
+                    <span style={{ fontSize:"0.68rem", color:"#94a3b8", fontStyle:"italic" }}>From registration profile</span>
+                  </div>
+                  {(appFactories.length > 0
+                    ? appFactories
+                    : [{ id:"x", name: a.factoryName, country:"-", city:"-", lat:"3.1390", lng:"101.6869" }]
+                  ).map((f:any, i:number) => (
+                    <ReadonlyFactoryCard key={f.id} f={f} idx={i}
+                      floorPlan={a.floorPlanData ? { data: a.floorPlanData, name: a.floorPlanName || "Floor Plan" } : null} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -3015,26 +3049,6 @@ export default function ApplicationsPage() {
                 ))}
               </div>
             )}
-          </div>
-        )}
-
-        {/* " 4. Production Data " */}
-        {(appFactories.length > 0 || a.factoryName) && (
-          <div style={card}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, paddingBottom:12, borderBottom:"1px solid #dbeafe" }}>
-              <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>PRODUCTION DATA</p>
-              <span style={{ fontSize:"0.68rem", color:"#94a3b8", fontStyle:"italic" }}>From registration profile</span>
-            </div>
-
-            {/* Factory cards */}
-            {(appFactories.length > 0
-              ? appFactories
-              : [{ id:"x", name: a.factoryName, country:"-", city:"-", lat:"3.1390", lng:"101.6869" }]
-            ).map((f:any, i:number) => (
-              <ReadonlyFactoryCard key={f.id} f={f} idx={i}
-                floorPlan={a.floorPlanData ? { data: a.floorPlanData, name: a.floorPlanName || "Floor Plan" } : null} />
-            ))}
-
           </div>
         )}
 
@@ -3293,7 +3307,7 @@ export default function ApplicationsPage() {
       if (isPostAgreement && signedAt) {
         return (
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 16px", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 16px", marginBottom: 16 }}>
               <CheckCircle2 size={16} color="#16a34a" />
               <div>
                 <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 700, color: "#15803d" }}>Agreement Approved</p>
@@ -3535,7 +3549,7 @@ export default function ApplicationsPage() {
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F, whiteSpace:"nowrap" }}>{app.updatedAt ? formatDate(app.updatedAt) : "-"}</td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F }}>{app.assignedAuditorName ?? "-"}</td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F }}>{(app as any).approvedBy ?? "-"}</td>
-                      <td style={{ padding:"13px 14px", minWidth:110 }}>
+                      <td style={{ padding:"13px 18px 13px 14px", width:118, minWidth:118 }}>
                         {app.status === "CERTIFIED"
                           ? <span style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:"0.69rem", color:"#15803d", fontWeight:600 }}><CheckCircle2 size={12} />Certified</span>
                           : ["REJECTED","SUSPENDED","EXPIRED"].includes(app.status)
@@ -3544,12 +3558,12 @@ export default function ApplicationsPage() {
                                 const pct = Math.round((STATUS_IDX[app.status] ?? 0) / 14 * 100)
                                 const st  = getStatusStyle(app.status)
                                 return (
-                                  <div>
-                                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                                  <div style={{ width:86, maxWidth:"100%" }}>
+                                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:4 }}>
                                       <span style={{ fontSize:"0.6rem", color:"#94a3b8" }}>Progress</span>
-                                      <span style={{ fontSize:"0.6rem", fontWeight:700, color:st.color }}>{pct}%</span>
+                                      <span style={{ fontSize:"0.6rem", fontWeight:800, color:st.color, flexShrink:0 }}>{pct}%</span>
                                     </div>
-                                    <div style={{ height:4, borderRadius:99, overflow:"hidden", background:"#f1f5f9", width:100 }}>
+                                    <div style={{ height:4, borderRadius:99, overflow:"hidden", background:"#f1f5f9", width:"100%" }}>
                                       <div style={{ height:"100%", width:`${pct}%`, borderRadius:99, background:st.dot }} />
                                     </div>
                                   </div>
@@ -3730,7 +3744,7 @@ export default function ApplicationsPage() {
             {/* Modal header */}
             <div style={{ padding:"16px 20px", borderBottom:"1px solid #e2e8f0", display:"flex", alignItems:"center", gap:12, flexShrink:0 }}>
               <div style={{ flex:1 }}>
-                <p style={{ margin:0, fontSize:"0.88rem", fontWeight:700, color:DARK }}>{hcbModal === "certCat" ? "Certification Category" : "Halal Standards"}</p>
+                <p style={{ margin:0, fontSize:"0.88rem", fontWeight:700, color:DARK }}>{hcbModal === "market" ? "Target Market" : hcbModal === "certCat" ? "Certification Category" : "Halal Standards"}</p>
                 <p style={{ margin:"2px 0 0", fontSize:"0.7rem", color:"#94a3b8" }}>Select options for this application</p>
               </div>
               {modalDraft.length > 0 && (
@@ -3744,7 +3758,7 @@ export default function ApplicationsPage() {
 
             {/* Options list */}
             <div style={{ overflowY:"auto", flex:1 }}>
-              {(hcbModal === "certCat" ? CERT_CATEGORIES : loadConfiguredHalalStandards()).map((item, i, arr) => {
+              {(hcbModal === "market" ? loadConfiguredMarkets() : hcbModal === "certCat" ? CERT_CATEGORIES : loadConfiguredHalalStandards()).map((item, i, arr) => {
                 const sel = modalDraft.includes(item)
                 return (
                   <div key={item} onClick={() => toggleDraft(item)}

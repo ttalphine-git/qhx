@@ -12,10 +12,10 @@ const NAV_ITEMS = [
   { label: "Customers",              path: "/office/customers"              },
   { label: "Factory Applications",   path: "/office/applications"           },
   { label: "Batch Applications",     path: "/office/batch-applications"     },
-  { label: "Live Activity",          path: "/office/live-activity"          },
 ]
 
 const SETTINGS_ITEMS = [
+  { label: "Live Activity",      sub: "Track customer portal actions",    path: "/office/live-activity" },
   { label: "Applications List",  sub: "Browse all customer applications",  path: "/office/applications-list" },
   { label: "Audit Trail",       sub: "View system activity logs",     path: "/office/audit-trail" },
   { label: "Audit Reports",     sub: "Configure category questions",  path: "/office/settings?tab=audits" },
@@ -110,6 +110,10 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
       return reqs.filter((r: { status: string }) => r.status === "PENDING").length
     } catch { return 0 }
   })()
+  const activeTitle = title
+    ?? NAV_ITEMS.find(n => n.path === "/office/dashboard" ? location.pathname === n.path : location.pathname.startsWith(n.path))?.label
+    ?? SETTINGS_ITEMS.find(n => location.pathname === n.path.split("?")[0])?.label
+    ?? "Office Portal"
 
   return (
     <div style={{ display:"flex", flexDirection:"column", minHeight:"100vh", fontFamily:"'Inter',system-ui,sans-serif" }}>
@@ -138,7 +142,7 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
           <div style={{ width:36, height:36, background:"rgba(255,255,255,0.2)", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.875rem", fontWeight:800, color:"#fff", letterSpacing:"-0.5px", flexShrink:0 }}>HC</div>
           <div>
             <div style={{ fontSize:"1rem", fontWeight:700, color:"#fff", letterSpacing:"0.02em" }}>HalalCMS</div>
-            <div style={{ fontSize:"0.6875rem", color:"rgba(255,255,255,0.4)" }}>Office Portal</div>
+            <div style={{ fontSize:"0.6875rem", color:"rgba(255,255,255,0.4)" }}>Office Portal v44</div>
           </div>
         </button>
 
@@ -275,7 +279,7 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
               <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.18)", border:"1.5px solid rgba(255,255,255,0.28)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.6875rem", fontWeight:700, color:"#fff", flexShrink:0 }}>{initials}</div>
               <div className="ol-user-text">
                 <div style={{ fontSize:"0.8125rem", fontWeight:600, color:"#fff", lineHeight:1.2 }}>{user?.name ?? "Admin"}</div>
-                <div style={{ fontSize:"0.625rem", color:"rgba(255,255,255,0.45)", lineHeight:1.2 }}>Office Portal</div>
+                <div style={{ fontSize:"0.625rem", color:"rgba(255,255,255,0.45)", lineHeight:1.2 }}>Office Portal v44</div>
               </div>
               <ChevronDown size={12} color="rgba(255,255,255,0.5)" />
             </button>
@@ -364,7 +368,7 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
       {/* ── Sub-header ──────────────────────────────────────── */}
       <div style={{ background:"#f8f9fa", borderBottom:"1px solid #e9ecef", padding:"0.75rem 2rem", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
         <div style={{ fontSize:"0.8125rem", fontWeight:600, color:"#374151" }}>
-          {title ?? NAV_ITEMS.find(n => n.path === "/office/dashboard" ? location.pathname === n.path : location.pathname.startsWith(n.path))?.label ?? "Office Portal"}
+          {activeTitle}
         </div>
         <div style={{ fontSize:"0.75rem", color:"#9ca3af" }}>
           {new Date().toLocaleDateString("en-GB", { weekday:"long", day:"numeric", month:"long", year:"numeric" })}
