@@ -244,7 +244,7 @@ export function invoiceStatusStyle(status: InvoiceStatus): { bg: string; color: 
   switch (status) {
     case 'DRAFT':     return { bg: '#f1f5f9', color: '#475569', dot: '#94a3b8' }
     case 'ISSUED':    return { bg: '#eff6ff', color: '#1d4ed8', dot: '#3b82f6' }
-    case 'PAID':      return { bg: '#f0fdf4', color: '#15803d', dot: '#22c55e' }
+    case 'PAID':      return { bg: '#fff', color: '#064e3b', dot: '#064e3b' }
     case 'OVERDUE':   return { bg: '#fff7ed', color: '#c2410c', dot: '#f97316' }
     case 'CANCELLED': return { bg: '#fef2f2', color: '#dc2626', dot: '#ef4444' }
   }
@@ -269,8 +269,8 @@ export function downloadInvoicePDF(invoice: Invoice): void {
   ).join('')
 
   const paidStamp = invoice.status === 'PAID' ? (
-    '<div style="margin-top:20px;padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px">' +
-    '<span style="font-weight:700;font-size:14px;color:#15803d">PAID</span>' +
+    '<div style="margin-top:20px;padding:14px 18px;background:#fff;border:1px solid #e2e8f0;border-radius:8px">' +
+    '<span style="font-weight:700;font-size:14px;color:#064e3b">PAID</span>' +
     (invoice.paymentDate ? '<span style="font-size:12px;color:#166534;margin-left:12px">' + fd(invoice.paymentDate) + (invoice.paymentReference ? ' &nbsp;Ref: ' + invoice.paymentReference : '') + '</span>' : '') +
     '</div>'
   ) : ''

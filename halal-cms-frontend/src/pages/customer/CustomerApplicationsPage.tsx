@@ -447,7 +447,7 @@ function BillingTab({ app, onPaymentUploaded }: { app: any; onPaymentUploaded?: 
   const hasAccepted = evidences.some(e => e.status === "ACCEPTED")
 
   const evStatusStyle = (st: string) => {
-    if (st === "ACCEPTED") return { bg: "#f0fdf4", color: "#15803d", border: "#bbf7d0", dot: "#22c55e" }
+    if (st === "ACCEPTED") return { bg: "#fff", color: "#064e3b", border: "#d1fae5", dot: "#064e3b" }
     if (st === "REJECTED") return { bg: "#fef2f2", color: "#dc2626", border: "#fecaca", dot: "#ef4444" }
     return { bg: "#fffbeb", color: "#92400e", border: "#fde68a", dot: "#f59e0b" }
   }
@@ -496,8 +496,8 @@ function BillingTab({ app, onPaymentUploaded }: { app: any; onPaymentUploaded?: 
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18, flexWrap: "wrap" as const, padding: "12px 16px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10 }}>
         {isPaid && source && (
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <CheckCircle2 size={16} color="#15803d" />
-            <span style={{ fontWeight: 700, fontSize: 13, color: "#15803d" }}>Payment Confirmed</span>
+            <CheckCircle2 size={16} color="#064e3b" />
+            <span style={{ fontWeight: 700, fontSize: 13, color: "#064e3b" }}>Payment Confirmed</span>
             {source.paymentDate && <span style={{ fontSize: 12, color: "#166534" }}>{formatInvoiceDate(source.paymentDate)}{source.paymentReference ? (" · " + source.paymentReference) : ""}</span>}
           </div>
         )}
@@ -599,9 +599,9 @@ function BillingTab({ app, onPaymentUploaded }: { app: any; onPaymentUploaded?: 
                 <p style={{ margin: 0, color: "#64748b" }}><strong style={{ color: DARK }}>SWIFT: </strong>MBBEMYKL &nbsp;|&nbsp; <strong style={{ color: DARK }}>Ref.: </strong>{source.invoiceNumber}</p>
               </div>
               {isPaid && (
-                <div style={{ marginTop: 16, padding: "10px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                  <CheckCircle2 size={16} color="#15803d" />
-                  <span style={{ fontWeight: 700, fontSize: 13, color: "#15803d" }}>PAID</span>
+                <div style={{ marginTop: 16, padding: "10px 14px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                  <CheckCircle2 size={16} color="#064e3b" />
+                  <span style={{ fontWeight: 700, fontSize: 13, color: "#064e3b" }}>PAID</span>
                   {source.paymentDate && <span style={{ fontSize: 11, color: "#166534" }}>{formatInvoiceDate(source.paymentDate)}{source.paymentReference ? (" · " + source.paymentReference) : ""}</span>}
                 </div>
               )}
@@ -622,9 +622,9 @@ function BillingTab({ app, onPaymentUploaded }: { app: any; onPaymentUploaded?: 
 
           {isPaid ? (
             <>
-              <div style={{ padding: "12px 16px", background: "#f0fdf4", borderBottom: "1px solid #bbf7d0", display: "flex", alignItems: "center", gap: 8 }}>
-                <CheckCircle2 size={14} color="#15803d" />
-                <span style={{ fontWeight: 700, fontSize: 12, color: "#15803d" }}>Payment Confirmed</span>
+              <div style={{ padding: "12px 16px", background: "#fff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: 8 }}>
+                <CheckCircle2 size={14} color="#064e3b" />
+                <span style={{ fontWeight: 700, fontSize: 12, color: "#064e3b" }}>Payment Confirmed</span>
               </div>
               {renderEvidenceList()}
             </>
@@ -1579,10 +1579,10 @@ function AgreementTab({ app, user, onUpdate }: { app: LocalApp; user: any; onUpd
     const displayPdf = (app as any).agreementSignedPdf || agrPdfs[app.agreementLanguage ?? "-"]?.pdfData
     return (
       <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "12px 16px", marginBottom: 16 }}>
-          <CheckCircle2 size={16} color="#16a34a" />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 16px", marginBottom: 16 }}>
+          <CheckCircle2 size={16} color="#064e3b" />
           <div>
-            <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 700, color: "#15803d" }}>Agreement Submitted - Awaiting HCB Review</p>
+            <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 700, color: "#064e3b" }}>Agreement Submitted - Awaiting HCB Review</p>
             <p style={{ margin: "1px 0 0", fontSize: "0.71rem", color: "#166534" }}>
               Signed in <strong>{sl?.label ?? app.agreementLanguage}</strong> on {app.agreementSignedAt ? new Date(app.agreementSignedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "-"}
             </p>

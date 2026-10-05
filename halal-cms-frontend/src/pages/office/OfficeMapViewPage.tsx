@@ -1,17 +1,59 @@
+import { useEffect, useRef } from "react"
 import { Building2, MapPin, Navigation, Search, ShieldCheck } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
 import { C } from "@/lib/utils"
+import L from "leaflet"
+import "leaflet/dist/leaflet.css"
 
 const F = "'Inter', system-ui, sans-serif"
 
 const markers = [
-  { city: "Amsterdam", country: "Netherlands", x: 49, y: 35, status: "Active", count: 6, color: "#2563eb" },
-  { city: "Dubai", country: "United Arab Emirates", x: 59, y: 50, status: "Audit", count: 3, color: "#f59e0b" },
-  { city: "Kuala Lumpur", country: "Malaysia", x: 73, y: 65, status: "Certified", count: 8, color: "#16a34a" },
-  { city: "Jakarta", country: "Indonesia", x: 75, y: 72, status: "Pending", count: 4, color: "#ea580c" },
-  { city: "Chicago", country: "United States", x: 25, y: 42, status: "Review", count: 2, color: "#7c3aed" },
-  { city: "Cape Town", country: "South Africa", x: 52, y: 80, status: "Active", count: 1, color: "#0ea5e9" },
+  { city: "Amsterdam", country: "Netherlands", lat: 52.37, lng: 4.89, status: "Active", count: 6, color: "#2563eb" },
+  { city: "Dubai", country: "United Arab Emirates", lat: 25.20, lng: 55.27, status: "Audit", count: 3, color: "#f59e0b" },
+  { city: "Kuala Lumpur", country: "Malaysia", lat: 3.14, lng: 101.69, status: "Certified", count: 8, color: "#16a34a" },
+  { city: "Jakarta", country: "Indonesia", lat: -6.20, lng: 106.82, status: "Pending", count: 4, color: "#ea580c" },
+  { city: "Chicago", country: "United States", lat: 41.88, lng: -87.63, status: "Review", count: 2, color: "#7c3aed" },
+  { city: "Cape Town", country: "South Africa", lat: -33.93, lng: 18.42, status: "Active", count: 1, color: "#0ea5e9" },
 ]
+
+function MapComponent() {
+  const mapRef = useRef<HTMLDivElement>(null)
+  const map = useRef<L.Map | null>(null)
+
+  useEffect(() => {
+    if (!mapRef.current || map.current) return
+
+    map.current = L.map(mapRef.current).setView([20, 10], 2)
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+      maxZoom: 19,
+    }).addTo(map.current)
+
+    markers.forEach(marker => {
+      const customIcon = L.divIcon({
+        html: `<div style="width: 30px; height: 30px; border-radius: 50%; background: ${marker.color}; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 8px 20px rgba(15,23,42,0.22);"><svg viewBox="0 0 24 24" width="15" height="15" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8m0-13c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z"/></svg></div>`,
+        iconSize: [30, 30],
+        className: "",
+      })
+
+      const popup = L.popup().setContent(
+        `<div style="font-family: Inter, system-ui, sans-serif;"><p style="margin: 0; font-size: 0.73rem; font-weight: 800; color: #1e293b;">${marker.city}</p><p style="margin: 3px 0 0; font-size: 0.63rem; color: #94a3b8;">${marker.country} - ${marker.count} facilities</p></div>`
+      )
+
+      L.marker([marker.lat, marker.lng], { icon: customIcon })
+        .bindPopup(popup)
+        .addTo(map.current!)
+    })
+
+    return () => {
+      map.current?.remove()
+      map.current = null
+    }
+  }, [])
+
+  return <div ref={mapRef} style={{ width: "100%", height: "100%", borderRadius: 12 }} />
+}
 
 export default function OfficeMapViewPage() {
   return (
@@ -37,27 +79,7 @@ export default function OfficeMapViewPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
           <section style={{ position: "relative", minHeight: 560, border: "1px solid #dbe3ef", borderRadius: 14, background: "#fff", overflow: "hidden", boxShadow: C.cardShadow }}>
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,#f8fbff 0%,#eef6ff 100%)" }} />
-            <svg viewBox="0 0 1000 520" preserveAspectRatio="none" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
-              <path d="M112 170 C170 115 250 112 300 158 C337 192 326 250 267 257 C206 265 169 231 110 244 C75 252 50 226 64 196 C72 181 91 180 112 170Z" fill="#dbeafe" stroke="#bfdbfe" strokeWidth="2" />
-              <path d="M430 142 C492 100 594 111 648 157 C702 203 681 276 614 288 C564 298 542 261 494 279 C442 298 386 268 376 220 C369 187 391 166 430 142Z" fill="#dbeafe" stroke="#bfdbfe" strokeWidth="2" />
-              <path d="M573 287 C622 302 642 352 620 414 C600 470 544 486 500 446 C459 409 475 335 520 300 C535 288 552 283 573 287Z" fill="#dbeafe" stroke="#bfdbfe" strokeWidth="2" />
-              <path d="M686 181 C755 141 872 161 925 225 C958 265 930 315 879 307 C829 299 805 263 756 282 C697 305 642 258 655 213 C660 198 671 189 686 181Z" fill="#dbeafe" stroke="#bfdbfe" strokeWidth="2" />
-              <path d="M809 350 C850 336 898 359 914 399 C930 438 897 465 853 455 C816 446 787 410 795 378 C798 365 803 356 809 350Z" fill="#dbeafe" stroke="#bfdbfe" strokeWidth="2" />
-            </svg>
-
-            {markers.map(marker => (
-              <div key={`${marker.city}-${marker.country}`} style={{ position: "absolute", left: `${marker.x}%`, top: `${marker.y}%`, transform: "translate(-50%, -50%)" }}>
-                <div style={{ position: "absolute", inset: -10, borderRadius: 999, background: marker.color, opacity: 0.13 }} />
-                <div style={{ position: "relative", width: 30, height: 30, borderRadius: 999, background: marker.color, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px rgba(15,23,42,0.22)", border: "3px solid #fff" }}>
-                  <MapPin size={15} color="#fff" fill="#fff" />
-                </div>
-                <div style={{ position: "absolute", left: 20, top: -8, minWidth: 132, padding: "7px 9px", borderRadius: 9, background: "#fff", border: "1px solid #e2e8f0", boxShadow: "0 8px 22px rgba(15,23,42,0.12)" }}>
-                  <p style={{ margin: 0, fontSize: "0.73rem", fontWeight: 800, color: C.textDark }}>{marker.city}</p>
-                  <p style={{ margin: "1px 0 0", fontSize: "0.63rem", color: C.muted }}>{marker.country} - {marker.count} facilities</p>
-                </div>
-              </div>
-            ))}
+            <MapComponent />
           </section>
 
           <aside style={{ display: "flex", flexDirection: "column", gap: 12 }}>
