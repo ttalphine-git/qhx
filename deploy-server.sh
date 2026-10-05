@@ -4,6 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 export DEBIAN_FRONTEND=noninteractive
+export COMPOSE_BAKE=false
 
 echo "==> Updating apt metadata"
 apt-get update
