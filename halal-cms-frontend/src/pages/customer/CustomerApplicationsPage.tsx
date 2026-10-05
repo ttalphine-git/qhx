@@ -187,6 +187,16 @@ const activityCategoriesFromApp = (app: any): string[] => {
   return Array.from(new Set(values))
 }
 
+const specificActivitiesFromApp = (app: any): string[] => {
+  const factory = (app?.snapshotFactories ?? []).find((f:any) => !app?.factoryId || f.id === app.factoryId)
+  const values = [
+    ...(Array.isArray(factory?.specificActivities) ? factory.specificActivities : []),
+    ...(Array.isArray(app?.specificActivities) ? app.specificActivities : []),
+    ...(Array.isArray(app?.snapshotActivities) ? app.snapshotActivities : []),
+  ].filter(Boolean)
+  return Array.from(new Set(values))
+}
+
 const PAGE_SIZE = 15
 
 // "-" Shared styles "-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-"
@@ -2056,8 +2066,8 @@ export default function CustomerApplicationsPage() {
     const frozen = !PRE_APPROVAL.includes(a.status)
     const profile   = a.snapshotProfile || ls<any>('hcs_profile', {})
     const regDocs   = a.snapshotRegDocs || ls<any>('hcs_reg_docs', {})
-    const cats      = frozen && a.snapshotCategories ? a.snapshotCategories : ls<string[]>('hcs_categories', [])
-    const acts      = frozen && a.snapshotActivities ? a.snapshotActivities : ls<string[]>('hcs_activities', [])
+    const cats      = activityCategoriesFromApp(a).length ? activityCategoriesFromApp(a) : ls<string[]>('hcs_categories', []).map(normalizeActivityCategory).filter(Boolean)
+    const acts      = specificActivitiesFromApp(a).length ? specificActivitiesFromApp(a) : ls<string[]>('hcs_activities', [])
     const desc      = frozen && a.snapshotDescription != null ? a.snapshotDescription : (localStorage.getItem('hcs_description') || '')
     const factories = frozen && a.snapshotFactories  ? a.snapshotFactories  : ls<any[]>('hcs_factories', [])
 
@@ -2098,8 +2108,9 @@ export default function CustomerApplicationsPage() {
               <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>COMPANY INFORMATION</p>
               <span style={{ fontSize:"0.68rem", color:"#94a3b8", fontStyle:"italic" }}>From registration profile</span>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(2, minmax(0, 1fr))" }}>
-              {[
+            <div style={{ background:"#fff", borderRadius:8, overflow:"hidden" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(2, minmax(0, 1fr))" }}>
+                {[
                 { Icon:Building2,    label:"Company Name",        value: company },
                 { Icon:Mail,         label:"Email",               value: email },
                 { Icon:Phone,        label:"Phone",               value: phone },
@@ -2110,17 +2121,18 @@ export default function CustomerApplicationsPage() {
                 { Icon:CalendarDays, label:"License Expiry",      value: licExpiry },
                 { Icon:Landmark,     label:"Issuing Authority",   value: issuingAuth },
                 { Icon:Receipt,      label:"VAT / SST No",        value: vatNo !== "-" ? vatNo : sstNo },
-              ].map(r => (
-                <div key={r.label} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"13px 16px" }}>
-                  <div style={{ width:16, height:16, flexShrink:0, marginTop:2, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <r.Icon size={13} color="#64748b" strokeWidth={1.9} />
+                ].map(r => (
+                  <div key={r.label} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"13px 16px" }}>
+                    <div style={{ width:16, height:16, flexShrink:0, marginTop:2, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <r.Icon size={13} color="#64748b" strokeWidth={1.9} />
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:"0.62rem", fontWeight:700, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:3, fontFamily:F }}>{r.label}</div>
+                      <div style={{ fontSize:"0.83rem", fontWeight:600, color: r.value==="-"?"#cbd5e1":DARK, fontFamily:F }}>{r.value}</div>
+                    </div>
                   </div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:"0.62rem", fontWeight:700, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:3, fontFamily:F }}>{r.label}</div>
-                    <div style={{ fontSize:"0.83rem", fontWeight:600, color: r.value==="-"?"#cbd5e1":DARK, fontFamily:F }}>{r.value}</div>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             <div style={{ marginTop:16, paddingTop:16, borderTop:"1px solid #e2e8f0" }}>
@@ -2217,14 +2229,15 @@ export default function CustomerApplicationsPage() {
                 <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>APPLICATION DETAILS</p>
                 <span style={{ fontSize:"0.68rem", padding:"2px 10px", borderRadius:20, fontWeight:700, ...getStatusStyle(a.status as any) }}>{getStatusStyle(a.status as any).label}</span>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(2, minmax(0,1fr))" }}>
+              <div style={{ background:"#fff", borderRadius:8, overflow:"hidden" }}>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(2, minmax(0,1fr))" }}>
                 {[
-                  { Icon:Hash,         label:"Application No",         value: a.applicationNumber || String(a.id).replace("local_","#L") },
+                  { Icon:Hash,         label:"Application No",         value: appNum },
                   { Icon:Briefcase,    label:"Type",                   value: a.type || "New Application" },
-                  { Icon:CalendarDays, label:"Submitted",              value: a.submittedAt ? new Date(a.submittedAt).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : a.savedAt ? new Date(a.savedAt).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : "-" },
+                  { Icon:CalendarDays, label:"Submitted",              value: a.savedAt ? new Date(a.savedAt).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : a.submittedAt ? new Date(a.submittedAt).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : "-" },
                   { Icon:Shield,       label:"Certification Standard", value: standards.length > 0 ? standards.join(" · ") : "-" },
                   { Icon:Tags,         label:"Certification Category", value: certCats.length  > 0 ? certCats.join(" · ")  : "-" },
-                  { Icon:Building2,    label:"Target Markets",         value: markets.length   > 0 ? markets.join(", ")    : "-" },
+                  { Icon:Building,     label:"Factory / Facility",     value: appFactories.length > 0 ? appFactories.map((f:any)=>f.name).join(", ") : (a.factoryName || "-") },
                 ].map(r => (
                   <div key={r.label} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"11px 14px" }}>
                     <div style={{ width:16, height:16, flexShrink:0, marginTop:2, display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -2236,6 +2249,7 @@ export default function CustomerApplicationsPage() {
                     </div>
                   </div>
                 ))}
+                </div>
               </div>
             </div>
 
@@ -2252,8 +2266,9 @@ export default function CustomerApplicationsPage() {
                 )}
               </div>
               {billing || invoice ? (
-                <div style={{ display:"grid", gridTemplateColumns:"repeat(2, minmax(0,1fr))" }}>
-                  {[
+                <div style={{ background:"#fff", borderRadius:8, overflow:"hidden" }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(2, minmax(0,1fr))" }}>
+                    {[
                     { Icon:Receipt,      label:"Invoice No",     value: invoice?.invoiceNumber ?? "-" },
                     { Icon:CreditCard,   label:"Total Amount",   value: formatBillingAmount(invoice?.total ?? billing?.total) },
                     { Icon:CalendarDays, label:"Issued Date",    value: invoice?.issuedAt ? formatInvoiceDate(invoice.issuedAt) : "-" },
@@ -2272,7 +2287,8 @@ export default function CustomerApplicationsPage() {
                         <div style={{ fontSize:"0.82rem", fontWeight:600, color: r.value==="-"?"#cbd5e1":DARK, fontFamily:F, wordBreak:"break-word" as const }}>{r.value}</div>
                       </div>
                     </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <p style={{ margin:0, fontSize:"0.8rem", color:"#94a3b8", fontFamily:F }}>No billing information has been created for this application yet.</p>
@@ -2534,7 +2550,7 @@ export default function CustomerApplicationsPage() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead style={{ position: "sticky", top: 0, background: "#fafbfc", zIndex: 1 }}>
                 <tr style={{ borderBottom: "2px solid #e9ecef", background: "#fafbfc" }}>
-                {["App #", "Submitted", "Company", "Type", "Location", "Standard", "Products", "Status", "Audit Date", "Total", "Payment", "Updated", "Progress", "-"].map(h => (
+                {["App #", "Submitted", "Company", "Type", "Location", "Standard", "Products", "Status", "Audit Date", "Total", "Payment", "Fees Paid", "Updated", "Progress", "-"].map(h => (
                   <th key={h} style={{ padding: "9px 16px", textAlign: "left", fontSize: "0.62rem", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.07em", textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>{h}</th>
                 ))}
               </tr>
@@ -2542,7 +2558,7 @@ export default function CustomerApplicationsPage() {
             <tbody>
               {!isLoading && apps.length === 0 ? (
                 <tr>
-                  <td colSpan={14} style={{ padding: "60px 20px", textAlign: "center" }}>
+                  <td colSpan={15} style={{ padding: "60px 20px", textAlign: "center" }}>
                     <FileText size={28} color="#cbd5e1" style={{ margin: "0 auto 12px", display: "block" }} />
                     <p style={{ margin: 0, fontSize: "0.9rem", fontWeight: 700, color: "#334155" }}>No applications yet</p>
                     <button onClick={() => navigate("/customer/factories")}
@@ -2560,6 +2576,8 @@ export default function CustomerApplicationsPage() {
                 const billCur    = appInvoice && appInvoice.status !== 'CANCELLED' ? appInvoice.currency : appBilling?.currency
                 const payStyle = appInvoice ? invoiceStatusStyle(appInvoice.status) : null
                 const payLabel = appInvoice?.status ?? (appBilling ? "NOT ISSUED" : "NO INVOICE")
+                const feesPaid = appInvoice?.status === "PAID" ? appInvoice.total : undefined
+                const feesPaidDate = appInvoice?.paymentDate || (app as any).paymentPaidAt
                 const isLocal  = (app as any)._local
                 const isSelected = viewApp?.id === app.id
                 const localRaw = localApps.find(la => la.id === app.id)
@@ -2614,6 +2632,18 @@ export default function CustomerApplicationsPage() {
                         {payLabel.replace("_", " ")}
                       </span>
                     </td>
+                    <td style={{ padding: "11px 16px", whiteSpace: "nowrap" as const }}>
+                      {feesPaid != null ? (
+                        <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
+                          <span style={{ fontSize:"0.76rem", fontWeight:800, color:"#15803d", fontFamily:F }}>
+                            {appInvoice?.currency ?? billCur} {feesPaid.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}
+                          </span>
+                          {feesPaidDate && <span style={{ fontSize:"0.62rem", fontWeight:700, color:"#64748b", fontFamily:F }}>{formatInvoiceDate(feesPaidDate)}</span>}
+                        </div>
+                      ) : (
+                        <span style={{ fontSize:"0.72rem", color:"#cbd5e1", fontFamily:F }}>-</span>
+                      )}
+                    </td>
                     <td style={{ padding: "11px 16px", fontSize: "0.72rem", color: "#64748b", whiteSpace: "nowrap" as const }}>{app.updatedAt ? formatDate(app.updatedAt) : "--"}</td>
                     <td style={{ padding: "11px 18px 11px 16px", width: 118, minWidth: 118 }}>
                       {app.status === "CERTIFIED"
@@ -2651,7 +2681,7 @@ export default function CustomerApplicationsPage() {
               })}
               {apps.length > 0 && Array.from({ length: Math.max(0, 8 - apps.length) }).map((_, i) => (
                 <tr key={`empty-${i}`} style={{ borderBottom: "1px solid #f1f5f9", height: 55 }}>
-                  <td colSpan={14} style={{ padding: "11px 16px", background: "transparent" }}></td>
+                  <td colSpan={15} style={{ padding: "11px 16px", background: "transparent" }}></td>
                 </tr>
               ))}
             </tbody>

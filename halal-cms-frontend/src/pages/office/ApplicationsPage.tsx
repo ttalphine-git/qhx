@@ -3531,7 +3531,7 @@ export default function ApplicationsPage() {
           <table style={{ width:"100%", borderCollapse:"collapse", fontFamily:F }}>
             <thead>
               <tr style={{ borderBottom:`1px solid ${C.border}`, background:"#fafbfc" }}>
-                {["App #","Company","Contact","Type","Status","Country","Factory Location","Standard","Products","Total Price","Payment","Submitted","Updated","Auditor","Approved By","Progress"].map(h => (
+                {["App #","Company","Contact","Type","Status","Country","Factory Location","Standard","Products","Total Price","Payment","Fees Paid","Submitted","Updated","Auditor","Approved By","Progress"].map(h => (
                   <th key={h} style={{ padding:"13px 14px", textAlign:"left", fontSize:"0.64rem", fontWeight:700, color:C.muted, letterSpacing:"0.06em", textTransform:"uppercase", whiteSpace:"nowrap", fontFamily:F }}>{h}</th>
                 ))}
               </tr>
@@ -3540,7 +3540,7 @@ export default function ApplicationsPage() {
               {isLoading ? (
                 Array.from({ length: 8 }).map((_,i) => (
                   <tr key={i} style={{ borderBottom:`1px solid ${C.border}` }}>
-                    {Array.from({ length: 16 }).map((_,j) => (
+                    {Array.from({ length: 17 }).map((_,j) => (
                       <td key={j} style={{ padding:"14px 14px" }}>
                         <div className="animate-pulse" style={{ height:12, borderRadius:4, background:"#f0f0f0", width: j===15?50:"75%" }} />
                       </td>
@@ -3549,7 +3549,7 @@ export default function ApplicationsPage() {
                 ))
               ) : applications.length === 0 ? (
                 <tr>
-                  <td colSpan={16} style={{ padding:"60px 20px", textAlign:"center" }}>
+                  <td colSpan={17} style={{ padding:"60px 20px", textAlign:"center" }}>
                     <FileText style={{ width:34, height:34, margin:"0 auto 10px", display:"block", color:"#d1d5db" }} />
                     <p style={{ margin:0, fontSize:"0.8rem", fontWeight:600, color:C.muted, fontFamily:F }}>No applications found</p>
                     <p style={{ margin:"4px 0 0", fontSize:"0.7rem", color:"#9ca3af", fontFamily:F }}>Try adjusting your search or filters</p>
@@ -3567,6 +3567,8 @@ export default function ApplicationsPage() {
                   const rowTotal = rowInvoice?.total ?? rowBilling?.total
                   const rowPayStyle = rowInvoice ? invoiceStatusStyle(rowInvoice.status) : null
                   const rowPayLabel = rowInvoice?.status ?? (rowBilling ? "NOT ISSUED" : "NO INVOICE")
+                  const rowFeesPaid = rowInvoice?.status === "PAID" ? rowInvoice.total : undefined
+                  const rowFeesPaidDate = rowInvoice?.paymentDate || rowApp.paymentPaidAt
                   const contactEmail = rowApp.companyEmail || rowApp.snapshotProfile?.email || "-"
                   const contactPhone = rowApp.companyPhone || rowApp.snapshotProfile?.phone || "-"
                   return (
@@ -3611,6 +3613,18 @@ export default function ApplicationsPage() {
                           {rowPayLabel.replace("_", " ")}
                         </span>
                       </td>
+                      <td style={{ padding:"13px 14px", whiteSpace:"nowrap" }}>
+                        {rowFeesPaid != null ? (
+                          <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
+                            <span style={{ fontSize:"0.74rem", fontWeight:800, color:"#15803d", fontFamily:F }}>
+                              {rowInvoice?.currency ?? rowCurrency} {rowFeesPaid.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}
+                            </span>
+                            {rowFeesPaidDate && <span style={{ fontSize:"0.62rem", fontWeight:700, color:"#64748b", fontFamily:F }}>{formatInvoiceDate(rowFeesPaidDate)}</span>}
+                          </div>
+                        ) : (
+                          <span style={{ fontSize:"0.72rem", color:"#cbd5e1", fontFamily:F }}>-</span>
+                        )}
+                      </td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F, whiteSpace:"nowrap" }}>{app.submittedAt ? formatDate(app.submittedAt) : "-"}</td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F, whiteSpace:"nowrap" }}>{app.updatedAt ? formatDate(app.updatedAt) : "-"}</td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F }}>{app.assignedAuditorName ?? "-"}</td>
@@ -3643,7 +3657,7 @@ export default function ApplicationsPage() {
               )}
               {applications.length > 0 && Array.from({ length: Math.max(0, 8 - applications.length) }).map((_, i) => (
                 <tr key={`empty-${i}`} style={{ borderBottom: "1px solid #f1f5f9", height: 55 }}>
-                  <td colSpan={16} style={{ padding: "13px 14px", background: "transparent" }}></td>
+                  <td colSpan={17} style={{ padding: "13px 14px", background: "transparent" }}></td>
                 </tr>
               ))}
             </tbody>
