@@ -1,7 +1,13 @@
 name: Deploy to Droplet
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
+
+concurrency:
+  group: droplet-deploy-main
+  cancel-in-progress: true
 
 jobs:
   deploy:
