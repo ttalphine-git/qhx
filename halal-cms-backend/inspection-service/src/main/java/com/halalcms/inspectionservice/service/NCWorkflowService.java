@@ -1,5 +1,7 @@
 package com.halalcms.inspectionservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.halalcms.inspectionservice.dto.NCEvidenceDto;
 import com.halalcms.inspectionservice.dto.NCWorkflowDto;
 import com.halalcms.inspectionservice.model.NCEvidence;
@@ -26,6 +28,49 @@ public class NCWorkflowService {
     private final NotificationService notificationService;
     private final EmailService emailService;
     private final WorkflowLogService workflowLogService;
+    private final ObjectMapper objectMapper;
+
+    public NonConformity saveFinding(Long applicationId, NCWorkflowDto.SaveFindingRequest request, Long userId) {
+        log.info("Saving NC finding for application {}, question {}", applicationId, request.getQuestionId());
+
+        NonConformity nc = nonConformityRepository
+            .findByApplicationIdAndQuestionId(applicationId, request.getQuestionId())
+            .orElseGet(NonConformity::new);
+
+        nc.setApplicationId(applicationId);
+        nc.setQuestionId(request.getQuestionId());
+        nc.setQuestionText(request.getQuestionText());
+        nc.setCategory(request.getCategory());
+        nc.setDescription(request.getDescription());
+        nc.setSeverity(request.getSeverity() != null && !request.getSeverity().isBlank() ? request.getSeverity() : "LOW");
+        if (nc.getStatus() == null || nc.getStatus().isBlank() || "OPEN".equals(nc.getStatus())) {
+            nc.setStatus("PENDING_CUSTOMER_ACTION");
+        }
+        if (nc.getIsCleared() == null) {
+            nc.setIsCleared(false);
+        }
+        nc.setNcEvidenceJson(toJson(request.getNcEvidence()));
+        nc.setCustomerComment(request.getCustomerComment());
+        nc.setCustomerEvidenceJson(toJson(request.getCustomerEvidence()));
+        nc.setAuditorComment(request.getAuditorComment());
+        nc.setAuditorEvidenceJson(toJson(request.getAuditorEvidence()));
+        nc.setShariaComment(request.getShariaComment());
+        nc.setShariaEvidenceJson(toJson(request.getShariaEvidence()));
+        nc.setCreatedBy(userId != null ? userId.toString() : null);
+
+        NonConformity saved = nonConformityRepository.save(nc);
+
+        workflowLogService.logAction(
+            applicationId,
+            "NC",
+            saved.getId(),
+            "NC_SAVED",
+            "NC saved for question: " + request.getQuestionId(),
+            userId
+        );
+
+        return saved;
+    }
 
     public NonConformity submitCorrectiveAction(Long ncId, NCWorkflowDto.SubmitCorrectiveActionRequest request, Long customerId) {
         log.info("Customer {} submitting corrective action for NC {}", customerId, ncId);
@@ -191,6 +236,9 @@ public class NCWorkflowService {
 
         return NCWorkflowDto.NCWorkflowStatusResponse.builder()
             .ncId(ncId)
+            .questionText(nc.getQuestionText())
+            .category(nc.getCategory())
+            .description(nc.getDescription())
             .currentStatus(nc.getStatus())
             .correctiveAction(nc.getCustomerCorrectiveAction())
             .dueDate(nc.getCustomerDueDate())
@@ -220,9 +268,17 @@ public class NCWorkflowService {
     }
 
     private String convertFilesToJson(List<String> files) {
-        if (files == null || files.isEmpty()) {
+        return toJson(files);
+    }
+
+    private String toJson(Object value) {
+        if (value == null) {
             return "[]";
         }
-        return files.toString();
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Unable to serialize NC evidence metadata", e);
+        }
     }
 }

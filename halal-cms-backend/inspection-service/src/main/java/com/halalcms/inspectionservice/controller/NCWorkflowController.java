@@ -21,6 +21,18 @@ public class NCWorkflowController {
 
     private final NCWorkflowService ncWorkflowService;
 
+    @PostMapping("/application/{applicationId}/findings")
+    public ResponseEntity<NonConformity> saveFinding(
+        @PathVariable Long applicationId,
+        @RequestBody NCWorkflowDto.SaveFindingRequest request,
+        Authentication auth
+    ) {
+        log.info("POST /api/nc/application/{}/findings", applicationId);
+        Long userId = extractUserId(auth);
+        NonConformity result = ncWorkflowService.saveFinding(applicationId, request, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
     @PostMapping("/{ncId}/customer-response")
     public ResponseEntity<NonConformity> submitCorrectiveAction(
         @PathVariable Long ncId,

@@ -20,6 +20,12 @@ public class NonConformity {
     @Column(nullable = false)
     private Long applicationId;
 
+    @Column(length = 100)
+    private String questionId;
+
+    @Column(columnDefinition = "TEXT")
+    private String questionText;
+
     private Long auditorId;
 
     @Column(length = 100)
@@ -27,6 +33,30 @@ public class NonConformity {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(columnDefinition = "TEXT")
+    private String ncEvidenceJson;
+
+    @Column(columnDefinition = "TEXT")
+    private String customerComment;
+
+    @Column(columnDefinition = "TEXT")
+    private String customerEvidenceJson;
+
+    @Column(columnDefinition = "TEXT")
+    private String auditorComment;
+
+    @Column(columnDefinition = "TEXT")
+    private String auditorEvidenceJson;
+
+    @Column(columnDefinition = "TEXT")
+    private String shariaComment;
+
+    @Column(columnDefinition = "TEXT")
+    private String shariaEvidenceJson;
+
+    @Column(length = 100)
+    private String createdBy;
 
     @Column(nullable = false, length = 20)
     @Builder.Default

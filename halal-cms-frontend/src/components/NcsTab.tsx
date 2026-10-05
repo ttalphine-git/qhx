@@ -8,6 +8,9 @@ const F = "'Inter', system-ui, sans-serif"
 
 interface NCWorkflowStatus {
   ncId: number
+  questionText?: string
+  category?: string
+  description?: string
   currentStatus: string
   correctiveAction?: string
   dueDate?: string
@@ -192,10 +195,10 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
               >
                 <div style={{ textAlign: "left", flex: 1 }}>
                   <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: 700, color: "#0f172a" }}>
-                    NC #{nc.ncId}
+                    {nc.description || `NC #${nc.ncId}`}
                   </p>
                   <p style={{ margin: "6px 0 0", fontSize: "0.75rem", color: "#64748b" }}>
-                    Status: {nc.currentStatus}
+                    {[nc.questionText, nc.category, `Status: ${nc.currentStatus}`].filter(Boolean).join(" - ")}
                   </p>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

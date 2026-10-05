@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public class NCWorkflowDto {
 
@@ -26,8 +27,27 @@ public class NCWorkflowDto {
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    public static class SaveFindingRequest {
+        private String questionId;
+        private String questionText;
+        private String category;
+        private String description;
+        private String severity;
+        private List<Map<String, Object>> ncEvidence;
+        private String customerComment;
+        private List<Map<String, Object>> customerEvidence;
+        private String auditorComment;
+        private List<Map<String, Object>> auditorEvidence;
+        private String shariaComment;
+        private List<Map<String, Object>> shariaEvidence;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     public static class NCWorkflowStatusResponse {
         private Long ncId;
+        private String questionText;
+        private String category;
+        private String description;
         private String currentStatus;
         private String correctiveAction;
         private LocalDate dueDate;
