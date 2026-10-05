@@ -268,11 +268,34 @@ function ReadonlyQRow({ q, val, last=false }: { q:string; val:string; last?:bool
   )
 }
 
+function LocationQR({ value }: { value: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    if (!canvasRef.current) return
+    import("qrcode").then(QRCode => {
+      QRCode.toCanvas(canvasRef.current!, value, {
+        width: 164,
+        margin: 1,
+        color: { dark: "#0f172a", light: "#ffffff" },
+      })
+    })
+  }, [value])
+
+  return <canvas ref={canvasRef} width={164} height={164} style={{ width:164, height:164, display:"block" }} />
+}
+
 function ReadonlyFactoryCard({ f, idx, floorPlan }: { f:any; idx:number; floorPlan?: {data:string; name:string} | null }) {
   const [floorZoom, setFloorZoom] = useState(false)
+  const [mapZoom, setMapZoom] = useState(false)
   const lat = f.lat || "3.1390"
   const lng = f.lng || "101.6869"
-  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${(parseFloat(lng)-0.08).toFixed(4)},${(parseFloat(lat)-0.06).toFixed(4)},${(parseFloat(lng)+0.08).toFixed(4)},${(parseFloat(lat)+0.06).toFixed(4)}&layer=mapnik&marker=${lat},${lng}`
+  const latNum = Number.parseFloat(String(lat))
+  const lngNum = Number.parseFloat(String(lng))
+  const safeLat = Number.isFinite(latNum) ? latNum : 3.1390
+  const safeLng = Number.isFinite(lngNum) ? lngNum : 101.6869
+  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${(safeLng-0.08).toFixed(4)},${(safeLat-0.06).toFixed(4)},${(safeLng+0.08).toFixed(4)},${(safeLat+0.06).toFixed(4)}&layer=mapnik&marker=${safeLat},${safeLng}`
+  const mapLink = `https://www.google.com/maps/search/?api=1&query=${safeLat},${safeLng}`
   const isImg = floorPlan?.data.startsWith("data:image")
   return (
     <>
@@ -281,9 +304,9 @@ function ReadonlyFactoryCard({ f, idx, floorPlan }: { f:any; idx:number; floorPl
           <Building size={13} color={BLUE} />
           <span style={{ fontSize:"0.78rem", fontWeight:700, color:DARK, fontFamily:F }}>Factory / Plant {idx+1}</span>
         </div>
-        <div style={{ display:"flex" }}>
+        <div style={{ display:"grid", gridTemplateColumns: floorPlan ? "minmax(230px, 0.9fr) minmax(250px, 1fr) minmax(220px, 0.82fr)" : "minmax(230px, 0.85fr) minmax(320px, 1.15fr)", alignItems:"stretch" }}>
           {/* Left: details */}
-          <div style={{ flex:1, padding:"16px 18px", display:"flex", flexDirection:"column", gap:16, borderRight:"1px solid #e2e8f0" }}>
+          <div style={{ padding:"16px 18px", display:"flex", flexDirection:"column", gap:16, borderRight:"1px solid #e2e8f0", minWidth:0 }}>
             {[
               { label:"Factory Name",   value: f.name    || "-" },
               { label:"Country",        value: f.country || "-" },
@@ -307,17 +330,22 @@ function ReadonlyFactoryCard({ f, idx, floorPlan }: { f:any; idx:number; floorPl
               </>
             )}
           </div>
-          {/* Right: map + floor plan side by side */}
-          <div style={{ width:"55%", flexShrink:0, display:"flex", gap:8, padding:"8px 8px 8px 0" }}>
-            <iframe src={mapSrc} style={{ flex:1, height:"100%", minHeight:220, border:"none", display:"block", borderRadius:8 }} title={`Factory ${idx+1}`} />
-            {floorPlan && (
+          <div style={{ padding:"8px", borderRight: floorPlan ? "1px solid #e2e8f0" : "none", minWidth:0, position:"relative" }}>
+            <iframe src={mapSrc} style={{ width:"100%", height:"100%", minHeight:260, border:"none", display:"block", borderRadius:8 }} title={`Factory ${idx+1}`} />
+            <button type="button" onClick={() => setMapZoom(true)}
+              style={{ position:"absolute", right:16, bottom:16, display:"flex", alignItems:"center", gap:6, padding:"7px 10px", borderRadius:8, border:"1px solid #bfdbfe", background:"rgba(255,255,255,0.94)", color:BLUE, fontSize:"0.7rem", fontWeight:800, fontFamily:F, cursor:"pointer", boxShadow:"0 8px 20px rgba(15,23,42,0.16)" }}>
+              View location QR
+            </button>
+          </div>
+          {floorPlan && (
+            <div style={{ padding:"8px", minWidth:0 }}>
               <div onClick={() => setFloorZoom(true)}
-                style={{ width:"45%", height:220, flexShrink:0, border:"1px solid #e2e8f0", borderRadius:8, cursor:"pointer", position:"relative", overflow:"hidden", background:"#f8fafc" }}
+                style={{ height:"100%", minHeight:260, border:"1px solid #e2e8f0", borderRadius:8, cursor:"pointer", position:"relative", overflow:"hidden", background:"#f8fafc" }}
                 onMouseOver={e => (e.currentTarget.style.background = "#f0f7ff")}
                 onMouseOut={e  => (e.currentTarget.style.background = "#f8fafc")}>
                 {isImg ? (
                   <img src={floorPlan.data} alt="Floor Plan"
-                    style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+                    style={{ width:"100%", height:"100%", objectFit:"contain", display:"block", background:"#fff" }} />
                 ) : (
                   <div style={{ height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:8, padding:12 }}>
                     <FileText size={32} color={BLUE} />
@@ -336,10 +364,40 @@ function ReadonlyFactoryCard({ f, idx, floorPlan }: { f:any; idx:number; floorPl
                   Floor Plan
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {mapZoom && (
+        <div onClick={() => setMapZoom(false)}
+          style={{ position:"fixed", inset:0, zIndex:99999, background:"rgba(0,0,0,0.68)", display:"flex", alignItems:"center", justifyContent:"center", padding:24, fontFamily:F }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ width:"min(920px,95vw)", maxHeight:"92vh", background:"#fff", borderRadius:14, overflow:"hidden", display:"grid", gridTemplateColumns:"1fr 240px", boxShadow:"0 24px 64px rgba(0,0,0,0.35)" }}>
+            <div style={{ minHeight:520, background:"#f1f5f9" }}>
+              <iframe src={mapSrc} title={`Factory ${idx+1} location`} style={{ width:"100%", height:"100%", border:"none", display:"block" }} />
+            </div>
+            <div style={{ padding:20, borderLeft:"1px solid #e2e8f0", display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:10 }}>
+                <div>
+                  <p style={{ margin:"0 0 4px", fontSize:"0.9rem", fontWeight:800, color:DARK }}>Factory location</p>
+                  <p style={{ margin:0, fontSize:"0.72rem", color:"#64748b", fontWeight:600 }}>{safeLat.toFixed(6)}, {safeLng.toFixed(6)}</p>
+                </div>
+                <button onClick={() => setMapZoom(false)} style={{ width:30, height:30, borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <X style={{ width:14, height:14, color:"#64748b" }} />
+                </button>
+              </div>
+              <div style={{ alignSelf:"center", padding:10, border:"1px solid #e2e8f0", borderRadius:12, background:"#fff" }}>
+                <LocationQR value={mapLink} />
+              </div>
+              <a href={mapLink} target="_blank" rel="noreferrer"
+                style={{ textAlign:"center", textDecoration:"none", padding:"9px 12px", borderRadius:8, background:BLUE, color:"#fff", fontSize:"0.76rem", fontWeight:800 }}>
+                Open in maps
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floor plan zoom modal */}
       {floorZoom && floorPlan && (
@@ -3473,7 +3531,7 @@ export default function ApplicationsPage() {
           <table style={{ width:"100%", borderCollapse:"collapse", fontFamily:F }}>
             <thead>
               <tr style={{ borderBottom:`1px solid ${C.border}`, background:"#fafbfc" }}>
-                {["App #","Company","Contact","Type","Status","Country","Factory Location","Standard","Products","Total Price","Submitted","Updated","Auditor","Approved By","Progress"].map(h => (
+                {["App #","Company","Contact","Type","Status","Country","Factory Location","Standard","Products","Total Price","Payment","Submitted","Updated","Auditor","Approved By","Progress"].map(h => (
                   <th key={h} style={{ padding:"13px 14px", textAlign:"left", fontSize:"0.64rem", fontWeight:700, color:C.muted, letterSpacing:"0.06em", textTransform:"uppercase", whiteSpace:"nowrap", fontFamily:F }}>{h}</th>
                 ))}
               </tr>
@@ -3482,16 +3540,16 @@ export default function ApplicationsPage() {
               {isLoading ? (
                 Array.from({ length: 8 }).map((_,i) => (
                   <tr key={i} style={{ borderBottom:`1px solid ${C.border}` }}>
-                    {Array.from({ length: 15 }).map((_,j) => (
+                    {Array.from({ length: 16 }).map((_,j) => (
                       <td key={j} style={{ padding:"14px 14px" }}>
-                        <div className="animate-pulse" style={{ height:12, borderRadius:4, background:"#f0f0f0", width: j===14?50:"75%" }} />
+                        <div className="animate-pulse" style={{ height:12, borderRadius:4, background:"#f0f0f0", width: j===15?50:"75%" }} />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : applications.length === 0 ? (
                 <tr>
-                  <td colSpan={15} style={{ padding:"60px 20px", textAlign:"center" }}>
+                  <td colSpan={16} style={{ padding:"60px 20px", textAlign:"center" }}>
                     <FileText style={{ width:34, height:34, margin:"0 auto 10px", display:"block", color:"#d1d5db" }} />
                     <p style={{ margin:0, fontSize:"0.8rem", fontWeight:600, color:C.muted, fontFamily:F }}>No applications found</p>
                     <p style={{ margin:"4px 0 0", fontSize:"0.7rem", color:"#9ca3af", fontFamily:F }}>Try adjusting your search or filters</p>
@@ -3507,6 +3565,8 @@ export default function ApplicationsPage() {
                   const rowBilling = loadApplicationBilling(rowApp.id)
                   const rowCurrency = rowInvoice?.currency ?? rowBilling?.currency ?? ""
                   const rowTotal = rowInvoice?.total ?? rowBilling?.total
+                  const rowPayStyle = rowInvoice ? invoiceStatusStyle(rowInvoice.status) : null
+                  const rowPayLabel = rowInvoice?.status ?? (rowBilling ? "NOT ISSUED" : "NO INVOICE")
                   const contactEmail = rowApp.companyEmail || rowApp.snapshotProfile?.email || "-"
                   const contactPhone = rowApp.companyPhone || rowApp.snapshotProfile?.phone || "-"
                   return (
@@ -3545,6 +3605,12 @@ export default function ApplicationsPage() {
                       <td style={{ padding:"13px 14px", fontSize:"0.74rem", color: typeof rowTotal === "number" ? C.textDark : "#cbd5e1", fontWeight:700, fontFamily:F, whiteSpace:"nowrap" }}>
                         {typeof rowTotal === "number" ? `${rowCurrency} ${rowTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
                       </td>
+                      <td style={{ padding:"13px 14px", whiteSpace:"nowrap" }}>
+                        <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 8px", borderRadius:20, background: rowPayStyle?.bg ?? "#f1f5f9", color: rowPayStyle?.color ?? "#64748b", border:"1px solid #e2e8f0", fontSize:"0.66rem", fontWeight:800, fontFamily:F }}>
+                          <span style={{ width:6, height:6, borderRadius:"50%", background: rowPayStyle?.dot ?? "#94a3b8" }} />
+                          {rowPayLabel.replace("_", " ")}
+                        </span>
+                      </td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F, whiteSpace:"nowrap" }}>{app.submittedAt ? formatDate(app.submittedAt) : "-"}</td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F, whiteSpace:"nowrap" }}>{app.updatedAt ? formatDate(app.updatedAt) : "-"}</td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F }}>{app.assignedAuditorName ?? "-"}</td>
@@ -3577,7 +3643,7 @@ export default function ApplicationsPage() {
               )}
               {applications.length > 0 && Array.from({ length: Math.max(0, 8 - applications.length) }).map((_, i) => (
                 <tr key={`empty-${i}`} style={{ borderBottom: "1px solid #f1f5f9", height: 55 }}>
-                  <td colSpan={15} style={{ padding: "13px 14px", background: "transparent" }}></td>
+                  <td colSpan={16} style={{ padding: "13px 14px", background: "transparent" }}></td>
                 </tr>
               ))}
             </tbody>
