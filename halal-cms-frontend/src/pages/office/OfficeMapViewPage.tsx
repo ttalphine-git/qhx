@@ -23,7 +23,11 @@ function MapComponent() {
   useEffect(() => {
     if (!mapRef.current || map.current) return
 
-    map.current = L.map(mapRef.current).setView([20, 10], 2)
+    map.current = L.map(mapRef.current, {
+      worldCopyJump: true,
+      zoomControl: true,
+      attributionControl: true,
+    }).setView([18, 35], 2)
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
@@ -46,13 +50,27 @@ function MapComponent() {
         .addTo(map.current!)
     })
 
+    const bounds = L.latLngBounds(markers.map(marker => [marker.lat, marker.lng]))
+    map.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 3 })
+
+    window.setTimeout(() => {
+      map.current?.invalidateSize()
+    }, 120)
+
     return () => {
       map.current?.remove()
       map.current = null
     }
   }, [])
 
-  return <div ref={mapRef} style={{ width: "100%", height: "100%", borderRadius: 12 }} />
+  return (
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <div ref={mapRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+      <div style={{ position: "absolute", left: 14, top: 14, zIndex: 500, padding: "6px 10px", borderRadius: 8, background: "rgba(255,255,255,0.94)", border: "1px solid #dbe3ef", boxShadow: "0 8px 24px rgba(15,23,42,0.12)", fontSize: "0.68rem", fontWeight: 800, color: C.primary, letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: F }}>
+        Live OpenStreetMap
+      </div>
+    </div>
+  )
 }
 
 export default function OfficeMapViewPage() {
@@ -78,7 +96,7 @@ export default function OfficeMapViewPage() {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
-          <section style={{ position: "relative", minHeight: 560, border: "1px solid #dbe3ef", borderRadius: 14, background: "#fff", overflow: "hidden", boxShadow: C.cardShadow }}>
+          <section style={{ position: "relative", height: "calc(100vh - 285px)", minHeight: 620, border: "1px solid #dbe3ef", borderRadius: 14, background: "#fff", overflow: "hidden", boxShadow: C.cardShadow }}>
             <MapComponent />
           </section>
 
