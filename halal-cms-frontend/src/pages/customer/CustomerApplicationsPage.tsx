@@ -1970,6 +1970,7 @@ export default function CustomerApplicationsPage() {
   const company = a ? (a.companyName || a.factoryName || "-") : "-"
   const status  = a?.status ?? "-"
   const s       = status ? getStatusStyle(status as any) : { bg:"#f1f5f9", color:"#64748b", dot:"#94a3b8", label:"-" }
+  const progressIndex = STATUS_IDX[status] ?? -1
 
   const applicationTab = !a ? null : (() => {
     const PRE_APPROVAL = ["DRAFT", "SUBMITTED", "UNDER_REVIEW"]
@@ -1999,7 +2000,6 @@ export default function CustomerApplicationsPage() {
     const halalCerts: any[]   = a.halalCerts        ?? []
     const trainingRecs: any[] = a.trainingRecs       ?? []
     const appFactories = factories.filter((f:any) => !a.factoryId || f.id === a.factoryId)
-    const ci = STATUS_IDX[a.status] ?? -1
     const billing = loadApplicationBilling(a.id)
     const invoice = loadInvoiceByApp(a.id)
     const billingCurrency = invoice?.currency ?? billing?.currency ?? ""
@@ -2009,38 +2009,6 @@ export default function CustomerApplicationsPage() {
 
     return (
       <div style={{ fontFamily:F }}>
-
-        {/* Progress stepper */}
-        <div style={{ ...card, marginBottom:14, overflowX:"auto" }}>
-          <div style={{ display:"flex", alignItems:"flex-start", minWidth:780 }}>
-            {PROGRESS_STEPS.map((step, i) => {
-              const done   = ci > step.max
-              const active = ci >= step.min && ci <= step.max
-              return (
-                <React.Fragment key={i}>
-                  {i > 0 && (
-                    <div style={{ flex:1, height:2, marginTop:15, background: ci >= step.min ? "#16a34a" : "#e2e8f0" }} />
-                  )}
-                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, width:72, flexShrink:0 }}>
-                    <div style={{ width:32, height:32, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
-                      background: done ? "#16a34a" : active ? "#fff" : "#f1f5f9",
-                      border: done ? "2px solid #16a34a" : active ? `2px solid ${BLUE}` : "2px solid #e2e8f0",
-                      boxShadow: active ? "0 0 0 4px rgba(37,99,235,0.12)" : "none",
-                    }}>
-                      {done
-                        ? <svg width="13" height="10" viewBox="0 0 13 10" fill="none"><path d="M1 5L4.5 8.5L12 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        : <span style={{ fontSize:"0.7rem", fontWeight:700, color: active ? BLUE : "#94a3b8", fontFamily:F }}>{i+1}</span>
-                      }
-                    </div>
-                    <span style={{ fontSize:"0.58rem", fontWeight: active ? 700 : done ? 600 : 400, color: done ? "#16a34a" : active ? DARK : "#94a3b8", textAlign:"center" as const, lineHeight:1.35, fontFamily:F }}>
-                      {step.label}
-                    </span>
-                  </div>
-                </React.Fragment>
-              )
-            })}
-          </div>
-        </div>
 
         {/* Company Information | Services & Activities + Application Details */}
         <div style={{ display:"flex", gap:14, alignItems:"stretch", marginBottom:14 }}>
@@ -2074,6 +2042,63 @@ export default function CustomerApplicationsPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div style={{ marginTop:16, paddingTop:16, borderTop:"1px solid #e2e8f0" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+                <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>APPLICATION BREAKDOWN</p>
+                <span style={{ fontSize:"0.68rem", color:"#94a3b8", fontWeight:700 }}>Summary</span>
+              </div>
+
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(3, minmax(0,1fr))", gap:14 }}>
+                {[
+                  { label:"Target Market", value: markets, empty:"No target market selected", render:(item:string) => {
+                    const iso = COUNTRY_ISO[item] || "un"
+                    return (
+                      <span key={item} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 8px", borderRadius:8, background:"#eff6ff", border:"1px solid #bfdbfe", color:"#1d4ed8", fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>
+                        <img src={`https://flagcdn.com/w20/${iso}.png`} alt="" style={{ width:18, height:12, objectFit:"cover", borderRadius:2, border:"1px solid #dbeafe" }} />
+                        {item}
+                      </span>
+                    )
+                  }},
+                  { label:"Certification Category", value: certCats, empty:"No certification category selected", render:(item:string) => (
+                    <span key={item} style={{ padding:"5px 8px", borderRadius:8, background:"#f8fafc", border:"1px solid #e2e8f0", color:DARK, fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>{item}</span>
+                  )},
+                  { label:"Halal Standards", value: standards, empty:"No halal standards selected", render:(item:string) => (
+                    <span key={item} style={{ padding:"5px 8px", borderRadius:8, background:"#f8fafc", border:"1px solid #e2e8f0", color:DARK, fontSize:"0.72rem", fontWeight:700, fontFamily:F }}>{item}</span>
+                  )},
+                ].map(section => (
+                  <div key={section.label} style={{ minHeight:104, textAlign:"left", padding:14, border:"1px solid #dbe3ef", borderRadius:12, background:"#fff", fontFamily:F, boxShadow:"0 1px 2px rgba(15,33,112,0.05)" }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:10 }}>
+                      <p style={{ margin:0, fontSize:"0.62rem", fontWeight:800, color:"#94a3b8", textTransform:"uppercase" as const, letterSpacing:"0.07em", fontFamily:F }}>{section.label}</p>
+                      <span style={{ fontSize:"0.62rem", fontWeight:800, color:BLUE }}>Selected</span>
+                    </div>
+                    {section.value.length > 0 ? (
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                        {section.value.map(section.render)}
+                      </div>
+                    ) : (
+                      <p style={{ margin:0, fontSize:"0.78rem", color:"#94a3b8", fontFamily:F }}>{section.empty}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {(appFactories.length > 0 || a.factoryName) && (
+                <div style={{ marginTop:18, paddingTop:16, borderTop:"1px solid #e2e8f0" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+                    <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>FACTORY / FACILITY</p>
+                    <span style={{ fontSize:"0.68rem", color:"#94a3b8", fontStyle:"italic" }}>From registration profile</span>
+                  </div>
+                  {(appFactories.length > 0
+                    ? appFactories
+                    : [{ id:"x", name: a.factoryName, country:"-", city:"-", lat:"3.1390", lng:"101.6869" }]
+                  ).map((f:any, i:number) => (
+                    <ReadonlyFactoryCard key={f.id} f={f} idx={i}
+                      floorPlan={a.floorPlanData ? { data: a.floorPlanData, name: a.floorPlanName || "Floor Plan" } : null} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -2178,69 +2203,6 @@ export default function CustomerApplicationsPage() {
           </div>
         </div>
 
-        {/* Target Market */}
-        {markets.length > 0 && (
-          <div style={card}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, paddingBottom:12, borderBottom:"1px solid #dbeafe" }}>
-              <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>TARGET MARKET</p>
-              <span style={{ fontSize:"0.72rem", fontWeight:600, color:BLUE, background:"#eff6ff", padding:"2px 10px", borderRadius:20 }}>{markets.length} selected</span>
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:8 }}>
-              {markets.map((m:string) => {
-                const iso = COUNTRY_ISO[m] || "un"
-                return (
-                  <div key={m} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, padding:"12px 8px", borderRadius:12,
-                    border:"2px solid #2563eb", background:"#eff6ff", boxShadow:"0 0 0 3px rgba(37,99,235,0.1)" }}>
-                    <img src={`https://flagcdn.com/w40/${iso}.png`} alt={m}
-                      style={{ width:36, height:24, objectFit:"cover", borderRadius:5, border:"1px solid #e2e8f0", flexShrink:0 }} />
-                    <span style={{ fontSize:"0.72rem", fontWeight:600, color:"#1d4ed8", textAlign:"center" as const, lineHeight:1.3, fontFamily:F }}>{m}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Certification Category */}
-        {certCats.length > 0 && (
-          <div style={card}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, paddingBottom:12, borderBottom:"1px solid #dbeafe" }}>
-              <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>CERTIFICATION CATEGORY</p>
-              <span style={{ fontSize:"0.72rem", fontWeight:600, color:BLUE, background:"#eff6ff", padding:"2px 10px", borderRadius:20 }}>{certCats.length} selected</span>
-            </div>
-            <div style={{ border:"1px solid #e2e8f0", borderRadius:8, overflow:"hidden" }}>
-              {certCats.map((cat:string, i:number) => (
-                <div key={cat} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 14px", borderBottom: i < certCats.length-1 ? "1px solid #f1f5f9" : "none", background:"#fff" }}>
-                  <div style={{ width:17, height:17, borderRadius:4, border:"2px solid #374151", background:"#374151", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </div>
-                  <span style={{ fontSize:"0.82rem", fontWeight:500, color:DARK, fontFamily:F }}>{cat}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Halal Standards */}
-        {standards.length > 0 && (
-          <div style={card}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, paddingBottom:12, borderBottom:"1px solid #dbeafe" }}>
-              <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>HALAL STANDARDS</p>
-              <span style={{ fontSize:"0.72rem", fontWeight:600, color:BLUE, background:"#eff6ff", padding:"2px 10px", borderRadius:20 }}>{standards.length} selected</span>
-            </div>
-            <div style={{ border:"1px solid #e2e8f0", borderRadius:8, overflow:"hidden" }}>
-              {standards.map((std:string, i:number) => (
-                <div key={std} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 14px", borderBottom: i < standards.length-1 ? "1px solid #f1f5f9" : "none", background:"#fff" }}>
-                  <div style={{ width:17, height:17, borderRadius:4, border:"2px solid #374151", background:"#374151", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </div>
-                  <span style={{ fontSize:"0.82rem", fontWeight:500, color:DARK, fontFamily:F }}>{std}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Halal Certs */}
         {a.currCert && (
           <div style={card}>
@@ -2296,23 +2258,6 @@ export default function CustomerApplicationsPage() {
                 ))}
               </div>
             )}
-          </div>
-        )}
-
-        {/* Production Data */}
-        {(appFactories.length > 0 || a.factoryName) && (
-          <div style={card}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, paddingBottom:12, borderBottom:"1px solid #dbeafe" }}>
-              <p style={{ margin:0, ...secHead, marginBottom:0, paddingBottom:0, borderBottom:"none" }}>PRODUCTION DATA</p>
-              <span style={{ fontSize:"0.68rem", color:"#94a3b8", fontStyle:"italic" }}>From registration profile</span>
-            </div>
-            {(appFactories.length > 0
-              ? appFactories
-              : [{ id:"x", name: a.factoryName, country:"-", city:"-", lat:"3.1390", lng:"101.6869" }]
-            ).map((f:any, i:number) => (
-              <ReadonlyFactoryCard key={f.id} f={f} idx={i}
-                floorPlan={a.floorPlanData ? { data: a.floorPlanData, name: a.floorPlanName || "Floor Plan" } : null} />
-            ))}
           </div>
         )}
 
@@ -2645,8 +2590,8 @@ export default function CustomerApplicationsPage() {
 
         {/* Fullscreen detail popup */}
         {viewApp && (
-          <div style={{ position:"fixed", inset:0, zIndex:900, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:"5vh 5vw" }}>
-          <div ref={detailRef} style={{ width:"100%", height:"100%", maxWidth:1400, background:"#f1f5f9", borderRadius:16, display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 24px 64px rgba(0,0,0,0.25)" }}>
+          <div style={{ position:"fixed", inset:0, zIndex:900, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center", padding:"4vh 3vw" }}>
+          <div ref={detailRef} style={{ width:"100%", height:"100%", maxWidth:1600, background:"#f1f5f9", borderRadius:16, display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 24px 64px rgba(0,0,0,0.25)" }}>
 
             {/* Panel header */}
             <div style={{ padding: "14px 20px", background: "#2563eb", borderBottom: "1px solid #1d4ed8", display: "flex", alignItems: "center", gap: 12 }}>
@@ -2673,6 +2618,40 @@ export default function CustomerApplicationsPage() {
                 style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid rgba(255,255,255,0.25)", background: "rgba(255,255,255,0.12)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", flexShrink: 0 }}>
                 <X size={14} />
               </button>
+            </div>
+
+            {/* Progress stepper */}
+            <div style={{ padding:"18px 24px 14px", background:"#f1f5f9", borderBottom:"1px solid #e2e8f0" }}>
+              <div style={{ ...card, marginBottom:0, overflowX:"auto" }}>
+                <div style={{ display:"flex", alignItems:"flex-start", minWidth:780 }}>
+                  {PROGRESS_STEPS.map((step, i) => {
+                    const done   = progressIndex > step.max
+                    const active = progressIndex >= step.min && progressIndex <= step.max
+                    return (
+                      <React.Fragment key={i}>
+                        {i > 0 && (
+                          <div style={{ flex:1, height:2, marginTop:15, background: progressIndex >= step.min ? "#16a34a" : "#e2e8f0" }} />
+                        )}
+                        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, width:72, flexShrink:0 }}>
+                          <div style={{ width:32, height:32, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+                            background: done ? "#16a34a" : active ? "#fff" : "#f1f5f9",
+                            border: done ? "2px solid #16a34a" : active ? `2px solid ${BLUE}` : "2px solid #e2e8f0",
+                            boxShadow: active ? "0 0 0 4px rgba(37,99,235,0.12)" : "none",
+                          }}>
+                            {done
+                              ? <svg width="13" height="10" viewBox="0 0 13 10" fill="none"><path d="M1 5L4.5 8.5L12 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              : <span style={{ fontSize:"0.7rem", fontWeight:700, color: active ? BLUE : "#94a3b8", fontFamily:F }}>{i+1}</span>
+                            }
+                          </div>
+                          <span style={{ fontSize:"0.58rem", fontWeight: active ? 700 : done ? 600 : 400, color: done ? "#16a34a" : active ? DARK : "#94a3b8", textAlign:"center" as const, lineHeight:1.35, fontFamily:F }}>
+                            {step.label}
+                          </span>
+                        </div>
+                      </React.Fragment>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Tab bar */}
