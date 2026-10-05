@@ -64,8 +64,8 @@ function MapComponent() {
   }, [])
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      <div ref={mapRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+    <div style={{ position: "relative", width: "100%", height: "100%", minHeight: 0, flex: 1 }}>
+      <div ref={mapRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", minHeight: 0 }} />
       <div style={{ position: "absolute", left: 14, top: 14, zIndex: 500, padding: "6px 10px", borderRadius: 8, background: "rgba(255,255,255,0.94)", border: "1px solid #dbe3ef", boxShadow: "0 8px 24px rgba(15,23,42,0.12)", fontSize: "0.68rem", fontWeight: 800, color: C.primary, letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: F }}>
         Live OpenStreetMap
       </div>
@@ -76,7 +76,7 @@ function MapComponent() {
 export default function OfficeMapViewPage() {
   return (
     <OfficeLayout title="Map View">
-      <div style={{ display: "flex", flexDirection: "column", gap: 16, fontFamily: F }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16, fontFamily: F, height: "100%", minHeight: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
           <div>
             <p style={{ margin: 0, fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: C.primary }}>
@@ -95,12 +95,12 @@ export default function OfficeMapViewPage() {
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16 }}>
-          <section style={{ position: "relative", height: "calc(100vh - 285px)", minHeight: 620, border: "1px solid #dbe3ef", borderRadius: 14, background: "#fff", overflow: "hidden", boxShadow: C.cardShadow }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16, minHeight: 0, flex: 1 }}>
+          <section style={{ position: "relative", minHeight: 400, border: "1px solid #dbe3ef", borderRadius: 14, background: "#fff", overflow: "hidden", boxShadow: C.cardShadow, display: "flex" }}>
             <MapComponent />
           </section>
 
-          <aside style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <aside style={{ display: "flex", flexDirection: "column", gap: 12, minHeight: 0, overflowY: "auto" }}>
             <div style={{ padding: 16, border: "1px solid #dbe3ef", borderRadius: 14, background: "#fff", boxShadow: C.cardShadow }}>
               <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 800, color: C.textDark }}>Map Summary</p>
               <p style={{ margin: "3px 0 16px", fontSize: "0.72rem", color: C.muted }}>Dummy regional distribution</p>
