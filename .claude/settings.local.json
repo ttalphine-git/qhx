@@ -284,7 +284,8 @@
       "Bash(sed -i 's/background: \"#16a34a\"/background: \"#0f2170\"/g' src/components/NcsTab.tsx)",
       "Bash(sed -i 's/step > s ? \"#16a34a\"/step > s ? \"#0f2170\"/g' src/components/OnboardingWizard.tsx)",
       "PowerShell($true)",
-      "Bash(node browser.mjs http://localhost:5173/office/map-view --wait \".leaflet-container\" --screenshot \"d:\\\\tmp\\\\map-view.png\")"
+      "Bash(node browser.mjs http://localhost:5173/office/map-view --wait \".leaflet-container\" --screenshot \"d:\\\\tmp\\\\map-view.png\")",
+      "PowerShell(Get-Process node -ErrorAction SilentlyContinue)"
     ]
   }
 }
