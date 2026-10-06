@@ -198,6 +198,14 @@ export default function CustomerApplicationDetailPage() {
   function handleEvidenceUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (!f) return
+
+    // Validate file type - only allow PDF and images
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(f.type)) {
+      toast.error('Only PDF and image files are allowed')
+      return
+    }
+
     const r = new FileReader()
     r.onload = ev => { setEvidenceFile(ev.target?.result as string); setEvidenceName(f.name) }
     r.readAsDataURL(f)
@@ -716,12 +724,18 @@ export default function CustomerApplicationDetailPage() {
                   )}
 
                   {/* PDF viewer */}
-                  {selectedPdf && (
+                  {selectedPdf && (() => {
+                    const isPdfDataUrl = selectedPdf.pdfData?.startsWith('data:application/pdf;base64,')
+                    if (!isPdfDataUrl) {
+                      return <div style={{ padding: 20, color: '#d32f2f' }}>Invalid PDF format. Please contact support.</div>
+                    }
+                    return (
                     <div>
                       <iframe
                         key={agrLang}
                         src={selectedPdf.pdfData}
                         title="Agreement PDF"
+                        sandbox="allow-same-origin"
                         style={{ width: "100%", height: "calc(100vh - 320px)", minHeight: 500, border: `1px solid ${C.border}`, borderRadius: "10px 10px 0 0", display: "block", background: "#f8fafc" }}
                       />
 
@@ -778,7 +792,8 @@ export default function CustomerApplicationDetailPage() {
                         </div>
                       </div>
                     </div>
-                  )}
+                    )
+                  })()}
                 </>
               )}
             </div>
@@ -1092,7 +1107,7 @@ export default function CustomerApplicationDetailPage() {
             <div style={{ flex:1, overflow:"auto", background:"#f1f5f9", display:"flex", alignItems:"center", justifyContent:"center", minHeight:300 }}>
               {evidencePreview.isImg
                 ? <img src={evidencePreview.base64} alt={evidencePreview.name} style={{ maxWidth:"100%", maxHeight:"82vh", objectFit:"contain", display:"block" }} />
-                : <iframe src={evidencePreview.base64} title={evidencePreview.name} style={{ width:"100%", height:"80vh", border:"none", display:"block" }} />
+                : <iframe src={evidencePreview.base64} title={evidencePreview.name} sandbox="allow-same-origin" style={{ width:"100%", height:"80vh", border:"none", display:"block" }} />
               }
             </div>
           </div>
