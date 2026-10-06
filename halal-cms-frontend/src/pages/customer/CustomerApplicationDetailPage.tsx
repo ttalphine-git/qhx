@@ -6,16 +6,19 @@ import {
   Building2, CreditCard, AlertTriangle,
   FileText, PenLine, RotateCcw, Send, Globe, Upload, X,
   Mail, Phone, Hash, CalendarDays, Landmark, Receipt, Briefcase,
-  Shield, Tags, List, AlignLeft,
+  Shield, Tags, List, AlignLeft, ChevronDown, ChevronUp,
 } from "lucide-react"
+import { toast } from "react-hot-toast"
 import CustomerLayout from "./CustomerLayout"
 import { getApplication, getCompanyInfo, getPaymentStatus, getEventLogs, signApplicationAgreement } from "@/api/applications"
+import { getApplicationAuditReport, saveApplicationAuditReport } from "@/api/audits"
 import { C, getStatusStyle, formatDate, formatDateTime } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
 import { addNotification } from "@/lib/notifications"
 import { addAuditLog } from "@/lib/auditLog"
 import { loadApplicationBilling, loadInvoiceByApp, invoiceStatusStyle, formatInvoiceDate, loadStripeConfig, addPaymentEvidence } from "@/lib/billing"
 import type { Invoice } from "@/lib/billing"
+import type { ApplicationAuditReportDto, AuditAnswerDto } from "@/api/audits"
 
 const STAGES = [
   { key: "DRAFT",                label: "Draft" },
@@ -180,6 +183,12 @@ export default function CustomerApplicationDetailPage() {
 
   const evKey = `hcs_pay_evidence_${id}`
 
+  // Audit state
+  const [auditCategoryKey, setAuditCategoryKey] = useState("HALAL")
+  const [auditAnswers, setAuditAnswers] = useState<Record<number, AuditAnswerDto>>({})
+  const [savingAudit, setSavingAudit] = useState(false)
+  const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set())
+
   // Refresh invoice + evidence state when app status changes
   useEffect(() => {
     setInvoice(loadInvoiceByApp(id ?? 0))
@@ -246,6 +255,25 @@ export default function CustomerApplicationDetailPage() {
     enabled: !!appId && !isNaN(appId) && !!apiApp,
   })
 
+  const auditStatuses = ["AUDIT_SCHEDULED", "AUDIT_IN_PROGRESS", "AUDIT_COMPLETED", "CERTIFICATION_REVIEW", "CERTIFIED"]
+  const showAuditQuestions = app && auditStatuses.includes(app.status)
+
+  const { data: auditReportData } = useQuery({
+    queryKey: ["customer-app-audit", appId, auditCategoryKey],
+    queryFn: () => getApplicationAuditReport(appId, auditCategoryKey),
+    enabled: Boolean(appId && !isNaN(appId) && showAuditQuestions),
+  })
+
+  useEffect(() => {
+    if (auditReportData) {
+      const answerMap: Record<number, AuditAnswerDto> = {}
+      auditReportData.answers.forEach((answer, idx) => {
+        answerMap[idx] = answer
+      })
+      setAuditAnswers(answerMap)
+    }
+  }, [auditReportData])
+
   const handleSign = useCallback((dataUrl: string) => setSignature(dataUrl), [])
   const handleClear = useCallback(() => setSignature(""), [])
 
@@ -303,6 +331,55 @@ export default function CustomerApplicationDetailPage() {
     })
 
     setSigned(true)
+  }
+
+  function updateCustomerComment(answerIndex: number, comment: string) {
+    setAuditAnswers(prev => ({
+      ...prev,
+      [answerIndex]: {
+        ...(prev[answerIndex] || {}),
+        customerComment: comment,
+      } as AuditAnswerDto,
+    }))
+  }
+
+  async function saveAuditComments() {
+    if (!app || !auditReportData) return
+    setSavingAudit(true)
+    try {
+      const report = auditReportData as ApplicationAuditReportDto
+      const updatedAnswers = Object.values(auditAnswers)
+      const payload: ApplicationAuditReportDto = {
+        applicationId: appId,
+        status: report.status,
+        answers: updatedAnswers,
+        activityCategoryKey: report.activityCategoryKey,
+        generalComment: report.generalComment,
+        completedAt: report.completedAt,
+      }
+      await saveApplicationAuditReport(appId, payload)
+      addNotification("office", {
+        type: "info",
+        title: "Comments Saved",
+        body: `${app.companyName} has updated their audit comments.`,
+      })
+      toast.success("Your audit comments have been saved successfully.")
+    } catch (err) {
+      console.error("Failed to save audit comments:", err)
+      toast.error("Failed to save your audit comments. Please try again.")
+    } finally {
+      setSavingAudit(false)
+    }
+  }
+
+  function toggleQuestionExpanded(index: number) {
+    const newSet = new Set(expandedQuestions)
+    if (newSet.has(index)) {
+      newSet.delete(index)
+    } else {
+      newSet.add(index)
+    }
+    setExpandedQuestions(newSet)
   }
 
   if (isLoading) {
@@ -707,6 +784,111 @@ export default function CustomerApplicationDetailPage() {
             </div>
           </div>
         )}
+
+        {/* ── Audit Questions Section ── */}
+        {showAuditQuestions && auditReportData && (() => {
+          const report = auditReportData as ApplicationAuditReportDto
+          return (
+          <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", marginBottom: 20, boxShadow: C.cardShadow }}>
+            {/* Header */}
+            <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: C.textDark }}>Audit Questions</h3>
+                <p style={{ margin: "2px 0 0", fontSize: 12, color: C.muted }}>Review the audit questions and provide your comments as needed</p>
+              </div>
+            </div>
+
+            {/* Questions */}
+            <div style={{ padding: 20, display: "grid", gap: 12 }}>
+              {report.answers.map((answer: AuditAnswerDto, idx: number) => (
+                <div key={`audit-q-${idx}`} style={{ border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden" }}>
+                  {/* Question header */}
+                  <div
+                    onClick={() => toggleQuestionExpanded(idx)}
+                    style={{ padding: "14px 16px", background: "#f8fafc", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", userSelect: "none" }}
+                  >
+                    <span style={{ width: 28, height: 28, borderRadius: 6, background: C.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{idx + 1}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.textDark, lineHeight: 1.4 }}>{answer.questionText}</p>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      {answer.answer && (
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6, background: answer.answer === "yes" ? "#dcfce7" : answer.answer === "no" ? "#fee2e2" : "#f3f4f6", color: answer.answer === "yes" ? "#15803d" : answer.answer === "no" ? "#991b1b" : "#6b7280" }}>
+                          {answer.answer.toUpperCase()}
+                        </span>
+                      )}
+                      {expandedQuestions.has(idx) ? (
+                        <ChevronUp size={16} color={C.muted} style={{ flexShrink: 0 }} />
+                      ) : (
+                        <ChevronDown size={16} color={C.muted} style={{ flexShrink: 0 }} />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expanded content */}
+                  {expandedQuestions.has(idx) && (
+                    <div style={{ padding: "14px 16px", borderTop: `1px solid ${C.border}`, background: "#fff" }}>
+                      {/* Answer status */}
+                      <div style={{ marginBottom: 14, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase" }}>Status:</span>
+                        {answer.answer ? (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 6, background: answer.answer === "yes" ? "#dcfce7" : answer.answer === "no" ? "#fee2e2" : "#f3f4f6", color: answer.answer === "yes" ? "#15803d" : answer.answer === "no" ? "#991b1b" : "#6b7280" }}>
+                            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />
+                            {answer.answer === "yes" ? "YES" : answer.answer === "no" ? "NO" : "NOT APPLICABLE"}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 12, color: C.muted }}>Not yet answered by auditor</span>
+                        )}
+                        {answer.finding && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 6, background: answer.finding === "nc" ? "#fee2e2" : "#fef3c7", color: answer.finding === "nc" ? "#991b1b" : "#92400e" }}>
+                            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />
+                            {answer.finding === "nc" ? "NON-CONFORMITY" : "OBSERVATION"}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Comments section */}
+                      <div style={{ display: "grid", gap: 12 }}>
+                        {/* Auditor Comment (read-only) */}
+                        {answer.auditorComment && (
+                          <div style={{ padding: 12, background: "#f1f5f9", borderRadius: 8, borderLeft: "3px solid #64748b" }}>
+                            <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Auditor Comment</p>
+                            <p style={{ margin: 0, fontSize: 12, color: C.textDark, lineHeight: 1.5 }}>{answer.auditorComment}</p>
+                          </div>
+                        )}
+
+                        {/* Customer Comment (editable) */}
+                        <div>
+                          <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", marginBottom: 8 }}>
+                            Your Comment
+                          </label>
+                          <textarea
+                            value={auditAnswers[idx]?.customerComment ?? answer.customerComment ?? ""}
+                            onChange={e => updateCustomerComment(idx, e.target.value)}
+                            placeholder="Add your comment or response here..."
+                            style={{ width: "100%", minHeight: 60, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", fontSize: 12, fontFamily: "inherit", outline: "none", resize: "vertical", color: C.textDark }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Save button */}
+              {report.answers.length > 0 && (
+                <button
+                  onClick={saveAuditComments}
+                  disabled={savingAudit}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 20px", marginTop: 8, borderRadius: 9, border: "none", background: savingAudit ? "#e2e8f0" : C.primary, color: savingAudit ? "#94a3b8" : "#fff", fontSize: 13, fontWeight: 700, cursor: savingAudit ? "not-allowed" : "pointer" }}
+                >
+                  {savingAudit ? "Saving..." : "Save Comments"}
+                </button>
+              )}
+            </div>
+          </div>
+          )
+        })()}
 
         {/* ── Billing & Payments ── always visible once submitted ── */}
         {billing && (() => {
