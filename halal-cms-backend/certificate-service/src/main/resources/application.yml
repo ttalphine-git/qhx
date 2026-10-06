@@ -16,6 +16,17 @@ spring:
       ddl-auto: update
     show-sql: false
     open-in-view: false
+  mail:
+    host: localhost
+    port: 1025
+    username: noreply
+    password: noreply
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 
 jwt:
   secret: ${JWT_SECRET:changeme-use-256-bit-secret-in-production}
@@ -28,19 +39,6 @@ do:
     bucket: ${DO_SPACES_BUCKET}
     region: ${DO_SPACES_REGION:nyc3}
     endpoint: ${DO_SPACES_ENDPOINT:https://nyc3.digitaloceanspaces.com}
-
-spring:
-  mail:
-    host: localhost
-    port: 1025
-    username: noreply
-    password: noreply
-    properties:
-      mail:
-        smtp:
-          auth: false
-          starttls:
-            enable: false
 
 eureka:
   client:
