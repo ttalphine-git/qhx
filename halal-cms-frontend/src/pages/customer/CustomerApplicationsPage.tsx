@@ -2550,7 +2550,7 @@ export default function CustomerApplicationsPage() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead style={{ position: "sticky", top: 0, background: "#fafbfc", zIndex: 1 }}>
                 <tr style={{ borderBottom: "2px solid #e9ecef", background: "#fafbfc" }}>
-                {["App #", "Submitted", "Company", "Type", "Location", "Standard", "Products", "Status", "Audit Date", "Total", "Payment", "Fees Paid", "Updated", "Progress", "-"].map(h => (
+                {["App #", "Submitted", "Company", "Type", "Location", "Standard", "Products", "Status", "Progress", "Audit Date", "Total", "Payment", "Updated", "-"].map(h => (
                   <th key={h} style={{ padding: "9px 16px", textAlign: "left", fontSize: "0.62rem", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.07em", textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>{h}</th>
                 ))}
               </tr>
@@ -2558,7 +2558,7 @@ export default function CustomerApplicationsPage() {
             <tbody>
               {!isLoading && apps.length === 0 ? (
                 <tr>
-                  <td colSpan={15} style={{ padding: "60px 20px", textAlign: "center" }}>
+                  <td colSpan={14} style={{ padding: "60px 20px", textAlign: "center" }}>
                     <FileText size={28} color="#cbd5e1" style={{ margin: "0 auto 12px", display: "block" }} />
                     <p style={{ margin: 0, fontSize: "0.9rem", fontWeight: 700, color: "#334155" }}>No applications yet</p>
                     <button onClick={() => navigate("/customer/factories")}
@@ -2576,8 +2576,6 @@ export default function CustomerApplicationsPage() {
                 const billCur    = appInvoice && appInvoice.status !== 'CANCELLED' ? appInvoice.currency : appBilling?.currency
                 const payStyle = appInvoice ? invoiceStatusStyle(appInvoice.status) : null
                 const payLabel = appInvoice?.status ?? (appBilling ? "NOT ISSUED" : "NO INVOICE")
-                const feesPaid = appInvoice?.status === "PAID" ? appInvoice.total : undefined
-                const feesPaidDate = appInvoice?.paymentDate || (app as any).paymentPaidAt
                 const isLocal  = (app as any)._local
                 const isSelected = viewApp?.id === app.id
                 const localRaw = localApps.find(la => la.id === app.id)
@@ -2617,34 +2615,6 @@ export default function CustomerApplicationsPage() {
                         <div style={{ display:"flex", alignItems:"center", gap:4, fontSize: "0.63rem", color: "#d97706", fontWeight: 700, marginTop: 4 }}><Zap size={10} color="#d97706" strokeWidth={2.5} /> Signature required</div>
                       )}
                     </td>
-                    <td style={{ padding: "9px 16px" }}>
-                      <CustomerAuditDateCell app={app} />
-                    </td>
-                    <td style={{ padding: "11px 16px", whiteSpace: "nowrap" as const }}>
-                      {billTotal != null
-                        ? <span style={{ fontSize:"0.78rem", fontWeight:700, color:"#0f172a", fontFamily:F }}>{billCur} {billTotal.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}</span>
-                        : <span style={{ fontSize:"0.72rem", color:"#cbd5e1", fontFamily:F }}>—</span>
-                      }
-                    </td>
-                    <td style={{ padding: "11px 16px", whiteSpace: "nowrap" as const }}>
-                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 8px", borderRadius:20, background: payStyle?.bg ?? "#f1f5f9", color: payStyle?.color ?? "#64748b", border:"1px solid #e2e8f0", fontSize:"0.66rem", fontWeight:800, fontFamily:F }}>
-                        <span style={{ width:6, height:6, borderRadius:"50%", background: payStyle?.dot ?? "#94a3b8" }} />
-                        {payLabel.replace("_", " ")}
-                      </span>
-                    </td>
-                    <td style={{ padding: "11px 16px", whiteSpace: "nowrap" as const }}>
-                      {feesPaid != null ? (
-                        <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
-                          <span style={{ fontSize:"0.76rem", fontWeight:800, color:"#15803d", fontFamily:F }}>
-                            {appInvoice?.currency ?? billCur} {feesPaid.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}
-                          </span>
-                          {feesPaidDate && <span style={{ fontSize:"0.62rem", fontWeight:700, color:"#64748b", fontFamily:F }}>{formatInvoiceDate(feesPaidDate)}</span>}
-                        </div>
-                      ) : (
-                        <span style={{ fontSize:"0.72rem", color:"#cbd5e1", fontFamily:F }}>-</span>
-                      )}
-                    </td>
-                    <td style={{ padding: "11px 16px", fontSize: "0.72rem", color: "#64748b", whiteSpace: "nowrap" as const }}>{app.updatedAt ? formatDate(app.updatedAt) : "--"}</td>
                     <td style={{ padding: "11px 18px 11px 16px", width: 118, minWidth: 118 }}>
                       {app.status === "CERTIFIED"
                         ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.69rem", color: "#15803d", fontWeight: 600 }}><Award size={12} />Certified</span>
@@ -2660,6 +2630,22 @@ export default function CustomerApplicationsPage() {
                           </div>
                       }
                     </td>
+                    <td style={{ padding: "9px 16px" }}>
+                      <CustomerAuditDateCell app={app} />
+                    </td>
+                    <td style={{ padding: "11px 16px", whiteSpace: "nowrap" as const }}>
+                      {billTotal != null
+                        ? <span style={{ fontSize:"0.78rem", fontWeight:700, color:"#0f172a", fontFamily:F }}>{billCur} {billTotal.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}</span>
+                        : <span style={{ fontSize:"0.72rem", color:"#cbd5e1", fontFamily:F }}>—</span>
+                      }
+                    </td>
+                    <td style={{ padding: "11px 16px", whiteSpace: "nowrap" as const }}>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 8px", borderRadius:20, background: payStyle?.bg ?? "#f1f5f9", color: payStyle?.color ?? "#64748b", border:"1px solid #e2e8f0", fontSize:"0.66rem", fontWeight:800, fontFamily:F }}>
+                        <span style={{ width:6, height:6, borderRadius:"50%", background: payStyle?.dot ?? "#94a3b8" }} />
+                        {payLabel.replace("_", " ")}
+                      </span>
+                    </td>
+                    <td style={{ padding: "11px 16px", fontSize: "0.72rem", color: "#64748b", whiteSpace: "nowrap" as const }}>{app.updatedAt ? formatDate(app.updatedAt) : "--"}</td>
                     <td style={{ padding: "11px 16px" }} onClick={e => e.stopPropagation()}>
                       <div style={{ display: "flex", gap: 5 }}>
                         {isLocal && (
