@@ -142,7 +142,7 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
           <div style={{ width:36, height:36, background:"rgba(255,255,255,0.2)", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.875rem", fontWeight:800, color:"#fff", letterSpacing:"-0.5px", flexShrink:0 }}>HC</div>
           <div>
             <div style={{ fontSize:"1rem", fontWeight:700, color:"#fff", letterSpacing:"0.02em" }}>HalalCMS</div>
-            <div style={{ fontSize:"0.6875rem", color:"rgba(255,255,255,0.4)" }}>Office Portal v44</div>
+            <div style={{ fontSize:"0.6875rem", color:"rgba(255,255,255,0.4)" }}>Office Portal v45o</div>
           </div>
         </button>
 
@@ -279,7 +279,7 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
               <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.18)", border:"1.5px solid rgba(255,255,255,0.28)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.6875rem", fontWeight:700, color:"#fff", flexShrink:0 }}>{initials}</div>
               <div className="ol-user-text">
                 <div style={{ fontSize:"0.8125rem", fontWeight:600, color:"#fff", lineHeight:1.2 }}>{user?.name ?? "Admin"}</div>
-                <div style={{ fontSize:"0.625rem", color:"rgba(255,255,255,0.45)", lineHeight:1.2 }}>Office Portal v44</div>
+                <div style={{ fontSize:"0.625rem", color:"rgba(255,255,255,0.45)", lineHeight:1.2 }}>Office Portal v45o</div>
               </div>
               <ChevronDown size={12} color="rgba(255,255,255,0.5)" />
             </button>
