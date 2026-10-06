@@ -255,7 +255,7 @@ export default function CustomerApplicationDetailPage() {
     enabled: !!appId && !isNaN(appId) && !!apiApp,
   })
 
-  const auditStatuses = ["AUDIT_SCHEDULED", "AUDIT_IN_PROGRESS", "AUDIT_COMPLETED", "CERTIFICATION_REVIEW", "CERTIFIED"]
+  const auditStatuses = ["AUDIT_PLANNING", "AUDIT_PLAN", "AUDIT_SCHEDULED", "AUDIT_IN_PROGRESS", "AUDIT_COMPLETED", "CERTIFICATION_REVIEW", "CERTIFIED"]
   const showAuditQuestions = app && auditStatuses.includes(app.status)
 
   const { data: auditReportData } = useQuery({
