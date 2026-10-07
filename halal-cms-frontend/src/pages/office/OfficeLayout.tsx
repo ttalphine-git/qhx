@@ -16,7 +16,6 @@ const NAV_ITEMS = [
 
 const SETTINGS_ITEMS = [
   { label: "Live Activity",      sub: "Track customer portal actions",    path: "/office/live-activity" },
-  { label: "Applications List",  sub: "Browse all customer applications",  path: "/office/applications-list" },
   { label: "Audit Trail",       sub: "View system activity logs",     path: "/office/audit-trail" },
   { label: "Color Settings",    sub: "Customize portal colors",       path: "/settings/colors" },
   { label: "Advanced Settings",  sub: "Portal configuration",          path: "/office/settings?tab=scope"      },
