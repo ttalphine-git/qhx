@@ -1244,17 +1244,11 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
   const canUseDatabase = Number.isFinite(numericApplicationId)
   const appCategoryKeys = activityCategoriesFromApp(app)
 
-  // Try to find matching audit track based on app's activity categories
+  // Derive audit category key from app's activity categories
   const matchingTrack = DEFAULT_AUDIT_TRACKS.find(track =>
     (track.activityCategoryKeys ?? []).some(trackKey => appCategoryKeys.includes(trackKey))
   )
-  const defaultCategory = matchingTrack?.activityCategoryKeys?.[0] || appCategoryKeys[0] || "mfg"
-
-  // Use same approach as office portal: check localStorage first, then default
-  const [auditCategoryKey, setAuditCategoryKey] = useState(() => {
-    try { return localStorage.getItem(`hcs_audit_category_${numericApplicationId}`) || defaultCategory }
-    catch { return defaultCategory }
-  })
+  const auditCategoryKey = matchingTrack?.activityCategoryKeys?.[0] || appCategoryKeys[0] || "mfg"
 
   const [comments, setComments] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
@@ -1318,9 +1312,6 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
     setSaving(true)
     setSaveError("")
     try {
-      // Save category key to localStorage like office portal does
-      localStorage.setItem(`hcs_audit_category_${numericApplicationId}`, auditCategoryKey)
-
       const payload: ApplicationAuditReportDto = {
         id: report.id,
         applicationId: numericApplicationId,
