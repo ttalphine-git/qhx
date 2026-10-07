@@ -285,7 +285,13 @@
       "Bash(sed -i 's/step > s ? \"#16a34a\"/step > s ? \"#0f2170\"/g' src/components/OnboardingWizard.tsx)",
       "PowerShell($true)",
       "Bash(node browser.mjs http://localhost:5173/office/map-view --wait \".leaflet-container\" --screenshot \"d:\\\\tmp\\\\map-view.png\")",
-      "PowerShell(Get-Process node -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-Process node -ErrorAction SilentlyContinue)",
+      "Bash(git -C \"d:\\\\QHXSASS\" log --oneline -5)",
+      "Bash(git -C \"d:\\\\QHXSASS\" add SYSTEM_REQUIREMENTS.md)",
+      "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Add comprehensive system requirements documentation\")",
+      "Bash(git -C \"d:\\\\QHXSASS\" push)",
+      "Bash(git -C \"d:\\\\QHXSASS\" add -A)",
+      "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Change top bar color to darker blue #003d82\")"
     ]
   }
 }

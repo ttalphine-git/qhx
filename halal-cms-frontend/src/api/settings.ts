@@ -59,7 +59,7 @@ export const resetColorSettings = async (): Promise<ColorSettings> => {
 }
 
 export const getDefaultColors = (): ColorSettings => ({
-  topBarBackground: '#0061fe',
+  topBarBackground: '#003d82',
   topBarText: '#ffffff',
   buttonPrimary: '#2563eb',
   buttonPrimaryHover: '#1d4ed8',
