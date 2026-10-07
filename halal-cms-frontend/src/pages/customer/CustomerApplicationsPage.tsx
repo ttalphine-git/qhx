@@ -164,7 +164,7 @@ const TABS = [
   { label: "Rejected",  value: "REJECTED,SUSPENDED,EXPIRED", badge: false },
 ]
 
-const APP_TABS = ["Application","Agreement","Billing","Audit plan","Documents","Audit","Logs","Certificate"]
+const APP_TABS = ["Application","Agreement","Billing","Audit plan","Check list","Documents","Audit","Logs","Certificate"]
 
 const normalizeActivityCategory = (key?: string) => {
   const raw = (key ?? "").trim().toLowerCase()
@@ -2441,6 +2441,7 @@ export default function CustomerApplicationsPage() {
     "Agreement":   <AgreementTab app={a} user={user} onUpdate={handleAgreementUpdate} />,
     "Billing":     <BillingTab app={a} onPaymentUploaded={() => setAppTab("Audit plan")} />,
     "Audit plan":  <CustomerAuditPlanTab app={a} />,
+    "Check list":  <CustomerAuditQuestionsTab app={a} />,
     "Documents":   <CustomerDocumentsTab app={a} />,
     "Audit":       <CustomerAuditQuestionsTab app={a} />,
     "Certificate": <PlaceholderTab icon="" label="Certificate" />,
