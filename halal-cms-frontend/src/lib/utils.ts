@@ -37,8 +37,8 @@ export function truncate(str: string, length = 40): string {
 // ─── Design tokens — exact SOMLITS theme ──────────────────────────────────────
 
 export const C = {
-  // Navigation bar — deep navy #0f2170, matching SOMLITS app.layout.module.css
-  nav:             '#0f2170',
+  // Navigation bar — blue #0061fe
+  nav:             '#0061fe',
   navHover:        'rgba(255,255,255,0.15)',
   navActive:       'rgba(255,255,255,0.22)',
   navText:         'rgba(255,255,255,0.55)',
