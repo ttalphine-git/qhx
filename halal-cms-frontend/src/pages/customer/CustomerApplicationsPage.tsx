@@ -1243,10 +1243,14 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
   const [saveError, setSaveError] = useState("")
   const [savedAt, setSavedAt] = useState("")
 
+  // Show questions from audit plan issued onwards (DOCUMENT_SUBMISSION and later stages)
+  const auditPrepStages = ["DOCUMENT_SUBMISSION", "AUDIT_IN_PROGRESS", "AUDIT_COMPLETED", "NC_CLEARANCE", "DECISION_MAKING", "CERTIFICATION_REVIEW", "CERTIFIED"]
+  const isAuditPhase = auditPrepStages.includes(app.status)
+
   const reportQ = useQuery({
     queryKey: ["application-audit-report", numericApplicationId, fallbackCategory],
     queryFn: () => getApplicationAuditReport(numericApplicationId, fallbackCategory),
-    enabled: canUseDatabase,
+    enabled: canUseDatabase && isAuditPhase,
   })
 
   const report = reportQ.data
@@ -1259,7 +1263,7 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
   const questionRows = configQuestions.length
     ? configQuestions
     : answers.length
-      ? []
+      ? answers.filter(a => a.questionText?.trim()).map((a, i) => ({ id: a.questionId, questionText: a.questionText, sortOrder: i }))
       : fallbackQuestions.map((questionText, index) => ({
           id: undefined,
           questionText,
@@ -1331,6 +1335,10 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
 
   if (!canUseDatabase) {
     return <PlaceholderTab icon="" label="Audit questions are available after the application is synced." />
+  }
+
+  if (!isAuditPhase) {
+    return <PlaceholderTab icon="" label="Audit questions will appear once the audit plan is issued by HCB." />
   }
 
   return (
