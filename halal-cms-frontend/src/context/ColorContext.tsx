@@ -16,7 +16,7 @@ export function ColorProvider({ children }: { children: React.ReactNode }) {
     queryKey: ['color-settings'],
     queryFn: getColorSettings,
     staleTime: Infinity,
-    retry: 1,
+    retry: false,
   })
 
   useEffect(() => {

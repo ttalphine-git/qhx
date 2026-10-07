@@ -14,14 +14,49 @@ export interface ColorSettings {
   updatedAt?: string
 }
 
-export const getColorSettings = () =>
-  apiClient.get<ColorSettings>('/settings/colors').then(r => r.data).catch(() => getDefaultColors())
+const STORAGE_KEY = 'hcs_color_settings'
 
-export const updateColorSettings = (data: Partial<ColorSettings>) =>
-  apiClient.put<ColorSettings>('/settings/colors', data).then(r => r.data)
+export const getColorSettings = async (): Promise<ColorSettings> => {
+  try {
+    const response = await apiClient.get<ColorSettings>('/settings/colors')
+    return response.data
+  } catch {
+    // Fallback to localStorage if backend endpoint doesn't exist
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) return JSON.parse(stored)
+    } catch {}
+    return getDefaultColors()
+  }
+}
 
-export const resetColorSettings = () =>
-  apiClient.post<ColorSettings>('/settings/colors/reset').then(r => r.data)
+export const updateColorSettings = async (data: Partial<ColorSettings>): Promise<ColorSettings> => {
+  const updated = { ...getDefaultColors(), ...data }
+  try {
+    const response = await apiClient.put<ColorSettings>('/settings/colors', data)
+    // Also save to localStorage as backup
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data))
+    return response.data
+  } catch {
+    // If backend fails, save to localStorage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+    return updated
+  }
+}
+
+export const resetColorSettings = async (): Promise<ColorSettings> => {
+  const defaults = getDefaultColors()
+  try {
+    const response = await apiClient.post<ColorSettings>('/settings/colors/reset')
+    // Also save to localStorage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data))
+    return response.data
+  } catch {
+    // If backend fails, use defaults
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults))
+    return defaults
+  }
+}
 
 export const getDefaultColors = (): ColorSettings => ({
   topBarBackground: '#0f172a',
