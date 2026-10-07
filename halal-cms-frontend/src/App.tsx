@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ColorProvider } from "./context/ColorContext";
 import OfficeLogin from "./pages/office/OfficeLogin";
 import OfficeRegister from "./pages/office/OfficeRegister";
 import OfficeDashboard from "./pages/office/OfficeDashboard";
@@ -13,6 +14,7 @@ import UsersPage from "./pages/office/UsersPage"
 import CustomerManagementPage from "./pages/office/CustomerManagementPage"
 import OfficeCustomerDetailPage from "./pages/office/OfficeCustomerDetailPage"
 import OfficeSettingsPage from "./pages/office/OfficeSettingsPage";
+import SettingsPage from "./pages/SettingsPage";
 import CustomerLogin from "./pages/customer/CustomerLogin";
 import CustomerRegister from "./pages/customer/CustomerRegister";
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
@@ -35,6 +37,7 @@ import CertificateVerifyPage from "./pages/public/CertificateVerifyPage";
 export default function App() {
   return (
     <BrowserRouter>
+      <ColorProvider>
       <Routes>
         <Route path="/" element={<Navigate to="/office/login" replace />} />
         <Route path="/office/login" element={<OfficeLogin />} />
@@ -56,6 +59,7 @@ export default function App() {
         <Route path="/office/audits" element={<AuditsPage />} />
         <Route path="/office/settings" element={<OfficeSettingsPage />} />
         <Route path="/office/certificate-designer" element={<CertificateDesignerPage />} />
+        <Route path="/settings/colors" element={<SettingsPage />} />
         <Route path="/verify/:key" element={<CertificateVerifyPage />} />
         <Route path="/customer/login" element={<CustomerLogin />} />
         <Route path="/customer/register" element={<CustomerRegister />} />
@@ -71,6 +75,7 @@ export default function App() {
         <Route path="/customer/products" element={<CustomerProductsPage />} />
         <Route path="/customer/profile" element={<CustomerProfilePage />} />
       </Routes>
+      </ColorProvider>
     </BrowserRouter>
   );
 }
