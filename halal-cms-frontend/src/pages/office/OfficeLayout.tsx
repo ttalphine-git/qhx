@@ -18,10 +18,8 @@ const SETTINGS_ITEMS = [
   { label: "Live Activity",      sub: "Track customer portal actions",    path: "/office/live-activity" },
   { label: "Applications List",  sub: "Browse all customer applications",  path: "/office/applications-list" },
   { label: "Audit Trail",       sub: "View system activity logs",     path: "/office/audit-trail" },
-  { label: "Audit Reports",     sub: "Configure category questions",  path: "/office/settings?tab=audits" },
   { label: "Color Settings",    sub: "Customize portal colors",       path: "/settings/colors" },
   { label: "Advanced Settings",  sub: "Portal configuration",          path: "/office/settings?tab=scope"      },
-  { label: "Manage Employees",  sub: "Add or modify officer access",  path: "/office/settings?tab=employees" },
 ]
 
 interface OfficeLayoutProps { children: React.ReactNode; title?: string }
