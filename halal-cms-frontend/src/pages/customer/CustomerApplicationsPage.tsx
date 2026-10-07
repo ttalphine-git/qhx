@@ -169,9 +169,15 @@ const APP_TABS = ["Application","Agreement","Billing","Audit plan","Check list",
 const normalizeActivityCategory = (key?: string) => {
   const raw = (key ?? "").trim().toLowerCase()
   if (!raw) return ""
-  if (["manufacturing", "factory", "mfg"].includes(raw)) return "mfg"
-  if (["slaughterhouse", "slaughter"].includes(raw)) return "slaughter"
-  if (["meat", "meatprocessing", "meat-processing"].includes(raw)) return "meat-processing"
+  // Extract first word/part if it's a compound label like "Manufacturing - food_manufacturer"
+  const firstPart = raw.split(/[\s\-]/)[0]
+  if (["manufacturing", "factory", "mfg"].includes(firstPart)) return "mfg"
+  if (["slaughterhouse", "slaughter"].includes(firstPart)) return "slaughter"
+  if (["meat", "meatprocessing", "processing"].includes(firstPart)) return "meat-processing"
+  // Fallback: check if substring exists
+  if (raw.includes("manufacturing") || raw.includes("factory") || raw.includes("mfg")) return "mfg"
+  if (raw.includes("slaughter")) return "slaughter"
+  if (raw.includes("meat") || raw.includes("processing")) return "meat-processing"
   return raw
 }
 
@@ -1237,7 +1243,11 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
   const numericApplicationId = Number(app.id)
   const canUseDatabase = Number.isFinite(numericApplicationId)
   const appCategoryKeys = activityCategoriesFromApp(app)
-  const fallbackCategory = DEFAULT_ACTIVITY_CATEGORY_SETTINGS.find(category => appCategoryKeys.includes(category.key))?.key || appCategoryKeys[0] || "mfg"
+  // Try to find matching audit track based on app's activity categories
+  const matchingTrack = DEFAULT_AUDIT_TRACKS.find(track =>
+    (track.activityCategoryKeys ?? []).some(trackKey => appCategoryKeys.includes(trackKey))
+  )
+  const fallbackCategory = matchingTrack?.activityCategoryKeys?.[0] || appCategoryKeys[0] || "mfg"
   const [comments, setComments] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState("")
