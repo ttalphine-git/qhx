@@ -1243,11 +1243,19 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
   const numericApplicationId = Number(app.id)
   const canUseDatabase = Number.isFinite(numericApplicationId)
   const appCategoryKeys = activityCategoriesFromApp(app)
+
   // Try to find matching audit track based on app's activity categories
   const matchingTrack = DEFAULT_AUDIT_TRACKS.find(track =>
     (track.activityCategoryKeys ?? []).some(trackKey => appCategoryKeys.includes(trackKey))
   )
-  const fallbackCategory = matchingTrack?.activityCategoryKeys?.[0] || appCategoryKeys[0] || "mfg"
+  const defaultCategory = matchingTrack?.activityCategoryKeys?.[0] || appCategoryKeys[0] || "mfg"
+
+  // Use same approach as office portal: check localStorage first, then default
+  const [auditCategoryKey, setAuditCategoryKey] = useState(() => {
+    try { return localStorage.getItem(`hcs_audit_category_${numericApplicationId}`) || defaultCategory }
+    catch { return defaultCategory }
+  })
+
   const [comments, setComments] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState("")
@@ -1258,8 +1266,8 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
   const isAuditPhase = auditPrepStages.includes(app.status)
 
   const reportQ = useQuery({
-    queryKey: ["application-audit-report", numericApplicationId, fallbackCategory],
-    queryFn: () => getApplicationAuditReport(numericApplicationId, fallbackCategory),
+    queryKey: ["application-audit-report", numericApplicationId, auditCategoryKey],
+    queryFn: () => getApplicationAuditReport(numericApplicationId, auditCategoryKey),
     enabled: canUseDatabase && isAuditPhase,
   })
 
@@ -1267,7 +1275,7 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
   const configQuestions = report?.configuration?.questions ?? []
   const answers = report?.answers ?? []
   const fallbackTrack =
-    DEFAULT_AUDIT_TRACKS.find(track => (track.activityCategoryKeys ?? []).includes(fallbackCategory)) ??
+    DEFAULT_AUDIT_TRACKS.find(track => (track.activityCategoryKeys ?? []).includes(auditCategoryKey)) ??
     DEFAULT_AUDIT_TRACKS[0]
   const fallbackQuestions = fallbackTrack?.questions ?? []
   const questionRows = configQuestions.length
@@ -1286,7 +1294,7 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
         const answer = answers.find(item =>
           (question.id && item.questionId === question.id) || item.questionText === question.questionText
         )
-        return { key: String(question.id ?? `${fallbackCategory}-${index}`), questionId: question.id, questionText: question.questionText, answer }
+        return { key: String(question.id ?? `${auditCategoryKey}-${index}`), questionId: question.id, questionText: question.questionText, answer }
       })
     : answers.filter(answer => answer.questionText?.trim()).map((answer, index) => ({
         key: String(answer.questionId ?? `answer-${index}`),
@@ -1310,11 +1318,14 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
     setSaving(true)
     setSaveError("")
     try {
+      // Save category key to localStorage like office portal does
+      localStorage.setItem(`hcs_audit_category_${numericApplicationId}`, auditCategoryKey)
+
       const payload: ApplicationAuditReportDto = {
         id: report.id,
         applicationId: numericApplicationId,
         configurationId: report.configurationId,
-        activityCategoryKey: report.activityCategoryKey || fallbackCategory,
+        activityCategoryKey: report.activityCategoryKey || auditCategoryKey,
         status: report.status || "DRAFT",
         generalComment: report.generalComment,
         completedAt: report.completedAt,
@@ -1327,7 +1338,7 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
       }
       await saveCustomerAuditComments(numericApplicationId, payload)
       setSavedAt(new Date().toISOString())
-      queryClient.invalidateQueries({ queryKey: ["application-audit-report", numericApplicationId, fallbackCategory] })
+      queryClient.invalidateQueries({ queryKey: ["application-audit-report", numericApplicationId, auditCategoryKey] })
     } catch {
       setSaveError("Could not save customer comments.")
     } finally {
