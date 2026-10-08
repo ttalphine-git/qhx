@@ -1980,13 +1980,16 @@ function AgreementTab({ app, user, onUpdate }: { app: LocalApp; user: any; onUpd
 export default function CustomerApplicationsPage() {
   const navigate  = useNavigate()
   const { user }  = useAuthStore()
-  const [search,      setSearch]      = useState("-")
-  const [statusGroup, setStatusGroup] = useState(ACTIVE_STATUSES)
-  const [page,        setPage]        = useState(0)
-  const [localApps,   setLocalApps]   = useState<LocalApp[]>(loadLocalApps)
-  const [viewApp,     setViewApp]     = useState<LocalApp | null>(null)
-  const [appTab,      setAppTab]      = useState("Application")
+  const [search,           setSearch]           = useState("-")
+  const [statusGroup,      setStatusGroup]      = useState(ACTIVE_STATUSES)
+  const [page,             setPage]             = useState(0)
+  const [localApps,        setLocalApps]        = useState<LocalApp[]>(loadLocalApps)
+  const [viewApp,          setViewApp]          = useState<LocalApp | null>(null)
+  const [appTab,           setAppTab]           = useState("Application")
+  const [showSearchModal,  setShowSearchModal]  = useState(false)
+  const [searchQuery,      setSearchQuery]      = useState("")
   const detailRef = useRef<HTMLDivElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const refreshLocal = () => setLocalApps(loadLocalApps())
 
@@ -2508,7 +2511,7 @@ export default function CustomerApplicationsPage() {
               <h1 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>My Applications</h1>
               <p style={{ margin: "3px 0 0", fontSize: "0.72rem", color: "#64748b" }}>Track and manage your halal certification applications</p>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               {STATS.map(s => (
                 <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 10, background: s.bg }}>
                   <div>
@@ -2517,6 +2520,13 @@ export default function CustomerApplicationsPage() {
                   </div>
                 </div>
               ))}
+              <button onClick={() => { setShowSearchModal(true); setTimeout(() => searchInputRef.current?.focus(), 50) }}
+                style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", cursor: "pointer" }}>
+                <Search size={16} />
+              </button>
+              <button onClick={refreshLocal} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", cursor: "pointer" }}>
+                <RefreshCw size={16} />
+              </button>
             </div>
           </div>
           <div style={{ display: "flex", gap: 0 }}>
@@ -2536,21 +2546,12 @@ export default function CustomerApplicationsPage() {
           </div>
         </div>
 
-        {/* Search + refresh */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-          <div style={{ position: "relative", width: 280 }}>
-            <Search style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 13, height: 13, color: "#94a3b8" }} />
-            <input type="text" placeholder="Search by number or company" value={search} onChange={e => { setSearch(e.target.value); setPage(0) }}
-              style={{ width: "100%", paddingLeft: 32, paddingRight: 10, height: 33, border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", color: "#0f172a", outline: "none", fontSize: "0.73rem", fontFamily: F, boxSizing: "border-box" as const }}
-              onFocus={e => (e.target.style.borderColor = "#2563eb")} onBlur={e => (e.target.style.borderColor = "#e2e8f0")} />
+        {/* Pending sync indicator */}
+        {localApps.length > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 600, background: "#f1f5f9", padding: "3px 9px", borderRadius: 99, border: "1px solid #e2e8f0", display: "inline-block" }}>{localApps.length} pending sync</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {localApps.length > 0 && <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 600, background: "#f1f5f9", padding: "3px 9px", borderRadius: 99, border: "1px solid #e2e8f0" }}>{localApps.length} pending sync</span>}
-            <button onClick={refreshLocal} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", cursor: "pointer" }}>
-              <RefreshCw size={13} />
-            </button>
-          </div>
-        </div>
+        )}
 
         {/* Rejection banner */}
         {rejectedLocalApps.length > 0 && (
@@ -2799,6 +2800,91 @@ export default function CustomerApplicationsPage() {
               {tabContent[appTab] ?? <PlaceholderTab icon="" label={appTab} />}
             </div>
           </div>
+          </div>
+        )}
+
+        {/* Search modal */}
+        {showSearchModal && (
+          <div onClick={() => setShowSearchModal(false)} style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "12vh", paddingBottom: "20vh", overflowY: "auto" }}>
+            <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 480, background: "#fff", borderRadius: 14, boxShadow: "0 20px 60px rgba(0,0,0,0.3)", overflow: "hidden" }}>
+              {/* Search input */}
+              <div style={{ padding: "16px 18px", borderBottom: "1px solid #e2e8f0" }}>
+                <div style={{ position: "relative" }}>
+                  <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#94a3b8" }} />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Search by app # or company..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === "Escape") setShowSearchModal(false)
+                      if (e.key === "Enter" && searchQuery.trim()) { setSearch(searchQuery); setPage(0); setShowSearchModal(false); setSearchQuery("") }
+                    }}
+                    style={{ width: "100%", paddingLeft: 40, paddingRight: 14, height: 40, border: "none", borderRadius: 8, background: "#f8fafc", color: "#0f172a", outline: "none", fontSize: "0.9rem", fontFamily: F, boxSizing: "border-box" as const }}
+                  />
+                </div>
+              </div>
+
+              {/* Suggestions list */}
+              <div style={{ maxHeight: 400, overflowY: "auto" }}>
+                {searchQuery.trim() === "" ? (
+                  <div style={{ padding: "32px 18px", textAlign: "center" }}>
+                    <Search size={32} color="#e2e8f0" style={{ margin: "0 auto 12px", display: "block" }} />
+                    <p style={{ margin: 0, fontSize: "0.85rem", color: "#94a3b8", fontWeight: 600 }}>Start typing to search</p>
+                  </div>
+                ) : (
+                  (() => {
+                    const filtered = [...apiApps, ...localApps].filter(app => {
+                      const q = searchQuery.toLowerCase()
+                      const appNum = (app.applicationNumber ?? "").toLowerCase()
+                      const company = (app.companyName ?? app.factoryName ?? "").toLowerCase()
+                      return appNum.includes(q) || company.includes(q)
+                    }).slice(0, 8)
+
+                    return filtered.length === 0 ? (
+                      <div style={{ padding: "32px 18px", textAlign: "center" }}>
+                        <FileText size={32} color="#e2e8f0" style={{ margin: "0 auto 12px", display: "block" }} />
+                        <p style={{ margin: 0, fontSize: "0.85rem", color: "#94a3b8", fontWeight: 600 }}>No results found</p>
+                      </div>
+                    ) : (
+                      filtered.map(app => (
+                        <button
+                          key={app.id}
+                          onClick={() => {
+                            setSearch(searchQuery)
+                            setPage(0)
+                            setShowSearchModal(false)
+                            setSearchQuery("")
+                            setTimeout(() => selectApp(app as LocalApp), 100)
+                          }}
+                          style={{ width: "100%", padding: "12px 18px", borderBottom: "1px solid #f1f5f9", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", transition: "background 0.1s" }}
+                          onMouseOver={e => (e.currentTarget.style.background = "#f8fafc")}
+                          onMouseOut={e => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{ fontFamily: "monospace", fontSize: "0.75rem", fontWeight: 700, color: "#2563eb", background: "#eff6ff", padding: "2px 8px", borderRadius: 5, whiteSpace: "nowrap" }}>
+                              {app.applicationNumber}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#0f172a", marginBottom: 2 }}>
+                                {app.companyName ?? app.factoryName ?? "-"}
+                              </div>
+                              <div style={{ fontSize: "0.72rem", color: "#64748b" }}>
+                                {app.type} • {app.factoryLocation ?? app.country ?? "-"}
+                              </div>
+                            </div>
+                            <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#94a3b8", whiteSpace: "nowrap" }}>
+                              {app.status}
+                            </div>
+                          </div>
+                        </button>
+                      ))
+                    )
+                  })()
+                )}
+              </div>
+            </div>
           </div>
         )}
 
