@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { ChevronDown, Power, User, Bell, Search, Palette } from "lucide-react"
+import { ChevronDown, Power, User, Bell, Search } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { C } from "@/lib/utils"
 import { getNotifications, markRead, markAllRead, clearNotifications, type AppNotification } from "@/lib/notifications"
@@ -191,13 +191,6 @@ export default function CustomerLayout({ children, title }: CustomerLayoutProps)
                   onMouseOut={e => (e.currentTarget.style.background = "transparent")}
                 >
                   <User size={14} strokeWidth={1.75} />Edit Profile
-                </button>
-                <button onClick={() => { navigate("/settings/colors"); setShowUser(false) }}
-                  style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", width: "100%", background: "transparent", border: "none", cursor: "pointer", color: "#374151", fontSize: "0.875rem", fontWeight: 500, fontFamily: "inherit" }}
-                  onMouseOver={e => (e.currentTarget.style.background = "#f8fafc")}
-                  onMouseOut={e => (e.currentTarget.style.background = "transparent")}
-                >
-                  <Palette size={14} strokeWidth={1.75} />Color Settings
                 </button>
                 <button onClick={logout}
                   style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", width: "100%", background: "transparent", border: "none", cursor: "pointer", color: "#0f2170", fontSize: "0.875rem", fontWeight: 500 }}

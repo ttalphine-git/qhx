@@ -14,7 +14,6 @@ import UsersPage from "./pages/office/UsersPage"
 import CustomerManagementPage from "./pages/office/CustomerManagementPage"
 import OfficeCustomerDetailPage from "./pages/office/OfficeCustomerDetailPage"
 import OfficeSettingsPage from "./pages/office/OfficeSettingsPage";
-import SettingsPage from "./pages/SettingsPage";
 import CustomerLogin from "./pages/customer/CustomerLogin";
 import CustomerRegister from "./pages/customer/CustomerRegister";
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
@@ -59,7 +58,6 @@ export default function App() {
         <Route path="/office/audits" element={<AuditsPage />} />
         <Route path="/office/settings" element={<OfficeSettingsPage />} />
         <Route path="/office/certificate-designer" element={<CertificateDesignerPage />} />
-        <Route path="/settings/colors" element={<SettingsPage />} />
         <Route path="/verify/:key" element={<CertificateVerifyPage />} />
         <Route path="/customer/login" element={<CustomerLogin />} />
         <Route path="/customer/register" element={<CustomerRegister />} />
