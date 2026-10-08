@@ -22,7 +22,7 @@ const TEXT = "#0f172a"
 const STATS = [
   { label: "Total", value: 0, bg: "#1e3a8a" },
   { label: "Active", value: 0, bg: "#15803d" },
-  { label: "Expiring", value: 0, bg: "#b45309" },
+  { label: "Expiring", value: 0, bg: "#0284c7" },
   { label: "Expired", value: 0, bg: "#64748b" },
 ]
 
@@ -64,7 +64,7 @@ export default function CustomerBatchCertificatesPage() {
       case "ACTIVE":
         return { bg: "#dcfce7", color: "#15803d" }
       case "EXPIRING_SOON":
-        return { bg: "#fef3c7", color: "#b45309" }
+        return { bg: "#cffafe", color: "#0284c7" }
       case "EXPIRED":
         return { bg: "#fee2e2", color: "#dc2626" }
       default:
