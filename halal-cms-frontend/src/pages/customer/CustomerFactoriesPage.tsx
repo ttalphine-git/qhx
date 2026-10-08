@@ -563,7 +563,14 @@ export default function CustomerFactoriesPage(){
   },[])
 
   const setField=<K extends keyof Omit<Factory,"id">>(k:K,v:Omit<Factory,"id">[K])=>setForm(p=>({...p,[k]:v}))
-  const toggleActivityCategory=(key:string)=>setForm(p=>({...p,activityCategories:p.activityCategories.includes(key)?p.activityCategories.filter(c=>c!==key):[...p.activityCategories,key]}))
+  const toggleActivityCategory=(key:string)=>setForm(p=>{
+    const MUTUALLY_EXCLUSIVE=["Manufacturing","Slaughterhouse","Meat Processing"]
+    const isExclusive=MUTUALLY_EXCLUSIVE.includes(key)
+    const isSelected=p.activityCategories.includes(key)
+    if(isSelected)return{...p,activityCategories:p.activityCategories.filter(c=>c!==key)}
+    if(isExclusive){const filtered=p.activityCategories.filter(c=>!MUTUALLY_EXCLUSIVE.includes(c));return{...p,activityCategories:[...filtered,key]}}
+    return{...p,activityCategories:[...p.activityCategories,key]}
+  })
   const toggleSpecificActivity=(key:string)=>setForm(p=>({...p,specificActivities:p.specificActivities.includes(key)?p.specificActivities.filter(a=>a!==key):[...p.specificActivities,key]}))
   const selectCountry=(c:string)=>{const [la,lo]=COUNTRY_CENTERS[c]||["3.1390","101.6869"];setForm(p=>({...p,country:c,lat:la,lng:lo}));setCountryQuery(c);setShowCountryDrop(false)}
   const openAdd=()=>{setActivityCategories(getActivityCategories());setEditId(null);setForm(DEFAULT_FORM);setCountryQuery("Malaysia");setShowFacModal(true)}
@@ -1376,14 +1383,28 @@ export default function CustomerFactoriesPage(){
                   <label style={lbl}>Factory / Plant Name <span style={{color:RED}}>*</span></label>
                   <input value={form.name} onChange={e=>setField("name",e.target.value)} style={inp} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Main Production Plant"/>
                 </div>
+                <style>{`@keyframes pulse-select{0%{transform:scale(1);box-shadow:0 0 0 0 ${BLUE}33}50%{transform:scale(1.02)}100%{transform:scale(1);box-shadow:0 0 0 8px ${BLUE}00}}@keyframes slide-down{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}@keyframes bounce-in{0%{opacity:0;transform:scale(0.8)}50%{transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}`}</style>
                 <div style={{marginBottom:18}}>
                   <label style={lbl}>Activity Category <span style={{color:RED}}>*</span></label>
+                  {form.activityCategories.length>0&&(
+                    <div style={{marginBottom:14,padding:"12px 14px",borderRadius:10,background:"#f0f7ff",border:`1px solid #bfdbfe`,display:"flex",alignItems:"center",gap:10,animation:"slide-down 0.3s ease-out"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,flex:1}}>
+                        {form.activityCategories.map(key=>{
+                          const cat=activityCategories.find(c=>c.key===key)
+                          return cat?<div key={key} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:8,background:"#fff",border:`1px solid ${BLUE}`,animation:"bounce-in 0.4s ease-out"}}>
+                            <cat.Icon size={16} color={BLUE} strokeWidth={2}/>
+                            <span style={{fontSize:"0.75rem",fontWeight:600,color:BLUE}}>{cat.label}</span>
+                          </div>:null
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginTop:8}}>
                     {activityCategories.map(cat=>{
                       const selected=form.activityCategories.includes(cat.key)
                       return(
                         <button key={cat.key} type="button" onClick={()=>toggleActivityCategory(cat.key)}
-                          style={{padding:"14px 10px 12px",borderRadius:10,border:selected?`2px solid ${BLUE}`:"1.5px solid #e2e8f0",background:selected?"#eff6ff":"#fafafa",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:7,fontFamily:"inherit",transition:"all 0.15s",textAlign:"center" as const,minHeight:72}}
+                          style={{padding:"14px 10px 12px",borderRadius:10,border:selected?`2px solid ${BLUE}`:"1.5px solid #e2e8f0",background:selected?"#eff6ff":"#fafafa",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:7,fontFamily:"inherit",transition:"all 0.15s",textAlign:"center" as const,minHeight:72,animation:selected?"pulse-select 0.5s ease-out":"none"}}
                           onMouseOver={e=>{if(!selected)e.currentTarget.style.background="#f4f6f8"}}
                           onMouseOut={e=>{if(!selected)e.currentTarget.style.background="#fafafa"}}
                         >
