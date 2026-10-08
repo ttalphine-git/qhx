@@ -775,7 +775,7 @@ const lbl: React.CSSProperties    = { display:"block", fontSize:"0.7rem", fontWe
         <div style={{ display:"flex", alignItems:"center", gap:"0.625rem" }}>
           <div style={{ width:34, height:34, background:"rgba(255,255,255,0.18)", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.8rem", fontWeight:800, color:"#fff" }}>HC</div>
           <div>
-            <div style={{ fontSize:"0.9rem", fontWeight:700, color:"#fff" }}>HalalCMS</div>
+            <div style={{ fontSize:"0.9rem", fontWeight:700, color:"#fff" }}>QHX</div>
             <div style={{ fontSize:"0.6rem", color:"rgba(255,255,255,0.4)" }}>Certification Application</div>
           </div>
         </div>
@@ -1398,7 +1398,7 @@ const lbl: React.CSSProperties    = { display:"block", fontSize:"0.7rem", fontWe
               <label style={{ ...lbl, marginBottom:12 }}>Declaration <Req /></label>
               {[
                 { val:agreed1, set:setAgreed1, title:"Data confidentiality commitment",
-                  text:"All information provided is confidential and will be used only for the official purpose of applying for Halal Certification through HalalCMS." },
+                  text:"All information provided is confidential and will be used only for the official purpose of applying for Halal Certification through QHX." },
                 { val:agreed2, set:setAgreed2, title:"Acknowledgement of authority",
                   text:"I confirm the information is true and accurate. I agree the service provider may request additional documentation if information is missing or unclear." },
                 { val:agreed3, set:setAgreed3, title:"Application form commitment",

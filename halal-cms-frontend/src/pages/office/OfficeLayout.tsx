@@ -136,9 +136,9 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
 
         {/* Brand */}
         <button onClick={() => go("/office/dashboard")} style={{ display:"flex", alignItems:"center", gap:"0.625rem", background:"none", border:"none", cursor:"pointer", flexShrink:0, padding:0 }}>
-          <div style={{ width:36, height:36, background:"rgba(255,255,255,0.2)", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.875rem", fontWeight:800, color:"#fff", letterSpacing:"-0.5px", flexShrink:0 }}>HC</div>
+          <div style={{ width:36, height:36, background:"rgba(255,255,255,0.2)", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.875rem", fontWeight:800, color:"#fff", letterSpacing:"-0.5px", flexShrink:0 }}>QX</div>
           <div>
-            <div style={{ fontSize:"1rem", fontWeight:700, color:"#fff", letterSpacing:"0.02em" }}>HalalCMS</div>
+            <div style={{ fontSize:"1rem", fontWeight:700, color:"#fff", letterSpacing:"0.02em" }}>QHX</div>
             <div style={{ fontSize:"0.6875rem", color:"rgba(255,255,255,0.4)" }}>Office Portal v45o</div>
           </div>
         </button>

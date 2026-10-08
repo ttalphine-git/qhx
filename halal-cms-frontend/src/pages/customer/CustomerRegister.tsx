@@ -562,7 +562,7 @@ export default function CustomerRegister() {
         <div style={{ display:"flex", alignItems:"center", gap:"0.625rem" }}>
           <div style={{ width:34, height:34, background:"rgba(255,255,255,0.18)", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.8rem", fontWeight:800, color:"#fff" }}>HC</div>
           <div>
-            <div style={{ fontSize:"0.9rem", fontWeight:700, color:"#fff" }}>HalalCMS</div>
+            <div style={{ fontSize:"0.9rem", fontWeight:700, color:"#fff" }}>QHX</div>
             <div style={{ fontSize:"0.6rem", color:"rgba(255,255,255,0.4)" }}>Customer Registration</div>
           </div>
         </div>
