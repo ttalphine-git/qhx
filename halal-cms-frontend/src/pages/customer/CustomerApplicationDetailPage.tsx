@@ -190,7 +190,7 @@ export default function CustomerApplicationDetailPage() {
   const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set())
 
   // Tab state
-  const [currentTab, setCurrentTab] = useState<'overview' | 'checklist'>('overview')
+  const [currentTab, setCurrentTab] = useState<'overview'>('overview')
 
   // Refresh invoice + evidence state when app status changes
   useEffect(() => {
@@ -424,43 +424,14 @@ export default function CustomerApplicationDetailPage() {
   return (
     <CustomerLayout>
       <div style={{ padding: "1.75rem 2rem", maxWidth: 900, margin: "0 auto" }}>
-        {/* Back + Tab Navigation */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-          <button onClick={() => navigate("/customer/applications")}
-            style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.muted, background: "none", border: "none", cursor: "pointer" }}
-            onMouseOver={e => (e.currentTarget.style.color = C.text)}
-            onMouseOut={e => (e.currentTarget.style.color = C.muted)}>
-            <ArrowLeft size={16} />My Applications
-          </button>
+        {/* Back button */}
+        <button onClick={() => navigate("/customer/applications")}
+          style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.muted, background: "none", border: "none", cursor: "pointer", marginBottom: 20 }}
+          onMouseOver={e => (e.currentTarget.style.color = C.text)}
+          onMouseOut={e => (e.currentTarget.style.color = C.muted)}>
+          <ArrowLeft size={16} />My Applications
+        </button>
 
-          {/* Tab Navigation */}
-          <div style={{ display: "flex", gap: 0, border: `1px solid ${C.border}`, borderRadius: 8, background: "#f8fafc", padding: 4 }}>
-            {(['overview', 'checklist'] as const).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setCurrentTab(tab)}
-                style={{
-                  padding: "8px 16px",
-                  fontSize: 13,
-                  fontWeight: currentTab === tab ? 600 : 500,
-                  border: "none",
-                  borderRadius: 6,
-                  background: currentTab === tab ? C.white : "transparent",
-                  color: currentTab === tab ? C.text : C.muted,
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  boxShadow: currentTab === tab ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
-                }}
-              >
-                {tab === 'overview' ? 'Overview' : 'Check list'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Overview Tab Content */}
-        {currentTab === 'overview' && (
-        <>
         {/* Header card */}
         <div style={{ background: '#0f2170', border: `1px solid #0f2170`, borderRadius: 14, padding: 20, marginBottom: 20, boxShadow: C.cardShadow }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
@@ -832,7 +803,7 @@ export default function CustomerApplicationDetailPage() {
           </div>
         )}
 
-        {/* ── Audit Questions Section ── */}
+        {/* ── Audit Checklist Section ── */}
         {showAuditQuestions && auditReportData && (() => {
           const report = auditReportData as ApplicationAuditReportDto
           return (
@@ -840,8 +811,8 @@ export default function CustomerApplicationDetailPage() {
             {/* Header */}
             <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: C.textDark }}>Audit Questions</h3>
-                <p style={{ margin: "2px 0 0", fontSize: 12, color: C.muted }}>Review the audit questions and provide your comments as needed</p>
+                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: C.textDark }}>Audit Checklist</h3>
+                <p style={{ margin: "2px 0 0", fontSize: 12, color: C.muted }}>Review the audit checklist items and provide your comments as needed</p>
               </div>
             </div>
 
@@ -1123,140 +1094,6 @@ export default function CustomerApplicationDetailPage() {
             </div>
           )}
         </div>
-        </>
-        )}
-
-        {/* Check list Tab Content */}
-        {currentTab === 'checklist' && (
-        <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", marginBottom: 20, boxShadow: C.cardShadow }}>
-          {auditReportData ? (
-            <>
-            {/* Header */}
-            <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: C.textDark }}>Check List</h3>
-                <p style={{ margin: "2px 0 0", fontSize: 12, color: C.muted }}>Review the audit questions and provide your comments</p>
-              </div>
-            </div>
-
-            {/* Questions */}
-            <div style={{ padding: 20, display: "grid", gap: 12 }}>
-              {(auditReportData as ApplicationAuditReportDto).answers.map((answer: AuditAnswerDto, idx: number) => (
-                <div key={`audit-q-${idx}`} style={{ border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden" }}>
-                  {/* Question header */}
-                  <div
-                    onClick={() => toggleQuestionExpanded(idx)}
-                    style={{ padding: "14px 16px", background: "#f8fafc", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", userSelect: "none" }}
-                  >
-                    <span style={{ width: 28, height: 28, borderRadius: 6, background: C.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{idx + 1}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.textDark, lineHeight: 1.4 }}>{answer.questionText}</p>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      {answer.answer && (
-                        <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6, background: answer.answer === "yes" ? "#dcfce7" : answer.answer === "no" ? "#fee2e2" : "#f3f4f6", color: answer.answer === "yes" ? "#15803d" : answer.answer === "no" ? "#991b1b" : "#6b7280" }}>
-                          {answer.answer.toUpperCase()}
-                        </span>
-                      )}
-                      {expandedQuestions.has(idx) ? (
-                        <ChevronUp size={16} color={C.muted} style={{ flexShrink: 0 }} />
-                      ) : (
-                        <ChevronDown size={16} color={C.muted} style={{ flexShrink: 0 }} />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Expanded content */}
-                  {expandedQuestions.has(idx) && (
-                    <div style={{ padding: "14px 16px", borderTop: `1px solid ${C.border}`, background: "#fff" }}>
-                      {/* Answer status */}
-                      <div style={{ marginBottom: 14, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase" }}>Status:</span>
-                        {answer.answer ? (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 6, background: answer.answer === "yes" ? "#dcfce7" : answer.answer === "no" ? "#fee2e2" : "#f3f4f6", color: answer.answer === "yes" ? "#15803d" : answer.answer === "no" ? "#991b1b" : "#6b7280" }}>
-                            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />
-                            {answer.answer === "yes" ? "YES" : answer.answer === "no" ? "NO" : "NOT APPLICABLE"}
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: 12, color: C.muted }}>Not yet answered by auditor</span>
-                        )}
-                        {answer.finding && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 6, background: answer.finding === "nc" ? "#fee2e2" : "#fef3c7", color: answer.finding === "nc" ? "#991b1b" : "#92400e" }}>
-                            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />
-                            {answer.finding === "nc" ? "NON-CONFORMITY" : "OBSERVATION"}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Comments section */}
-                      <div style={{ display: "grid", gap: 12 }}>
-                        {/* Auditor Comment (read-only) */}
-                        {answer.auditorComment && (
-                          <div style={{ padding: 12, background: "#f1f5f9", borderRadius: 8, borderLeft: "3px solid #64748b" }}>
-                            <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Auditor Comment</p>
-                            <p style={{ margin: 0, fontSize: 12, color: C.textDark, lineHeight: 1.5 }}>{answer.auditorComment}</p>
-                          </div>
-                        )}
-
-                        {/* Customer Comment (editable) */}
-                        <div>
-                          <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", marginBottom: 8 }}>
-                            Your Comment
-                          </label>
-                          <textarea
-                            value={auditAnswers[idx]?.customerComment ?? answer.customerComment ?? ""}
-                            onChange={e => updateCustomerComment(idx, e.target.value)}
-                            style={{
-                              width: "100%",
-                              fontSize: 12,
-                              color: C.textDark,
-                              border: `1px solid ${C.border}`,
-                              borderRadius: 8,
-                              padding: "8px 12px",
-                              fontFamily: "inherit",
-                              lineHeight: 1.5,
-                              minHeight: 80,
-                              resize: "vertical",
-                            }}
-                            placeholder="Enter your comment here..."
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Save Button */}
-            <div style={{ padding: 20, borderTop: `1px solid ${C.border}`, background: "#f8fafc", display: "flex", gap: 12, justifyContent: "flex-end" }}>
-              <button
-                onClick={saveAuditComments}
-                disabled={savingAudit}
-                style={{
-                  padding: "10px 24px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  borderRadius: 8,
-                  border: "none",
-                  background: savingAudit ? "#cbd5e1" : C.primary,
-                  color: "#fff",
-                  cursor: savingAudit ? "not-allowed" : "pointer",
-                  opacity: savingAudit ? 0.6 : 1,
-                }}
-              >
-                {savingAudit ? "Saving..." : "Save Comments"}
-              </button>
-            </div>
-            </>
-          ) : (
-            <div style={{ padding: 40, textAlign: "center", color: C.muted }}>
-              <p style={{ margin: 0, fontSize: 13 }}>No audit checklist available yet</p>
-              <p style={{ margin: "4px 0 0", fontSize: 12 }}>Audit questions will appear during the audit phase</p>
-            </div>
-          )}
-        </div>
-        )}
       </div>
 
       {/* Evidence preview popup */}
