@@ -2835,10 +2835,10 @@ export default function CustomerApplicationsPage() {
                   </div>
                 ) : (
                   (() => {
-                    const filtered = [...apiApps, ...localApps].filter(app => {
+                    const filtered = apps.filter(app => {
                       const q = searchQuery.toLowerCase()
                       const appNum = (app.applicationNumber ?? "").toLowerCase()
-                      const company = (app.companyName ?? app.factoryName ?? "").toLowerCase()
+                      const company = (app.companyName ?? "").toLowerCase()
                       return appNum.includes(q) || company.includes(q)
                     }).slice(0, 8)
 
@@ -2868,10 +2868,10 @@ export default function CustomerApplicationsPage() {
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#0f172a", marginBottom: 2 }}>
-                                {app.companyName ?? app.factoryName ?? "-"}
+                                {app.companyName ?? "-"}
                               </div>
                               <div style={{ fontSize: "0.72rem", color: "#64748b" }}>
-                                {app.type} • {app.factoryLocation ?? app.country ?? "-"}
+                                {app.type} • {(app as any).factoryLocation ?? app.country ?? "-"}
                               </div>
                             </div>
                             <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "#94a3b8", whiteSpace: "nowrap" }}>
