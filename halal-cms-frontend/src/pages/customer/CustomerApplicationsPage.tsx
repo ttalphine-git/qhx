@@ -2511,7 +2511,7 @@ export default function CustomerApplicationsPage() {
               <h1 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>My Applications</h1>
               <p style={{ margin: "3px 0 0", fontSize: "0.72rem", color: "#64748b" }}>Track and manage your halal certification applications</p>
             </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 8 }}>
               {STATS.map(s => (
                 <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 10, background: s.bg }}>
                   <div>
@@ -2520,13 +2520,6 @@ export default function CustomerApplicationsPage() {
                   </div>
                 </div>
               ))}
-              <button onClick={() => { setShowSearchModal(true); setTimeout(() => searchInputRef.current?.focus(), 50) }}
-                style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", cursor: "pointer" }}>
-                <Search size={16} />
-              </button>
-              <button onClick={refreshLocal} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", cursor: "pointer" }}>
-                <RefreshCw size={16} />
-              </button>
             </div>
           </div>
           <div style={{ display: "flex", gap: 0 }}>
@@ -2546,12 +2539,21 @@ export default function CustomerApplicationsPage() {
           </div>
         </div>
 
-        {/* Pending sync indicator */}
-        {localApps.length > 0 && (
-          <div style={{ marginBottom: 14 }}>
-            <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 600, background: "#f1f5f9", padding: "3px 9px", borderRadius: 99, border: "1px solid #e2e8f0", display: "inline-block" }}>{localApps.length} pending sync</span>
+        {/* Search + refresh */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+          <div style={{ position: "relative", width: 280 }}>
+            <Search style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 13, height: 13, color: "#94a3b8" }} />
+            <input type="text" placeholder="Search by number or company" value={search} onChange={e => { setSearch(e.target.value); setPage(0) }}
+              style={{ width: "100%", paddingLeft: 32, paddingRight: 10, height: 33, border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", color: "#0f172a", outline: "none", fontSize: "0.73rem", fontFamily: F, boxSizing: "border-box" as const }}
+              onFocus={e => (e.target.style.borderColor = "#2563eb")} onBlur={e => (e.target.style.borderColor = "#e2e8f0")} />
           </div>
-        )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {localApps.length > 0 && <span style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 600, background: "#f1f5f9", padding: "3px 9px", borderRadius: 99, border: "1px solid #e2e8f0" }}>{localApps.length} pending sync</span>}
+            <button onClick={refreshLocal} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", cursor: "pointer" }}>
+              <RefreshCw size={13} />
+            </button>
+          </div>
+        </div>
 
         {/* Rejection banner */}
         {rejectedLocalApps.length > 0 && (

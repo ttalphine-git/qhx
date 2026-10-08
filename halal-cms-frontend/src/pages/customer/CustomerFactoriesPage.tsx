@@ -1357,16 +1357,15 @@ export default function CustomerFactoriesPage(){
                 <button onClick={closeFacModal} style={{width:30,height:30,borderRadius:8,background:"#f1f5f9",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0}}><X size={15} color="#64748b"/></button>
               </div>
               <div style={{flex:1,overflowY:"auto",padding:"20px 24px"}}>
-                <style>{`@keyframes pulse-select{0%{transform:scale(1);box-shadow:0 0 0 0 ${BLUE}33}50%{transform:scale(1.02)}100%{transform:scale(1);box-shadow:0 0 0 8px ${BLUE}00}}@keyframes slide-down{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}@keyframes bounce-in{0%{opacity:0;transform:scale(0.8)}50%{transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}`}</style>
                 {/* Activity Category - TOP */}
                 <div style={{marginBottom:18}}>
                   <label style={lbl}>Activity Category <span style={{color:RED}}>*</span></label>
                   {form.activityCategories.length>0&&(
-                    <div style={{marginBottom:14,padding:"12px 14px",borderRadius:10,background:"#f0f7ff",border:`1px solid #bfdbfe`,display:"flex",alignItems:"center",gap:10,animation:"slide-down 0.3s ease-out",flexWrap:"wrap"}}>
+                    <div style={{marginBottom:14,padding:"12px 14px",borderRadius:10,background:"#f0f7ff",border:`1px solid #bfdbfe`,display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,flex:1,flexWrap:"wrap"}}>
                         {form.activityCategories.map(key=>{
                           const cat=activityCategories.find(c=>c.key===key)
-                          return cat?<div key={key} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:8,background:"#fff",border:`1px solid ${BLUE}`,animation:"bounce-in 0.4s ease-out"}}>
+                          return cat?<div key={key} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:8,background:"#fff",border:`1px solid ${BLUE}`}}>
                             <cat.Icon size={16} color={BLUE} strokeWidth={2}/>
                             <span style={{fontSize:"0.75rem",fontWeight:600,color:BLUE}}>{cat.label}</span>
                           </div>:null
@@ -1379,7 +1378,7 @@ export default function CustomerFactoriesPage(){
                       const selected=form.activityCategories.includes(cat.key)
                       return(
                         <button key={cat.key} type="button" onClick={()=>toggleActivityCategory(cat.key)}
-                          style={{padding:"14px 10px 12px",borderRadius:10,border:selected?`2px solid ${BLUE}`:"1.5px solid #e2e8f0",background:selected?"#eff6ff":"#fafafa",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:7,fontFamily:"inherit",transition:"all 0.15s",textAlign:"center" as const,minHeight:72,animation:selected?"pulse-select 0.5s ease-out":"none"}}
+                          style={{padding:"14px 10px 12px",borderRadius:10,border:selected?`2px solid ${BLUE}`:"1.5px solid #e2e8f0",background:selected?"#eff6ff":"#fafafa",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:7,fontFamily:"inherit",transition:"all 0.15s",textAlign:"center" as const,minHeight:72}}
                           onMouseOver={e=>{if(!selected)e.currentTarget.style.background="#f4f6f8"}}
                           onMouseOut={e=>{if(!selected)e.currentTarget.style.background="#fafafa"}}
                         >
