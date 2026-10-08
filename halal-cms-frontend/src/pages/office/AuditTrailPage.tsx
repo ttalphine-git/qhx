@@ -10,7 +10,7 @@ const PAGE_SIZE = 25
 
 const CATEGORY_STYLE: Record<AuditCategory, { bg: string; color: string; label: string }> = {
   APPLICATION: { bg: "#eff6ff", color: "#1d4ed8", label: "Application" },
-  PROFILE:     { bg: "#f0fdf4", color: "#15803d", label: "Profile"      },
+  PROFILE:     { bg: "#f3f4f6", color: "#6b7280", label: "Profile"      },
   PAYMENT:     { bg: "#fefce8", color: "#a16207", label: "Payment"      },
   AUDIT:       { bg: "#fdf4ff", color: "#7e22ce", label: "Audit"        },
   CERTIFICATE: { bg: "#fff7ed", color: "#c2410c", label: "Certificate"  },
