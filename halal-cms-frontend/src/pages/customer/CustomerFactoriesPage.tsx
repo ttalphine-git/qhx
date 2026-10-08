@@ -448,6 +448,7 @@ export default function CustomerFactoriesPage(){
   const [activityCategories, setActivityCategories] = useState(getActivityCategories)
   const [geoLoading,        setGeoLoading]        = useState(false)
   const [deleteConfirm,     setDeleteConfirm]     = useState<string|null>(null)
+  const [showAllActivities, setShowAllActivities] = useState(false)
   const countryRef                                = useRef<HTMLDivElement>(null)
   const [showCountryDrop,   setShowCountryDrop]   = useState(false)
   const [countryQuery,      setCountryQuery]      = useState("Malaysia")
@@ -573,9 +574,9 @@ export default function CustomerFactoriesPage(){
   })
   const toggleSpecificActivity=(key:string)=>setForm(p=>({...p,specificActivities:p.specificActivities.includes(key)?p.specificActivities.filter(a=>a!==key):[...p.specificActivities,key]}))
   const selectCountry=(c:string)=>{const [la,lo]=COUNTRY_CENTERS[c]||["3.1390","101.6869"];setForm(p=>({...p,country:c,lat:la,lng:lo}));setCountryQuery(c);setShowCountryDrop(false)}
-  const openAdd=()=>{setActivityCategories(getActivityCategories());setEditId(null);setForm(DEFAULT_FORM);setCountryQuery("Malaysia");setShowFacModal(true)}
-  const openEdit=(f:Factory)=>{setActivityCategories(getActivityCategories());setEditId(f.id);const{id:_,...rest}=f;setForm(rest);setCountryQuery(f.country);setShowFacModal(true)}
-  const closeFacModal=()=>{setShowFacModal(false);setEditId(null)}
+  const openAdd=()=>{setActivityCategories(getActivityCategories());setEditId(null);setForm(DEFAULT_FORM);setCountryQuery("Malaysia");setShowAllActivities(false);setShowFacModal(true)}
+  const openEdit=(f:Factory)=>{setActivityCategories(getActivityCategories());setEditId(f.id);const{id:_,...rest}=f;setForm(rest);setCountryQuery(f.country);setShowAllActivities(false);setShowFacModal(true)}
+  const closeFacModal=()=>{setShowFacModal(false);setEditId(null);setShowAllActivities(false)}
   const applyForFactory=(id:string)=>navigate(`/customer/apply?factoryId=${encodeURIComponent(id)}`)
   const updateFactoryLogo=async(id:string,base64:string)=>{
     const existing = factories.find(f=>f.id===id)
@@ -1344,7 +1345,7 @@ export default function CustomerFactoriesPage(){
         {showFacModal&&(
           <div style={{position:"fixed",inset:0,background:"rgba(15,33,112,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}
             onClick={e=>{if(e.target===e.currentTarget)closeFacModal()}}>
-            <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:920,maxHeight:"92vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:1200,maxHeight:"95vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 24px",borderBottom:"1px solid #e2e8f0",flexShrink:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <div style={{width:36,height:36,borderRadius:9,background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center"}}><FactoryIcon size={18} color={BLUE}/></div>
@@ -1356,6 +1357,39 @@ export default function CustomerFactoriesPage(){
                 <button onClick={closeFacModal} style={{width:30,height:30,borderRadius:8,background:"#f1f5f9",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0}}><X size={15} color="#64748b"/></button>
               </div>
               <div style={{flex:1,overflowY:"auto",padding:"20px 24px"}}>
+                <style>{`@keyframes pulse-select{0%{transform:scale(1);box-shadow:0 0 0 0 ${BLUE}33}50%{transform:scale(1.02)}100%{transform:scale(1);box-shadow:0 0 0 8px ${BLUE}00}}@keyframes slide-down{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}@keyframes bounce-in{0%{opacity:0;transform:scale(0.8)}50%{transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}`}</style>
+                {/* Activity Category - TOP */}
+                <div style={{marginBottom:18}}>
+                  <label style={lbl}>Activity Category <span style={{color:RED}}>*</span></label>
+                  {form.activityCategories.length>0&&(
+                    <div style={{marginBottom:14,padding:"12px 14px",borderRadius:10,background:"#f0f7ff",border:`1px solid #bfdbfe`,display:"flex",alignItems:"center",gap:10,animation:"slide-down 0.3s ease-out",flexWrap:"wrap"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,flex:1,flexWrap:"wrap"}}>
+                        {form.activityCategories.map(key=>{
+                          const cat=activityCategories.find(c=>c.key===key)
+                          return cat?<div key={key} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:8,background:"#fff",border:`1px solid ${BLUE}`,animation:"bounce-in 0.4s ease-out"}}>
+                            <cat.Icon size={16} color={BLUE} strokeWidth={2}/>
+                            <span style={{fontSize:"0.75rem",fontWeight:600,color:BLUE}}>{cat.label}</span>
+                          </div>:null
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginTop:8}}>
+                    {activityCategories.map(cat=>{
+                      const selected=form.activityCategories.includes(cat.key)
+                      return(
+                        <button key={cat.key} type="button" onClick={()=>toggleActivityCategory(cat.key)}
+                          style={{padding:"14px 10px 12px",borderRadius:10,border:selected?`2px solid ${BLUE}`:"1.5px solid #e2e8f0",background:selected?"#eff6ff":"#fafafa",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:7,fontFamily:"inherit",transition:"all 0.15s",textAlign:"center" as const,minHeight:72,animation:selected?"pulse-select 0.5s ease-out":"none"}}
+                          onMouseOver={e=>{if(!selected)e.currentTarget.style.background="#f4f6f8"}}
+                          onMouseOut={e=>{if(!selected)e.currentTarget.style.background="#fafafa"}}
+                        >
+                          <cat.Icon size={22} color={selected?BLUE:"#94a3b8"} strokeWidth={1.5}/>
+                          <div style={{fontSize:"0.72rem",fontWeight:selected?700:500,color:selected?BLUE:"#374151",lineHeight:1.3}}>{cat.label}</div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
                 {/* Factory photo */}
                 <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:20,padding:"14px 16px",background:"#f8fafc",borderRadius:10,border:"1px solid #e2e8f0"}}>
                   <div style={{width:64,height:64,borderRadius:12,background:"#fff",border:"1.5px dashed #cbd5e1",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0}}>
@@ -1383,43 +1417,11 @@ export default function CustomerFactoriesPage(){
                   <label style={lbl}>Factory / Plant Name <span style={{color:RED}}>*</span></label>
                   <input value={form.name} onChange={e=>setField("name",e.target.value)} style={inp} onFocus={iFocus} onBlur={iBlur} placeholder="e.g. Main Production Plant"/>
                 </div>
-                <style>{`@keyframes pulse-select{0%{transform:scale(1);box-shadow:0 0 0 0 ${BLUE}33}50%{transform:scale(1.02)}100%{transform:scale(1);box-shadow:0 0 0 8px ${BLUE}00}}@keyframes slide-down{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}@keyframes bounce-in{0%{opacity:0;transform:scale(0.8)}50%{transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}`}</style>
-                <div style={{marginBottom:18}}>
-                  <label style={lbl}>Activity Category <span style={{color:RED}}>*</span></label>
-                  {form.activityCategories.length>0&&(
-                    <div style={{marginBottom:14,padding:"12px 14px",borderRadius:10,background:"#f0f7ff",border:`1px solid #bfdbfe`,display:"flex",alignItems:"center",gap:10,animation:"slide-down 0.3s ease-out"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:8,flex:1}}>
-                        {form.activityCategories.map(key=>{
-                          const cat=activityCategories.find(c=>c.key===key)
-                          return cat?<div key={key} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:8,background:"#fff",border:`1px solid ${BLUE}`,animation:"bounce-in 0.4s ease-out"}}>
-                            <cat.Icon size={16} color={BLUE} strokeWidth={2}/>
-                            <span style={{fontSize:"0.75rem",fontWeight:600,color:BLUE}}>{cat.label}</span>
-                          </div>:null
-                        })}
-                      </div>
-                    </div>
-                  )}
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginTop:8}}>
-                    {activityCategories.map(cat=>{
-                      const selected=form.activityCategories.includes(cat.key)
-                      return(
-                        <button key={cat.key} type="button" onClick={()=>toggleActivityCategory(cat.key)}
-                          style={{padding:"14px 10px 12px",borderRadius:10,border:selected?`2px solid ${BLUE}`:"1.5px solid #e2e8f0",background:selected?"#eff6ff":"#fafafa",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:7,fontFamily:"inherit",transition:"all 0.15s",textAlign:"center" as const,minHeight:72,animation:selected?"pulse-select 0.5s ease-out":"none"}}
-                          onMouseOver={e=>{if(!selected)e.currentTarget.style.background="#f4f6f8"}}
-                          onMouseOut={e=>{if(!selected)e.currentTarget.style.background="#fafafa"}}
-                        >
-                          <cat.Icon size={22} color={selected?BLUE:"#94a3b8"} strokeWidth={1.5}/>
-                          <div style={{fontSize:"0.72rem",fontWeight:selected?700:500,color:selected?BLUE:"#374151",lineHeight:1.3}}>{cat.label}</div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
                 <div style={{marginBottom:18}}>
                   <label style={lbl}>Specific Activities</label>
                   <p style={{margin:"0 0 10px",fontSize:"0.75rem",color:"#6b7280"}}>Select all activities that apply to this factory</p>
                   <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
-                    {SPECIFIC_ACTIVITIES.map(activity=>{
+                    {SPECIFIC_ACTIVITIES.slice(0,showAllActivities?SPECIFIC_ACTIVITIES.length:8).map(activity=>{
                       const selected=form.specificActivities.includes(activity.key)
                       return(
                         <button key={activity.key} type="button" onClick={()=>toggleSpecificActivity(activity.key)}
@@ -1432,6 +1434,12 @@ export default function CustomerFactoriesPage(){
                       )
                     })}
                   </div>
+                  {SPECIFIC_ACTIVITIES.length>8&&!showAllActivities&&(
+                    <button type="button" onClick={()=>setShowAllActivities(true)}
+                      style={{marginTop:10,padding:"8px 16px",borderRadius:8,background:BLUE,border:"none",color:"#fff",fontSize:"0.78rem",fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+                      Load More ({SPECIFIC_ACTIVITIES.length-8} more)
+                    </button>
+                  )}
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
                   <div>
