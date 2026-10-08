@@ -98,8 +98,7 @@ export default function CustomerDashboard() {
           box-shadow: ${C.cardShadow};
         }
         .customer-dashboard-progress {
-          grid-column: 1 / -1;
-          min-height: 380px;
+          min-height: 480px;
         }
         .customer-dashboard-scroll {
           flex: 1;
