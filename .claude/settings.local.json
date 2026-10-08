@@ -293,7 +293,8 @@
       "Bash(git -C \"d:\\\\QHXSASS\" add -A)",
       "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Change top bar color to darker blue #003d82\")",
       "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Add animation and visual feedback to factory category selection, make exclusive categories mutually exclusive\")",
-      "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Enlarge factory modal, move activity category to top, add load more for specific activities\")"
+      "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Enlarge factory modal, move activity category to top, add load more for specific activities\")",
+      "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Change top bar color to more vibrant blue #0056d8\")"
     ]
   }
 }
