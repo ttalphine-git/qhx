@@ -1138,7 +1138,7 @@ export default function CustomerFactoriesPage(){
           return(
             <div style={{position:"fixed",inset:0,background:"rgba(15,33,112,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}
               onClick={e=>{if(e.target===e.currentTarget)setViewProduct(null)}}>
-              <div style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:520,maxHeight:"88vh",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.22)"}}>
+              <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:520,maxHeight:"88vh",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.22)"}}>
                 {/* Header */}
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 22px",borderBottom:`1px solid ${C.border}`}}>
                   <div style={{display:"flex",alignItems:"center",gap:14}}>
@@ -1208,7 +1208,7 @@ export default function CustomerFactoriesPage(){
         {mapPopup&&(
           <div style={{position:"fixed",inset:0,background:"rgba(15,33,112,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}
             onClick={e=>{if(e.target===e.currentTarget)setMapPopup(null)}}>
-            <div style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:560,overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.25)"}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:560,overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.25)"}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 20px",borderBottom:"1px solid #e2e8f0"}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <div style={{width:34,height:34,borderRadius:9,background:"#eff6ff",display:"flex",alignItems:"center",justifyContent:"center"}}><Map size={16} color={BLUE}/></div>
@@ -1230,8 +1230,9 @@ export default function CustomerFactoriesPage(){
 
         {/* ── Delete factory confirm ── */}
         {deleteConfirm&&(
-          <div style={{position:"fixed",inset:0,background:"rgba(15,33,112,0.45)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-            <div style={{background:"#fff",borderRadius:14,padding:"28px 32px",width:"100%",maxWidth:380,textAlign:"center"}}>
+          <div style={{position:"fixed",inset:0,background:"rgba(15,33,112,0.45)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}
+            onClick={e=>{if(e.target===e.currentTarget)setDeleteConfirm(null)}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:14,padding:"28px 32px",width:"100%",maxWidth:380,textAlign:"center"}}>
               <div style={{width:48,height:48,borderRadius:"50%",background:"#fef2f2",border:"1px solid #fecaca",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}><Trash2 size={20} color={RED}/></div>
               <p style={{fontSize:"1rem",fontWeight:700,color:DARK,margin:"0 0 8px"}}>Remove Factory?</p>
               <p style={{fontSize:"0.83rem",color:"#64748b",margin:"0 0 22px",lineHeight:1.6}}>This factory will be removed from your profile and will no longer appear in applications.</p>
@@ -1248,7 +1249,7 @@ export default function CustomerFactoriesPage(){
         {editProduct&&(
           <div style={{position:"fixed",inset:0,background:"rgba(15,33,112,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}
             onClick={e=>{if(e.target===e.currentTarget)closeEditProduct()}}>
-            <div style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:640,maxHeight:"92vh",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.22)"}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:640,maxHeight:"92vh",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.22)"}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 24px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
                   <div style={{width:40,height:40,borderRadius:10,background:"#f0fdf4",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.4rem",overflow:"hidden",flexShrink:0,border:`1px solid ${C.border}`}}>
@@ -1336,7 +1337,7 @@ export default function CustomerFactoriesPage(){
         {showFacModal&&(
           <div style={{position:"fixed",inset:0,background:"rgba(15,33,112,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}
             onClick={e=>{if(e.target===e.currentTarget)closeFacModal()}}>
-            <div style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:920,maxHeight:"92vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:920,maxHeight:"92vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 24px",borderBottom:"1px solid #e2e8f0",flexShrink:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <div style={{width:36,height:36,borderRadius:9,background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center"}}><FactoryIcon size={18} color={BLUE}/></div>
