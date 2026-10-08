@@ -27,22 +27,27 @@ const STEPS = [
   {
     title: "Submit Application",
     detail: "Complete company, factory, product, market, and halal standard information.",
+    emoji: "📋",
   },
   {
     title: "Document Review",
     detail: "HCB reviews submitted documents and confirms whether anything is missing.",
+    emoji: "📄",
   },
   {
     title: "Inspector Assigned",
     detail: "An auditor is assigned and the audit plan is prepared for the selected facility.",
+    emoji: "👤",
   },
   {
     title: "On-site Audit",
     detail: "The auditor verifies production, records, ingredients, and halal controls on site.",
+    emoji: "🔍",
   },
   {
     title: "Certificate Issued",
     detail: "After approval, the halal certificate is generated and made available here.",
+    emoji: "🏆",
   },
 ]
 
@@ -321,28 +326,31 @@ export default function CustomerDashboard() {
                   {STEPS.map((step, idx) => {
                     const done    = idx < currentStep
                     const current = idx === currentStep
-                    const state = done ? "Completed" : current ? "Current step" : "Pending"
+                    const state = done ? "Completed" : current ? "Current step" : ""
                     return (
-                      <div key={step.title} style={{ display:"flex", alignItems:"flex-start", gap:12, marginBottom: idx < STEPS.length-1 ? 18 : 0, position:"relative" }}>
+                      <div key={step.title} style={{ display:"flex", alignItems:"flex-start", gap:14, marginBottom: idx < STEPS.length-1 ? 20 : 0, position:"relative" }}>
                         <div style={{
-                          position:"absolute", left:-28, width:20, height:20, borderRadius:"50%", top:1,
+                          position:"absolute", left:-35, width:32, height:32, borderRadius:"50%", top:0,
                           background: done ? A : current ? "#fff" : "#f8fafc",
                           border: done ? `2px solid ${A}` : current ? `2px solid ${A}` : "2px solid #e2e8f0",
-                          display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, zIndex:1,
+                          display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, zIndex:1, fontSize:"1.4rem",
                         }}>
-                          {done && <div style={{ width:8, height:8, borderRadius:"50%", background:"#fff" }} />}
-                          {current && <div style={{ width:8, height:8, borderRadius:"50%", background:A }} />}
+                          {done && "✓"}
+                          {current && step.emoji}
+                          {!done && !current && step.emoji}
                         </div>
-                        <div style={{ minWidth:0 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-                            <p style={{ margin:0, fontSize:"0.78rem", fontWeight: current ? 800 : 700, color: done || current ? C.textDark : C.muted }}>
+                        <div style={{ minWidth:0, flex:1 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:4 }}>
+                            <p style={{ margin:0, fontSize:"0.9rem", fontWeight: current ? 800 : 700, color: done || current ? C.textDark : C.muted }}>
                               {step.title}
                             </p>
-                            <span style={{ fontSize:"0.58rem", fontWeight:800, padding:"2px 7px", borderRadius:999, background: done ? "#dcfce7" : current ? "#eff6ff" : "#f8fafc", color: done ? "#15803d" : current ? A : "#94a3b8" }}>
-                              {state}
-                            </span>
+                            {state && (
+                              <span style={{ fontSize:"0.65rem", fontWeight:800, padding:"3px 8px", borderRadius:999, background: done ? "#dcfce7" : "#eff6ff", color: done ? "#15803d" : A }}>
+                                {state}
+                              </span>
+                            )}
                           </div>
-                          <p style={{ margin:"4px 0 0", fontSize:"0.68rem", lineHeight:1.5, color:C.muted }}>
+                          <p style={{ margin:0, fontSize:"0.7rem", lineHeight:1.6, color:C.muted }}>
                             {step.detail}
                           </p>
                         </div>
