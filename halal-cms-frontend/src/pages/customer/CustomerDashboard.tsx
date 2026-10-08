@@ -78,14 +78,12 @@ export default function CustomerDashboard() {
       <style>{`
         .customer-dashboard-main {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 20px;
           align-items: stretch;
-          height: min(560px, 90vh);
         }
         .customer-dashboard-card {
-          height: 100%;
-          min-height: 0;
+          min-height: 480px;
           display: flex;
           flex-direction: column;
           overflow: hidden;
@@ -94,18 +92,21 @@ export default function CustomerDashboard() {
           border-radius: 16px;
           box-shadow: ${C.cardShadow};
         }
+        .customer-dashboard-progress {
+          grid-column: 1 / -1;
+          min-height: 380px;
+        }
         .customer-dashboard-scroll {
           flex: 1;
           min-height: 0;
           overflow-y: auto;
         }
-        @media (max-width: 900px) {
+        @media (max-width: 1100px) {
           .customer-dashboard-main {
             grid-template-columns: 1fr;
-            height: auto;
           }
-          .customer-dashboard-card {
-            height: min(520px, 90vh);
+          .customer-dashboard-progress {
+            grid-column: 1;
           }
         }
       `}</style>
@@ -309,7 +310,7 @@ export default function CustomerDashboard() {
           </div>
 
           {/* Certification Process */}
-          <div className="customer-dashboard-card">
+          <div className="customer-dashboard-card customer-dashboard-progress">
               <div style={{ padding:"16px 20px", borderBottom:"1px solid #f1f5f9", flexShrink:0 }}>
                 <p style={{ fontSize:"0.875rem", fontWeight:700, color:C.textDark }}>Your Progress</p>
                 <p style={{ fontSize:"0.6875rem", color:C.muted, marginTop:2 }}>Certification process</p>
