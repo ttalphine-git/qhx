@@ -27,6 +27,7 @@ import CustomerProfilePage from "./pages/customer/CustomerProfilePage";
 import CustomerBatchCertificatesPage from "./pages/customer/CustomerBatchCertificatesPage";
 import CustomerBatchCertificateFormPage from "./pages/customer/CustomerBatchCertificateFormPage";
 import CustomerBatchCertificateDetailPage from "./pages/customer/CustomerBatchCertificateDetailPage";
+import CustomerAuditChecklistPage from "./pages/customer/CustomerAuditChecklistPage";
 import OfficeBatchCertificatesPage from "./pages/office/OfficeBatchCertificatesPage";
 import OfficeBatchCertificateDetailPage from "./pages/office/OfficeBatchCertificateDetailPage";
 import AuditTrailPage from "./pages/office/AuditTrailPage";
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="/customer/register" element={<CustomerRegister />} />
         <Route path="/customer/dashboard" element={<CustomerDashboard />} />
         <Route path="/customer/applications" element={<CustomerApplicationsPage />} />
+        <Route path="/customer/applications/:id/checklist" element={<CustomerAuditChecklistPage />} />
         <Route path="/customer/applications/:id" element={<Navigate to="/customer/applications" replace />} />
         <Route path="/customer/certificates" element={<CustomerCertificatesPage />} />
         <Route path="/customer/batch-certificates" element={<CustomerBatchCertificatesPage />} />
