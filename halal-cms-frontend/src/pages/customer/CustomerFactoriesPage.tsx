@@ -1343,9 +1343,9 @@ export default function CustomerFactoriesPage(){
 
         {/* ── Add Factory modal ── */}
         {showFacModal&&(
-          <div style={{position:"fixed",inset:0,background:"rgba(15,33,112,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",backdropFilter:"blur(8px)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}
             onClick={e=>{if(e.target===e.currentTarget)closeFacModal()}}>
-            <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:1200,maxHeight:"95vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"rgba(255,255,255,0.95)",backdropFilter:"blur(10px)",borderRadius:16,width:"100%",maxWidth:1200,maxHeight:"95vh",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 24px",borderBottom:"1px solid #e2e8f0",flexShrink:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <div style={{width:36,height:36,borderRadius:9,background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center"}}><FactoryIcon size={18} color={BLUE}/></div>
