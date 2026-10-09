@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, Upload, X, FileText } from "lucide-react"
 import { getApplication } from "@/api/applications"
 import { getApplicationAuditReport, saveApplicationAuditReport, type ApplicationAuditReportDto, type AuditReportConfigurationDto } from "@/api/audits"
 import { C } from "@/lib/utils"
@@ -14,6 +14,7 @@ const DARK = "#0f172a"
 
 interface QuestionAnswer {
   customerComment: string
+  files: File[]
 }
 
 interface Section {
@@ -54,7 +55,8 @@ export default function CustomerAuditChecklistPage() {
       const initialized: Record<string, QuestionAnswer> = {}
       auditData.answers.forEach((answer: { customerComment?: string }, idx: number) => {
         initialized[`q-${idx}`] = {
-          customerComment: answer.customerComment || ""
+          customerComment: answer.customerComment || "",
+          files: []
         }
       })
       setAnswers(initialized)
@@ -98,8 +100,34 @@ export default function CustomerAuditChecklistPage() {
   const setComment = (qIdx: number, value: string) => {
     setAnswers(prev => ({
       ...prev,
-      [`q-${qIdx}`]: { customerComment: value }
+      [`q-${qIdx}`]: { ...prev[`q-${qIdx}`], customerComment: value }
     }))
+  }
+
+  const addFiles = (qIdx: number, newFiles: File[]) => {
+    setAnswers(prev => {
+      const current = prev[`q-${qIdx}`] || { customerComment: "", files: [] }
+      const combined = [...(current.files || []), ...newFiles]
+      const limited = combined.slice(0, 5)
+      return {
+        ...prev,
+        [`q-${qIdx}`]: { ...current, files: limited }
+      }
+    })
+    if (newFiles.length > 0) {
+      toast.success(`${newFiles.length} file(s) added`)
+    }
+  }
+
+  const removeFile = (qIdx: number, fileIdx: number) => {
+    setAnswers(prev => {
+      const current = prev[`q-${qIdx}`] || { customerComment: "", files: [] }
+      const updated = current.files.filter((_, idx) => idx !== fileIdx)
+      return {
+        ...prev,
+        [`q-${qIdx}`]: { ...current, files: updated }
+      }
+    })
   }
 
   const toggleSection = (sectionId: string) => {
@@ -116,11 +144,15 @@ export default function CustomerAuditChecklistPage() {
     if (!appId || !auditData) return
     setSaving(true)
     try {
+      const formData = new FormData()
       const auditAnswers: any[] = []
+      let fileIndex = 0
+
       allSections.forEach(section => {
         section.qs.forEach((question, qIdx) => {
           const globalIdx = allSections.slice(0, allSections.indexOf(section)).reduce((sum, s) => sum + s.qs.length, 0) + qIdx
-          const ans = answers[`q-${globalIdx}`] || { customerComment: "" }
+          const ans = answers[`q-${globalIdx}`] || { customerComment: "", files: [] }
+
           auditAnswers.push({
             questionId: globalIdx,
             questionText: question[1],
@@ -130,8 +162,20 @@ export default function CustomerAuditChecklistPage() {
             auditorComment: "",
             shariaComment: ""
           })
+
+          // Add files to FormData
+          if (ans.files && ans.files.length > 0) {
+            ans.files.forEach((file: File) => {
+              formData.append(`files_q${globalIdx}`, file)
+            })
+          }
         })
       })
+
+      formData.append("data", JSON.stringify({
+        ...auditData,
+        answers: auditAnswers
+      }))
 
       await saveApplicationAuditReport(appId, {
         ...auditData,
@@ -286,7 +330,7 @@ export default function CustomerAuditChecklistPage() {
                           </div>
 
                           {/* Comment */}
-                          <div>
+                          <div style={{ marginBottom: 16 }}>
                             <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", marginBottom: 6 }}>
                               Your Comment
                             </label>
@@ -298,6 +342,109 @@ export default function CustomerAuditChecklistPage() {
                               onFocus={e => (e.currentTarget.style.borderColor = BLUE)}
                               onBlur={e => (e.currentTarget.style.borderColor = C.border)}
                             />
+                          </div>
+
+                          {/* File Upload */}
+                          <div>
+                            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", marginBottom: 6 }}>
+                              Supporting Documents ({(record.files?.length || 0)}/5)
+                            </label>
+                            <div
+                              style={{
+                                padding: 12,
+                                border: `2px dashed ${C.border}`,
+                                borderRadius: 6,
+                                textAlign: "center",
+                                cursor: "pointer",
+                                background: "#fafbfc",
+                                marginBottom: 12,
+                                transition: "all 0.2s"
+                              }}
+                              onDragOver={e => {
+                                e.preventDefault()
+                                e.currentTarget.style.borderColor = BLUE
+                                e.currentTarget.style.background = `${BLUE}08`
+                              }}
+                              onDragLeave={e => {
+                                e.currentTarget.style.borderColor = C.border
+                                e.currentTarget.style.background = "#fafbfc"
+                              }}
+                              onDrop={e => {
+                                e.preventDefault()
+                                e.currentTarget.style.borderColor = C.border
+                                e.currentTarget.style.background = "#fafbfc"
+                                const files = Array.from(e.dataTransfer.files)
+                                if (files.length > 0) {
+                                  addFiles(globalIdx, files)
+                                }
+                              }}
+                              onClick={() => {
+                                const input = document.createElement("input")
+                                input.type = "file"
+                                input.multiple = true
+                                input.onchange = (e: any) => {
+                                  const files = Array.from(e.target.files || [])
+                                  if (files.length > 0) {
+                                    addFiles(globalIdx, files as File[])
+                                  }
+                                }
+                                input.click()
+                              }}
+                            >
+                              <Upload size={16} style={{ margin: "0 auto 8px", color: BLUE }} />
+                              <p style={{ margin: 0, fontSize: 12, color: DARK, fontWeight: 500 }}>
+                                Drag files here or click to upload
+                              </p>
+                              <p style={{ margin: "4px 0 0", fontSize: 11, color: C.muted }}>
+                                Maximum 5 files per question
+                              </p>
+                            </div>
+
+                            {/* File List */}
+                            {record.files && record.files.length > 0 && (
+                              <div style={{ marginTop: 12 }}>
+                                {record.files.map((file, fIdx) => (
+                                  <div
+                                    key={fIdx}
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 8,
+                                      padding: "8px 10px",
+                                      background: "#f0f7ff",
+                                      border: `1px solid ${C.border}`,
+                                      borderRadius: 6,
+                                      marginBottom: 8,
+                                      fontSize: 12
+                                    }}
+                                  >
+                                    <FileText size={14} color={BLUE} style={{ flexShrink: 0 }} />
+                                    <span style={{ flex: 1, color: DARK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                      {file.name}
+                                    </span>
+                                    <span style={{ fontSize: 11, color: C.muted, flexShrink: 0 }}>
+                                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                                    </span>
+                                    <button
+                                      onClick={() => removeFile(globalIdx, fIdx)}
+                                      style={{
+                                        background: "none",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        padding: 0,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        color: "#d13438",
+                                        flexShrink: 0
+                                      }}
+                                      title="Remove file"
+                                    >
+                                      <X size={14} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       )
