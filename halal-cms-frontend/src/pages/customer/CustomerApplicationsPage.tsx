@@ -2718,6 +2718,10 @@ export default function CustomerApplicationsPage() {
                     <td style={{ padding: "11px 16px", fontSize: "0.72rem", color: "#64748b", whiteSpace: "nowrap" as const }}>{app.updatedAt ? formatDate(app.updatedAt) : "--"}</td>
                     <td style={{ padding: "11px 16px" }} onClick={e => e.stopPropagation()}>
                       <div style={{ display: "flex", gap: 5 }}>
+                        <button onClick={() => navigate(`/customer/applications/${app.id}`)}
+                          style={{ display:"inline-flex", alignItems:"center", gap:4, padding:"4px 10px", borderRadius:7, fontSize:"0.7rem", fontWeight:600, background:"#f0f7ff", color:BLUE, border:"none", cursor:"pointer", fontFamily:F }}>
+                          Checklist
+                        </button>
                         {isLocal && (
                           <button onClick={() => selectApp((localRaw ?? app) as LocalApp)}
                             style={{ display:"inline-flex", alignItems:"center", gap:4, padding:"4px 10px", borderRadius:7, fontSize:"0.7rem", fontWeight:600, background: isSelected ? "#dbeafe" : "#f0f7ff", color:BLUE, border:"none", cursor:"pointer", fontFamily:F }}>
