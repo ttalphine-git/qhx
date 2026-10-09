@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { Search, ChevronDown, ChevronUp, Save } from "lucide-react"
+import { Search, ChevronDown, ChevronUp, Save, X } from "lucide-react"
 import { CHECKLISTS, AUDIT_TYPES } from "@/lib/uploaded-audit/checklists"
 import type { AuditType, Section } from "@/lib/uploaded-audit/checklists"
 import OfficeLayout from "./OfficeLayout"
@@ -15,6 +15,20 @@ interface QuestionAnswer {
   customerComment: string
   auditorComment: string
   shariaComment: string
+  ncDescription?: string
+  obsDescription?: string
+}
+
+interface NCModal {
+  isOpen: boolean
+  qKey: string
+  description: string
+}
+
+interface ObsModal {
+  isOpen: boolean
+  qKey: string
+  description: string
 }
 
 export default function OfficeAuditQuestionsPage() {
@@ -23,6 +37,9 @@ export default function OfficeAuditQuestionsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [answers, setAnswers] = useState<Record<string, QuestionAnswer>>({})
   const [openParts, setOpenParts] = useState<Set<string>>(new Set())
+  const [ncModal, setNcModal] = useState<NCModal>({ isOpen: false, qKey: "", description: "" })
+  const [obsModal, setObsModal] = useState<ObsModal>({ isOpen: false, qKey: "", description: "" })
+  const [saving, setSaving] = useState(false)
 
   const checklist = CHECKLISTS[selectedType]
 
@@ -75,8 +92,39 @@ export default function OfficeAuditQuestionsPage() {
     setOpenParts(updated)
   }
 
-  const handleSave = () => {
-    toast.success("Audit checklist saved!")
+  const openNCModal = (qKey: string) => {
+    setNcModal({ isOpen: true, qKey, description: answers[qKey]?.ncDescription || "" })
+  }
+
+  const saveNCModal = () => {
+    setAnswer(ncModal.qKey, "ncDescription", ncModal.description)
+    setAnswer(ncModal.qKey, "finding", "nc")
+    setNcModal({ isOpen: false, qKey: "", description: "" })
+    toast.success("Non-Conformity recorded")
+  }
+
+  const openObsModal = (qKey: string) => {
+    setObsModal({ isOpen: true, qKey, description: answers[qKey]?.obsDescription || "" })
+  }
+
+  const saveObsModal = () => {
+    setAnswer(obsModal.qKey, "obsDescription", obsModal.description)
+    setAnswer(obsModal.qKey, "finding", "obs")
+    setObsModal({ isOpen: false, qKey: "", description: "" })
+    toast.success("Observation recorded")
+  }
+
+  const handleSaveAll = async () => {
+    setSaving(true)
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      toast.success(`Audit checklist saved! ${answeredQuestions}/${totalQuestions} questions answered`)
+    } catch (error) {
+      toast.error("Failed to save checklist")
+    } finally {
+      setSaving(false)
+    }
   }
 
   const answerBtn = (selected: boolean, color: string) => ({
@@ -104,9 +152,9 @@ export default function OfficeAuditQuestionsPage() {
             </div>
             <p style={{ margin: "6px 0 0", fontSize: 12, color: C.muted }}>{answeredQuestions} of {totalQuestions} questions answered</p>
           </div>
-          <button onClick={handleSave}
-            style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 8, border: "none", background: BLUE, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-            <Save size={14} />Save Checklist
+          <button onClick={handleSaveAll} disabled={saving}
+            style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 8, border: "none", background: saving ? "#cbd5e1" : BLUE, color: "#fff", fontSize: 13, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1 }}>
+            <Save size={14} />{saving ? "Saving..." : "Save Checklist"}
           </button>
         </div>
 
@@ -309,7 +357,7 @@ export default function OfficeAuditQuestionsPage() {
                               <div style={{ display: "grid", gap: 0 }}>
                                 {section.qs.map((question, qIdx) => {
                                   const qKey = `${part.n}-${section.id}-q${qIdx}`
-                                  const record = answers[qKey] || { answer: undefined, finding: undefined, customerComment: "", auditorComment: "", shariaComment: "" }
+                                  const record = answers[qKey] || { answer: undefined, finding: undefined, customerComment: "", auditorComment: "", shariaComment: "", ncDescription: "", obsDescription: "" }
                                   const answered = Boolean(record.answer)
 
                                   return (
@@ -334,9 +382,25 @@ export default function OfficeAuditQuestionsPage() {
                                             <button onClick={() => setAnswer(qKey, "answer", record.answer === "no" ? undefined : "no")} style={answerBtn(record.answer === "no", "#d13438")}>No</button>
                                             <button onClick={() => setAnswer(qKey, "answer", record.answer === "na" ? undefined : "na")} style={answerBtn(record.answer === "na", "#64748b")}>N/A</button>
                                             <span style={{ width: 1, height: 24, background: C.border, margin: "0 2px" }} />
-                                            <button onClick={() => setAnswer(qKey, "finding", record.finding === "nc" ? undefined : "nc")} style={answerBtn(record.finding === "nc", "#d13438")}>Non-conformity</button>
-                                            <button onClick={() => setAnswer(qKey, "finding", record.finding === "obs" ? undefined : "obs")} style={answerBtn(record.finding === "obs", "#d98207")}>Observation</button>
+                                            <button onClick={() => openNCModal(qKey)} style={answerBtn(record.finding === "nc", "#d13438")}>Non-conformity</button>
+                                            <button onClick={() => openObsModal(qKey)} style={answerBtn(record.finding === "obs", "#d98207")}>Observation</button>
                                           </div>
+
+                                          {/* NC/Obs Tags */}
+                                          {(record.ncDescription || record.obsDescription) && (
+                                            <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                                              {record.ncDescription && (
+                                                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, background: "#fee2e2", color: "#991b1b", fontSize: "0.7rem", fontWeight: 600 }}>
+                                                  🚩 NC: {record.ncDescription.substring(0, 30)}{record.ncDescription.length > 30 ? "..." : ""}
+                                                </span>
+                                              )}
+                                              {record.obsDescription && (
+                                                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, background: "#fef3c7", color: "#92400e", fontSize: "0.7rem", fontWeight: 600 }}>
+                                                  ⚠️ Obs: {record.obsDescription.substring(0, 30)}{record.obsDescription.length > 30 ? "..." : ""}
+                                                </span>
+                                              )}
+                                            </div>
+                                          )}
 
                                           {/* Comments */}
                                           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, marginTop: 12 }}>
@@ -374,6 +438,76 @@ export default function OfficeAuditQuestionsPage() {
             )}
           </div>
         </div>
+
+        {/* NC Registration Modal */}
+        {ncModal.isOpen && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+            <div style={{ background: C.white, borderRadius: 12, padding: 24, maxWidth: 500, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: DARK }}>Register Non-Conformity</h3>
+                <button onClick={() => setNcModal({ isOpen: false, qKey: "", description: "" })} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                  <X size={20} color={C.muted} />
+                </button>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", marginBottom: 8 }}>
+                  Description *
+                </label>
+                <textarea
+                  value={ncModal.description}
+                  onChange={e => setNcModal({ ...ncModal, description: e.target.value })}
+                  placeholder="Describe the non-conformity..."
+                  style={{ width: "100%", minHeight: 120, padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13, fontFamily: "inherit", outline: "none", resize: "vertical", color: DARK }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button onClick={() => setNcModal({ isOpen: false, qKey: "", description: "" })} style={{ padding: "8px 16px", borderRadius: 6, border: `1px solid ${C.border}`, background: "#fff", color: DARK, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                  Cancel
+                </button>
+                <button onClick={saveNCModal} disabled={!ncModal.description.trim()} style={{ padding: "8px 16px", borderRadius: 6, border: "none", background: !ncModal.description.trim() ? "#cbd5e1" : "#d13438", color: "#fff", fontSize: 13, fontWeight: 600, cursor: !ncModal.description.trim() ? "not-allowed" : "pointer" }}>
+                  Register NC
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Observation Registration Modal */}
+        {obsModal.isOpen && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+            <div style={{ background: C.white, borderRadius: 12, padding: 24, maxWidth: 500, width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: DARK }}>Register Observation</h3>
+                <button onClick={() => setObsModal({ isOpen: false, qKey: "", description: "" })} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                  <X size={20} color={C.muted} />
+                </button>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", marginBottom: 8 }}>
+                  Description *
+                </label>
+                <textarea
+                  value={obsModal.description}
+                  onChange={e => setObsModal({ ...obsModal, description: e.target.value })}
+                  placeholder="Describe the observation..."
+                  style={{ width: "100%", minHeight: 120, padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13, fontFamily: "inherit", outline: "none", resize: "vertical", color: DARK }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button onClick={() => setObsModal({ isOpen: false, qKey: "", description: "" })} style={{ padding: "8px 16px", borderRadius: 6, border: `1px solid ${C.border}`, background: "#fff", color: DARK, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                  Cancel
+                </button>
+                <button onClick={saveObsModal} disabled={!obsModal.description.trim()} style={{ padding: "8px 16px", borderRadius: 6, border: "none", background: !obsModal.description.trim() ? "#cbd5e1" : "#d98207", color: "#fff", fontSize: 13, fontWeight: 600, cursor: !obsModal.description.trim() ? "not-allowed" : "pointer" }}>
+                  Register Observation
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </OfficeLayout>
   )
