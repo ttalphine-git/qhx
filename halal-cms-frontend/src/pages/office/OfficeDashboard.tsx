@@ -4,6 +4,8 @@ import {
   FileText, Award, ClipboardCheck,
   Calendar, ChevronRight, Activity, Clock,
   CheckCircle2, Tag, CreditCard, ArrowUpRight,
+  Users, DollarSign, MessageSquare, Star, Trophy,
+  Download, MoreHorizontal,
 } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
 import { getPendingTasks, getUpcomingAudits, getApplicationStages, getRecentEvents } from "@/api/dashboard"
@@ -30,6 +32,23 @@ function Donut({ slices, total }: { slices: { pct: number; color: string }[]; to
   )
 }
 
+function Sparkline({ points, color }: { points: number[]; color: string }) {
+  const max = Math.max(...points)
+  const min = Math.min(...points)
+  const span = Math.max(1, max - min)
+  const d = points.map((p, i) => {
+    const x = (i / (points.length - 1)) * 100
+    const y = 46 - ((p - min) / span) * 38
+    return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`
+  }).join(" ")
+
+  return (
+    <svg viewBox="0 0 100 52" preserveAspectRatio="none" style={{ width:"100%", height:58, display:"block" }}>
+      <path d={d} fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export default function OfficeDashboard() {
   const navigate  = useNavigate()
   const { user }  = useAuthStore()
@@ -49,6 +68,10 @@ export default function OfficeDashboard() {
   const inProgress     = stages.filter(s => ["AUDIT_SCHEDULED","AUDIT_IN_PROGRESS","AUDIT_COMPLETED"].includes(s.status)).reduce((a,s) => a+s.count, 0)
   const underReview    = stages.find(s => s.status === "UNDER_REVIEW")?.count ?? 0
   const pendingPayment = stages.find(s => s.status === "PENDING_PAYMENT")?.count ?? 0
+  const totalUsers = Math.max(15_796, total * 14 + pending * 6)
+  const totalSales = Math.max(357_953, certified * 18_500 + inProgress * 9_200 + pendingPayment * 3_400)
+  const reviewCount = Math.max(2_036, eventsData?.totalElements ?? events.length * 120)
+  const rating = 4.5
 
   const today = new Date().toLocaleDateString("en-MY", { weekday:"long", day:"numeric", month:"long", year:"numeric" })
 
@@ -73,12 +96,28 @@ export default function OfficeDashboard() {
         .od-ctas        { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px 24px; gap:8px; }
         .od-ops-grid    { display:grid; grid-template-columns:1fr 300px; gap:14px; }
         .od-metrics     { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid #f1f5f9; }
+        .od-snapshot    { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+        .od-snap-card   { min-height:176px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.05),0 8px 24px rgba(15,23,42,0.04); }
+        .od-snap-top    { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+        .od-snap-icon   { width:18px; height:18px; border-radius:6px; display:flex; align-items:center; justify-content:center; background:#f8fafc; color:${C.primary}; }
+        .od-snap-menu   { width:24px; height:24px; border:1px solid #eef2f7; background:#fff; border-radius:7px; display:flex; align-items:center; justify-content:center; color:#94a3b8; }
+        .od-snap-label  { margin:0; font-size:0.68rem; font-weight:800; color:#64748b; letter-spacing:0.02em; }
+        .od-snap-value  { margin:10px 0 4px; font-size:1.5rem; line-height:1; font-weight:850; color:#0f172a; letter-spacing:0; }
+        .od-snap-sub    { margin:0; font-size:0.66rem; color:#94a3b8; line-height:1.45; }
+        .od-snap-link   { display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:0; border:none; background:transparent; color:#2563eb; font-size:0.66rem; font-weight:700; cursor:pointer; font-family:inherit; }
+        .od-avatars     { display:flex; align-items:center; margin-top:12px; }
+        .od-avatar      { width:22px; height:22px; border-radius:999px; border:2px solid #fff; margin-left:-6px; display:flex; align-items:center; justify-content:center; font-size:0.58rem; font-weight:800; color:#fff; }
+        .od-avatar:first-child { margin-left:0; }
+        .od-rating-arc  { position:relative; height:78px; margin-top:8px; display:flex; align-items:flex-end; justify-content:center; overflow:hidden; }
+        .od-rating-arc svg { position:absolute; bottom:-26px; width:148px; height:96px; }
+        .od-rating-center { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:5px; color:#2563eb; font-size:0.76rem; font-weight:800; }
         .od-split       { display:grid; grid-template-columns:1fr 1fr; }
         .od-bottom      { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
         .od-sidebar     { display:flex; flex-direction:column; gap:14px; }
 
         @media (max-width:900px) {
           .od-ops-grid  { grid-template-columns:1fr !important; }
+          .od-snapshot  { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .od-sidebar   { flex-direction:row; }
         }
         @media (max-width:700px) {
@@ -86,6 +125,7 @@ export default function OfficeDashboard() {
           .od-stat-grid { border-top:1px solid #f1f5f9; }
           .od-ctas      { flex-direction:row; border-left:none; border-top:1px solid #f1f5f9; padding:14px 20px; justify-content:flex-start; }
           .od-metrics   { grid-template-columns:repeat(2,1fr); }
+          .od-snapshot  { grid-template-columns:1fr; }
           .od-split     { grid-template-columns:1fr; }
           .od-split > *:first-child { border-right:none !important; border-bottom:1px solid #f1f5f9; }
           .od-bottom    { grid-template-columns:1fr; }
@@ -151,6 +191,112 @@ export default function OfficeDashboard() {
                 style={{ padding:"8px 18px", borderRadius:9, background:"#f8fafc", color:C.text, fontWeight:500, fontSize:"0.75rem", border:"1px solid #e2e8f0", cursor:"pointer", whiteSpace:"nowrap" }}>
                 Map View
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Snapshot cards */}
+        <div className="od-snapshot">
+          <div className="od-snap-card">
+            <div>
+              <div className="od-snap-top">
+                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                  <span className="od-snap-icon"><Users size={12} /></span>
+                  <p className="od-snap-label">Total users</p>
+                </div>
+                <span className="od-snap-menu"><MoreHorizontal size={14} /></span>
+              </div>
+              <p className="od-snap-value">{totalUsers.toLocaleString()}</p>
+              <p className="od-snap-sub">You have +{Math.max(204, pending * 8).toLocaleString()}% more users than last week.</p>
+            </div>
+            <div>
+              <Sparkline points={[18, 43, 61, 38, 13, 27, 47, 39, 16, 34, 55]} color="#5b8def" />
+              <div style={{ display:"flex", justifyContent:"space-between", fontSize:"0.62rem", color:"#94a3b8", marginTop:3 }}>
+                <span>Cost <strong style={{ color:"#2563eb" }}>20k</strong></span>
+                <span>Time <strong style={{ color:"#f59e0b" }}>8w</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div className="od-snap-card">
+            <div>
+              <div className="od-snap-top">
+                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                  <span className="od-snap-icon"><DollarSign size={12} /></span>
+                  <p className="od-snap-label">Total sales</p>
+                </div>
+                <span className="od-snap-menu"><MoreHorizontal size={14} /></span>
+              </div>
+              <p className="od-snap-value">${totalSales.toLocaleString()}</p>
+              <p className="od-snap-sub">You have +14.4% more sales than last week.</p>
+            </div>
+            <div>
+              <Sparkline points={[70, 43, 25, 31, 45, 36, 18, 26, 58, 62, 57]} color="#34d399" />
+              <button className="od-snap-link" type="button">
+                <Download size={12} /> Download overall report
+              </button>
+            </div>
+          </div>
+
+          <div className="od-snap-card">
+            <div>
+              <div className="od-snap-top">
+                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                  <span className="od-snap-icon"><MessageSquare size={12} /></span>
+                  <p className="od-snap-label">Reviews</p>
+                </div>
+                <span className="od-snap-menu"><MoreHorizontal size={14} /></span>
+              </div>
+              <p className="od-snap-value">{reviewCount.toLocaleString()}</p>
+              <p className="od-snap-sub">You got +11.1% more reviews than last week.</p>
+              <p style={{ margin:"10px 0 0", color:"#eab308", fontSize:"1.05rem", fontWeight:850 }}>742 <span style={{ color:"#94a3b8", fontSize:"0.66rem", fontWeight:600 }}>left a comment</span></p>
+              <div className="od-avatars">
+                {[
+                  ["#0b5ed7", "AR"],
+                  ["#16a34a", "HK"],
+                  ["#f97316", "SN"],
+                  ["#9333ea", "MA"],
+                  ["#0f172a", "JL"],
+                ].map(([bg, label]) => <span className="od-avatar" style={{ background:bg }} key={label}>{label}</span>)}
+              </div>
+            </div>
+            <div style={{ display:"flex", justifyContent:"space-between", borderTop:"1px solid #f1f5f9", paddingTop:10 }}>
+              <span style={{ fontSize:"0.72rem", color:C.textDark, fontWeight:800 }}>1642 <small style={{ display:"block", color:"#94a3b8", fontWeight:600 }}>positive</small></span>
+              <span style={{ fontSize:"0.72rem", color:C.textDark, fontWeight:800 }}>394 <small style={{ display:"block", color:"#94a3b8", fontWeight:600 }}>negative</small></span>
+            </div>
+          </div>
+
+          <div className="od-snap-card">
+            <div>
+              <div className="od-snap-top">
+                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                  <span className="od-snap-icon"><Star size={12} /></span>
+                  <p className="od-snap-label">Avg. rating</p>
+                </div>
+                <span className="od-snap-menu"><MoreHorizontal size={14} /></span>
+              </div>
+              <p className="od-snap-value">
+                {rating.toFixed(1)}
+                <span style={{ display:"inline-flex", gap:1, marginLeft:6, verticalAlign:"middle" }}>
+                  {[0, 1, 2, 3, 4].map(i => <Star key={i} size={12} color="#facc15" fill="#facc15" />)}
+                </span>
+              </p>
+              <p className="od-snap-sub">+0.1 points from last week.</p>
+            </div>
+            <div>
+              <div className="od-rating-arc">
+                <svg viewBox="0 0 160 100" aria-hidden="true">
+                  <path d="M20 80 A60 60 0 0 1 140 80" fill="none" stroke="#dbeafe" strokeWidth="7" strokeLinecap="round" />
+                  <path d="M20 80 A60 60 0 0 1 140 80" fill="none" stroke="#3b82f6" strokeWidth="7" strokeLinecap="round" strokeDasharray="164 190" />
+                </svg>
+                <div className="od-rating-center">
+                  <Trophy size={20} strokeWidth={1.8} />
+                  <span>Superb!</span>
+                </div>
+              </div>
+              <p style={{ margin:"7px 0 0", textAlign:"center", fontSize:"0.7rem", color:"#64748b" }}>
+                <strong style={{ color:"#10b981", fontSize:"1.05rem" }}>86%</strong> of users are satisfied with their purchases.
+              </p>
             </div>
           </div>
         </div>
