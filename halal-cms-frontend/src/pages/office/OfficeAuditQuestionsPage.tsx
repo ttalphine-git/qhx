@@ -1,7 +1,10 @@
 import { useState, useMemo } from "react"
+import { useParams } from "react-router-dom"
+import { useQuery } from "@tanstack/react-query"
 import { Search, ChevronDown, ChevronUp, Save, X, Upload, FileText } from "lucide-react"
 import { CHECKLISTS, AUDIT_TYPES } from "@/lib/uploaded-audit/checklists"
 import type { AuditType, Section } from "@/lib/uploaded-audit/checklists"
+import { getApplicationAuditReport } from "@/api/audits"
 import OfficeLayout from "./OfficeLayout"
 import { C } from "@/lib/utils"
 import { toast } from "react-hot-toast"
@@ -33,6 +36,9 @@ interface ObsModal {
 }
 
 export default function OfficeAuditQuestionsPage() {
+  const { appId } = useParams<{ appId?: string }>()
+  const applicationId = appId ? parseInt(appId, 10) : 0
+
   const [selectedType, setSelectedType] = useState<AuditType>("manufacturing")
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -41,6 +47,32 @@ export default function OfficeAuditQuestionsPage() {
   const [ncModal, setNcModal] = useState<NCModal>({ isOpen: false, qKey: "", description: "" })
   const [obsModal, setObsModal] = useState<ObsModal>({ isOpen: false, qKey: "", description: "" })
   const [saving, setSaving] = useState(false)
+
+  // Fetch existing audit data if applicationId is provided
+  const { data: auditData } = useQuery({
+    queryKey: ["audit-report", appId],
+    queryFn: () => applicationId ? getApplicationAuditReport(applicationId) : Promise.resolve(null),
+    enabled: !!applicationId,
+    retry: 1
+  })
+
+  // Initialize answers from fetched audit data
+  useMemo(() => {
+    if (auditData?.answers && appId) {
+      const initialized: Record<string, QuestionAnswer> = {}
+      auditData.answers.forEach((answer: any, idx: number) => {
+        initialized[`q-${idx}`] = {
+          answer: answer.answer as any,
+          finding: answer.finding as any,
+          customerComment: answer.customerComment || "",
+          auditorComment: answer.auditorComment || "",
+          shariaComment: answer.shariaComment || "",
+          files: []
+        }
+      })
+      setAnswers(initialized)
+    }
+  }, [auditData, appId])
 
   const checklist = CHECKLISTS[selectedType]
 
