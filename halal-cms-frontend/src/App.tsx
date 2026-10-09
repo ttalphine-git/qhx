@@ -33,6 +33,7 @@ import AuditTrailPage from "./pages/office/AuditTrailPage";
 import AuditsPage from "./pages/office/AuditsPage";
 import CertificateDesignerPage from "./pages/office/CertificateDesignerPage";
 import CertificateVerifyPage from "./pages/public/CertificateVerifyPage";
+import OfficeAuditQuestionsPage from "./pages/office/OfficeAuditQuestionsPage";
 
 export default function App() {
   return (
@@ -58,6 +59,7 @@ export default function App() {
         <Route path="/office/customers/:id" element={<OfficeCustomerDetailPage />} />
         <Route path="/office/audit-trail" element={<AuditTrailPage />} />
         <Route path="/office/audits" element={<AuditsPage />} />
+        <Route path="/office/audit-questions" element={<OfficeAuditQuestionsPage />} />
         <Route path="/office/settings" element={<OfficeSettingsPage />} />
         <Route path="/office/certificate-designer" element={<CertificateDesignerPage />} />
         <Route path="/verify/:key" element={<CertificateVerifyPage />} />
