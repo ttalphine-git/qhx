@@ -2,8 +2,8 @@ import { useState, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { ArrowLeft, Save } from "lucide-react"
-import { getApplication, getApplicationAuditReport } from "@/api/applications"
-import { saveApplicationAuditReport, type ApplicationAuditReportDto, type AuditReportConfigurationDto } from "@/api/audits"
+import { getApplication } from "@/api/applications"
+import { getApplicationAuditReport, saveApplicationAuditReport, type ApplicationAuditReportDto, type AuditReportConfigurationDto } from "@/api/audits"
 import { C, formatDate } from "@/lib/utils"
 import { CHECKLISTS } from "@/lib/uploaded-audit/checklists"
 import { toast } from "react-hot-toast"
@@ -25,18 +25,21 @@ export default function CustomerAuditChecklistPage() {
   const [saving, setSaving] = useState(false)
   const [openSections, setOpenSections] = useState<Set<string>>(new Set())
 
+  const appId = id ? parseInt(id) : 0
+
   // Fetch application
   const { data: app } = useQuery({
     queryKey: ["application", id],
-    queryFn: () => getApplication(id || ""),
-    enabled: !!id
+    queryFn: () => getApplication(id ?? ""),
+    enabled: !!id,
+    retry: 1
   })
 
   // Fetch audit report
   const { data: auditData } = useQuery({
     queryKey: ["audit-report", id],
-    queryFn: () => getApplicationAuditReport(id || ""),
-    enabled: !!id,
+    queryFn: () => getApplicationAuditReport(appId),
+    enabled: !!appId,
     retry: 1,
     staleTime: 5 * 60 * 1000
   })
@@ -45,7 +48,7 @@ export default function CustomerAuditChecklistPage() {
   useMemo(() => {
     if (auditData?.answers) {
       const initialized: Record<string, QuestionAnswer> = {}
-      auditData.answers.forEach((answer, idx) => {
+      auditData.answers.forEach((answer: any, idx: number) => {
         initialized[`q-${idx}`] = {
           answer: answer.answer as any,
           finding: answer.finding as any,
@@ -82,20 +85,23 @@ export default function CustomerAuditChecklistPage() {
   }
 
   const handleSave = async () => {
-    if (!id || !auditData) return
+    if (!appId || !auditData) return
     setSaving(true)
     try {
-      const auditAnswers = auditQuestions.map((q, idx) => ({
-        questionId: q.id,
-        questionText: q.questionText,
-        answer: answers[`q-${idx}`]?.answer || "",
-        finding: answers[`q-${idx}`]?.finding || "",
-        customerComment: answers[`q-${idx}`]?.customerComment || "",
-        auditorComment: "",
-        shariaComment: ""
-      }))
+      const auditAnswers = auditQuestions.map((q: any, idx: number) => {
+        const ans = answers[`q-${idx}`]
+        return {
+          questionId: q.id,
+          questionText: q.questionText,
+          answer: (ans?.answer || "") as "" | "yes" | "no" | "na" | undefined,
+          finding: (ans?.finding || "") as "" | "nc" | "obs" | undefined,
+          customerComment: ans?.customerComment || "",
+          auditorComment: "",
+          shariaComment: ""
+        }
+      })
 
-      await saveApplicationAuditReport(id, {
+      await saveApplicationAuditReport(appId, {
         ...auditData,
         answers: auditAnswers
       })
