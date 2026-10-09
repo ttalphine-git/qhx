@@ -8,10 +8,17 @@ import { C } from "@/lib/utils"
 const BLUE = "#2563eb"
 const DARK = "#0f172a"
 
+interface QuestionAnswer {
+  answer?: "yes" | "no" | "na" | "nc"
+  finding?: "nc" | "obs"
+  comment: string
+}
+
 export default function OfficeAuditQuestionsPage() {
   const [selectedType, setSelectedType] = useState<AuditType>("manufacturing")
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const [answers, setAnswers] = useState<Record<string, QuestionAnswer>>({})
 
   const checklist = CHECKLISTS[selectedType]
 
@@ -42,13 +49,29 @@ export default function OfficeAuditQuestionsPage() {
 
   const currentSectionId = currentSection ? `${currentSection.partNum}-${currentSection.id}` : null
 
+  const setAnswer = (qKey: string, field: keyof QuestionAnswer, value: any) => {
+    setAnswers(prev => ({
+      ...prev,
+      [qKey]: { ...prev[qKey], [field]: value }
+    }))
+  }
+
+  const getAnswerStyle = (answer?: string, selected?: boolean) => {
+    if (!selected) return { background: "#f3f4f6", color: "#6b7280", borderColor: "#d1d5db" }
+    if (answer === "yes") return { background: "#dcfce7", color: "#15803d", borderColor: "#16a34a" }
+    if (answer === "no") return { background: "#fee2e2", color: "#991b1b", borderColor: "#dc2626" }
+    if (answer === "nc") return { background: "#fee2e2", color: "#991b1b", borderColor: "#dc2626" }
+    if (answer === "na") return { background: "#f3f4f6", color: "#6b7280", borderColor: "#9ca3af" }
+    return { background: "#f3f4f6", color: "#6b7280", borderColor: "#d1d5db" }
+  }
+
   return (
     <OfficeLayout title="Audit Questions">
       <div style={{ padding: "1.5rem 2rem", height: "100%", display: "flex", flexDirection: "column" }}>
 
         {/* Header */}
         <div style={{ marginBottom: 20 }}>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: DARK }}>{checklist.name} Audit Questions</h1>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: DARK }}>{checklist.name} Audit Checklist</h1>
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b" }}>{checklist.form} • {checklist.rev}</p>
         </div>
 
@@ -181,29 +204,121 @@ export default function OfficeAuditQuestionsPage() {
                 </div>
 
                 {/* Questions */}
-                <div style={{ flex: 1, overflowY: "auto", padding: "14px 18px", display: "grid", gap: 12 }}>
-                  {currentSection.qs.map((question, qIdx) => (
-                    <div key={`q-${qIdx}`} style={{ borderBottom: qIdx < currentSection.qs.length - 1 ? `1px solid #e2e8f0` : "none", paddingBottom: 12 }}>
-                      {/* Question Number and Text */}
-                      <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
-                        <div style={{ width: 24, height: 24, borderRadius: 4, background: BLUE, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>
-                          {question[0]}
-                        </div>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: DARK, lineHeight: 1.5, flex: 1 }}>
-                          {question[1]}
-                        </p>
-                      </div>
-
-                      {/* Guidance Note */}
-                      {question[2] && (
-                        <div style={{ marginLeft: 34, padding: "8px 10px", background: "#f0f7ff", borderLeft: "2px solid #3b82f6", borderRadius: 4 }}>
-                          <p style={{ margin: 0, fontSize: 12, color: "#1e40af", lineHeight: 1.4 }}>
-                            {question[2]}
+                <div style={{ flex: 1, overflowY: "auto", padding: "14px 18px", display: "grid", gap: 16 }}>
+                  {currentSection.qs.map((question, qIdx) => {
+                    const qKey = `${currentSectionId}-q${qIdx}`
+                    const ans = answers[qKey]
+                    return (
+                      <div key={qKey} style={{ borderBottom: qIdx < currentSection.qs.length - 1 ? `1px solid #e2e8f0` : "none", paddingBottom: 16 }}>
+                        {/* Question Number and Text */}
+                        <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+                          <div style={{ width: 24, height: 24, borderRadius: 4, background: BLUE, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>
+                            {question[0]}
+                          </div>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: DARK, lineHeight: 1.5, flex: 1 }}>
+                            {question[1]}
                           </p>
                         </div>
-                      )}
-                    </div>
-                  ))}
+
+                        {/* Guidance Note */}
+                        {question[2] && (
+                          <div style={{ marginLeft: 34, padding: "8px 10px", background: "#f0f7ff", borderLeft: "2px solid #3b82f6", borderRadius: 4, marginBottom: 10 }}>
+                            <p style={{ margin: 0, fontSize: 12, color: "#1e40af", lineHeight: 1.4 }}>
+                              {question[2]}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Answer Options */}
+                        <div style={{ marginLeft: 34, display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                          {["yes", "no", "na", "nc"].map(opt => {
+                            const style = getAnswerStyle(opt, ans?.answer === opt)
+                            return (
+                              <button
+                                key={opt}
+                                onClick={() => setAnswer(qKey, "answer", opt as any)}
+                                style={{
+                                  padding: "6px 14px",
+                                  borderRadius: 6,
+                                  border: `1px solid ${style.borderColor}`,
+                                  background: style.background,
+                                  color: style.color,
+                                  fontSize: "0.75rem",
+                                  fontWeight: 600,
+                                  cursor: "pointer",
+                                  fontFamily: "inherit",
+                                  textTransform: "uppercase",
+                                  transition: "all 0.1s"
+                                }}
+                              >
+                                {opt === "na" ? "N/A" : opt === "nc" ? "NC" : opt.toUpperCase()}
+                              </button>
+                            )
+                          })}
+                          <button
+                            onClick={() => setAnswer(qKey, "finding", ans?.finding === "nc" ? undefined : "nc")}
+                            style={{
+                              padding: "6px 14px",
+                              borderRadius: 6,
+                              border: ans?.finding === "nc" ? "1px solid #dc2626" : "1px solid #d1d5db",
+                              background: ans?.finding === "nc" ? "#fee2e2" : "#f3f4f6",
+                              color: ans?.finding === "nc" ? "#991b1b" : "#6b7280",
+                              fontSize: "0.75rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              fontFamily: "inherit",
+                              transition: "all 0.1s"
+                            }}
+                          >
+                            Non-Conformity
+                          </button>
+                          <button
+                            onClick={() => setAnswer(qKey, "finding", ans?.finding === "obs" ? undefined : "obs")}
+                            style={{
+                              padding: "6px 14px",
+                              borderRadius: 6,
+                              border: ans?.finding === "obs" ? "1px solid #f59e0b" : "1px solid #d1d5db",
+                              background: ans?.finding === "obs" ? "#fef3c7" : "#f3f4f6",
+                              color: ans?.finding === "obs" ? "#92400e" : "#6b7280",
+                              fontSize: "0.75rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              fontFamily: "inherit",
+                              transition: "all 0.1s"
+                            }}
+                          >
+                            Observation
+                          </button>
+                        </div>
+
+                        {/* Comments */}
+                        <div style={{ marginLeft: 34 }}>
+                          <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", marginBottom: 6, textTransform: "uppercase" }}>
+                            Comments
+                          </label>
+                          <textarea
+                            value={ans?.comment ?? ""}
+                            onChange={e => setAnswer(qKey, "comment", e.target.value)}
+                            placeholder="Add comments or observations..."
+                            style={{
+                              width: "100%",
+                              minHeight: 60,
+                              padding: "10px 12px",
+                              border: `1px solid #e2e8f0`,
+                              borderRadius: 6,
+                              fontSize: 12,
+                              fontFamily: "inherit",
+                              outline: "none",
+                              resize: "vertical",
+                              color: DARK
+                            }}
+                            onFocus={e => (e.currentTarget.style.borderColor = BLUE)}
+                            onBlur={e => (e.currentTarget.style.borderColor = "#e2e8f0")}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </>
             ) : (
