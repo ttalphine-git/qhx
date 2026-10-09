@@ -250,7 +250,6 @@ export default function CustomerAuditChecklistPage() {
                         display: "flex",
                         alignItems: "flex-start",
                         justifyContent: "space-between",
-                        borderLeft: `3px solid ${BLUE}`,
                         lineHeight: 1.3
                       }}
                     >
