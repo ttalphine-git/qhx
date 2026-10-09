@@ -25,20 +25,20 @@ export default function CustomerAuditChecklistPage() {
   const [saving, setSaving] = useState(false)
   const [openSections, setOpenSections] = useState<Set<string>>(new Set())
 
-  const appId = id ? parseInt(id) : 0
+  const appId = id ? parseInt(id, 10) : 0
 
   // Fetch application
   const { data: app } = useQuery({
     queryKey: ["application", id],
-    queryFn: () => getApplication(id ?? ""),
-    enabled: !!id,
+    queryFn: () => appId ? getApplication(appId) : Promise.resolve(null),
+    enabled: !!appId,
     retry: 1
   })
 
   // Fetch audit report
   const { data: auditData } = useQuery({
     queryKey: ["audit-report", id],
-    queryFn: () => getApplicationAuditReport(appId),
+    queryFn: () => appId ? getApplicationAuditReport(appId) : Promise.resolve(null),
     enabled: !!appId,
     retry: 1,
     staleTime: 5 * 60 * 1000
