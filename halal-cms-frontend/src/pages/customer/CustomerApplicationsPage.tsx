@@ -1243,12 +1243,19 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
   const numericApplicationId = Number(app.id)
   const canUseDatabase = Number.isFinite(numericApplicationId)
   const appCategoryKeys = activityCategoriesFromApp(app)
+  const auditCategoryOptions = [
+    { key: "all", label: "All" },
+    { key: "mfg", label: "Manufacturer" },
+    { key: "slaughter", label: "Slaughterhouse" },
+    { key: "meat-processing", label: "Meat Processing" },
+  ]
 
   // Derive audit category key from app's activity categories
   const matchingTrack = DEFAULT_AUDIT_TRACKS.find(track =>
     (track.activityCategoryKeys ?? []).some(trackKey => appCategoryKeys.includes(trackKey))
   )
-  const auditCategoryKey = matchingTrack?.activityCategoryKeys?.[0] || appCategoryKeys[0] || "mfg"
+  const inferredAuditCategoryKey = matchingTrack?.activityCategoryKeys?.[0] || appCategoryKeys[0] || "mfg"
+  const [auditCategoryKey, setAuditCategoryKey] = useState("all")
 
   const [comments, setComments] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
@@ -1258,29 +1265,45 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
   // Show questions from audit plan issued onwards (DOCUMENT_SUBMISSION and later stages)
   const auditPrepStages = ["DOCUMENT_SUBMISSION", "AUDIT_IN_PROGRESS", "AUDIT_COMPLETED", "NC_CLEARANCE", "DECISION_MAKING", "CERTIFICATION_REVIEW", "CERTIFIED"]
   const isAuditPhase = auditPrepStages.includes(app.status)
+  const requestCategoryKey = auditCategoryKey === "all" ? inferredAuditCategoryKey : auditCategoryKey
 
   const reportQ = useQuery({
-    queryKey: ["application-audit-report", numericApplicationId, auditCategoryKey],
-    queryFn: () => getApplicationAuditReport(numericApplicationId, auditCategoryKey),
+    queryKey: ["application-audit-report", numericApplicationId, requestCategoryKey],
+    queryFn: () => getApplicationAuditReport(numericApplicationId, requestCategoryKey),
     enabled: canUseDatabase && isAuditPhase,
   })
 
   const report = reportQ.data
   const configQuestions = report?.configuration?.questions ?? []
   const answers = report?.answers ?? []
-  const fallbackTrack =
-    DEFAULT_AUDIT_TRACKS.find(track => (track.activityCategoryKeys ?? []).includes(auditCategoryKey)) ??
-    DEFAULT_AUDIT_TRACKS[0]
-  const fallbackQuestions = fallbackTrack?.questions ?? []
+  const fallbackTracks = auditCategoryKey === "all"
+    ? DEFAULT_AUDIT_TRACKS.filter(track => ["mfg", "slaughter", "meat-processing"].some(key => (track.activityCategoryKeys ?? []).includes(key)))
+    : DEFAULT_AUDIT_TRACKS.filter(track => (track.activityCategoryKeys ?? []).includes(auditCategoryKey))
+  const fallbackQuestions = fallbackTracks.flatMap(track =>
+    (track.questions ?? []).map((questionText, index) => ({
+      id: undefined,
+      questionText,
+      sortOrder: index,
+      categoryKey: track.activityCategoryKeys?.[0] ?? track.id,
+      categoryLabel: track.name,
+    }))
+  )
   const questionRows = configQuestions.length
-    ? configQuestions
+    ? configQuestions.map((question, index) => ({
+        ...question,
+        categoryKey: report?.activityCategoryKey || requestCategoryKey,
+        categoryLabel: report?.configuration?.name || "Audit Report",
+        sortOrder: question.sortOrder ?? index,
+      }))
     : answers.length
-      ? answers.filter(a => a.questionText?.trim()).map((a, i) => ({ id: a.questionId, questionText: a.questionText, sortOrder: i }))
-      : fallbackQuestions.map((questionText, index) => ({
-          id: undefined,
-          questionText,
-          sortOrder: index,
+      ? answers.filter(a => a.questionText?.trim()).map((a, i) => ({
+          id: a.questionId,
+          questionText: a.questionText,
+          sortOrder: i,
+          categoryKey: report?.activityCategoryKey || requestCategoryKey,
+          categoryLabel: report?.configuration?.name || "Audit Report",
         }))
+      : fallbackQuestions
   const rows = questionRows.length
     ? questionRows
         .filter(question => question.questionText?.trim())
@@ -1288,12 +1311,21 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
         const answer = answers.find(item =>
           (question.id && item.questionId === question.id) || item.questionText === question.questionText
         )
-        return { key: String(question.id ?? `${auditCategoryKey}-${index}`), questionId: question.id, questionText: question.questionText, answer }
+        return {
+          key: String(question.id ?? `${question.categoryKey ?? auditCategoryKey}-${index}`),
+          questionId: question.id,
+          questionText: question.questionText,
+          categoryKey: question.categoryKey,
+          categoryLabel: question.categoryLabel,
+          answer,
+        }
       })
     : answers.filter(answer => answer.questionText?.trim()).map((answer, index) => ({
         key: String(answer.questionId ?? `answer-${index}`),
         questionId: answer.questionId,
         questionText: answer.questionText,
+        categoryKey: report?.activityCategoryKey || requestCategoryKey,
+        categoryLabel: report?.configuration?.name || "Audit Report",
         answer,
       }))
 
@@ -1305,7 +1337,7 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
     })
     setComments(next)
     setSavedAt("")
-  }, [report?.id, report?.answers?.length, rows.map(row => row.key).join("|")])
+  }, [auditCategoryKey, report?.id, report?.answers?.length, rows.map(row => row.key).join("|")])
 
   const saveComments = async () => {
     if (!canUseDatabase || !report) return
@@ -1316,7 +1348,7 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
         id: report.id,
         applicationId: numericApplicationId,
         configurationId: report.configurationId,
-        activityCategoryKey: report.activityCategoryKey || auditCategoryKey,
+        activityCategoryKey: report.activityCategoryKey || requestCategoryKey,
         status: report.status || "DRAFT",
         generalComment: report.generalComment,
         completedAt: report.completedAt,
@@ -1329,7 +1361,7 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
       }
       await saveCustomerAuditComments(numericApplicationId, payload)
       setSavedAt(new Date().toISOString())
-      queryClient.invalidateQueries({ queryKey: ["application-audit-report", numericApplicationId, auditCategoryKey] })
+      queryClient.invalidateQueries({ queryKey: ["application-audit-report", numericApplicationId, requestCategoryKey] })
     } catch {
       setSaveError("Could not save customer comments.")
     } finally {
@@ -1355,12 +1387,23 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:12, height:"100%", fontFamily:F }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, background:"#fff", border:"1px solid #e2e8f0", borderRadius:10, padding:"11px 14px", flexShrink:0 }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, background:"#fff", border:"1px solid #e2e8f0", borderRadius:10, padding:"11px 14px", flexShrink:0, flexWrap:"wrap" as const }}>
         <div>
           <p style={{ margin:0, fontSize:"0.76rem", fontWeight:900, color:BLUE, letterSpacing:"0.08em", textTransform:"uppercase" as const }}>Audit Questions</p>
-          <p style={{ margin:"3px 0 0", fontSize:"0.7rem", color:"#64748b", fontWeight:600 }}>Review auditor answers and add your customer comments.</p>
+          <p style={{ margin:"3px 0 0", fontSize:"0.7rem", color:"#64748b", fontWeight:600 }}>Review auditor answers and add your customer comments. Showing {rows.length} questions.</p>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" as const, justifyContent:"flex-end" }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:4, padding:4, borderRadius:10, background:"#f1f5f9", border:"1px solid #e2e8f0" }}>
+            {auditCategoryOptions.map(option => {
+              const active = auditCategoryKey === option.key
+              return (
+                <button key={option.key} onClick={() => setAuditCategoryKey(option.key)}
+                  style={{ height:28, padding:"0 10px", borderRadius:7, border:"none", background:active ? BLUE : "transparent", color:active ? "#fff" : "#475569", fontSize:"0.7rem", fontWeight:900, cursor:"pointer", fontFamily:F }}>
+                  {option.label}
+                </button>
+              )
+            })}
+          </div>
           {savedAt && <span style={{ fontSize:"0.68rem", fontWeight:800, color:"#15803d", background:"#dcfce7", padding:"5px 10px", borderRadius:999 }}>Comments saved</span>}
           <button onClick={saveComments} disabled={saving || reportQ.isLoading || rows.length === 0}
             style={{ height:34, padding:"0 16px", borderRadius:8, border:"none", background:saving || reportQ.isLoading || rows.length === 0 ? "#cbd5e1" : BLUE, color:"#fff", fontSize:"0.76rem", fontWeight:800, cursor:saving || reportQ.isLoading || rows.length === 0 ? "not-allowed" : "pointer", fontFamily:F }}>
@@ -1388,7 +1431,10 @@ function CustomerAuditQuestionsTab({ app }: { app:any }) {
             <div key={row.key} style={{ background:"#fff", border:"1px solid #e2e8f0", borderRadius:10, overflow:"hidden" }}>
               <div style={{ display:"grid", gridTemplateColumns:"56px minmax(0, 1fr) auto", gap:12, alignItems:"start", padding:"13px 14px", borderBottom:"1px solid #e2e8f0" }}>
                 <span style={{ height:28, display:"inline-flex", alignItems:"center", justifyContent:"center", borderRadius:7, background:"#eff6ff", color:BLUE, fontSize:"0.72rem", fontWeight:900 }}>{index + 1}</span>
-                <p style={{ margin:0, color:"#0f172a", fontSize:"0.86rem", fontWeight:800, lineHeight:1.45 }}>{row.questionText}</p>
+                <div>
+                  {auditCategoryKey === "all" && <p style={{ margin:"0 0 4px", color:"#64748b", fontSize:"0.64rem", fontWeight:900, textTransform:"uppercase" as const }}>{row.categoryLabel}</p>}
+                  <p style={{ margin:0, color:"#0f172a", fontSize:"0.86rem", fontWeight:800, lineHeight:1.45 }}>{row.questionText}</p>
+                </div>
                 <div style={{ display:"flex", alignItems:"center", gap:7 }}>
                   {chip(answer?.answer)}
                   {finding ? chip(finding) : null}
