@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { Search, ChevronDown, ChevronUp, Save, X } from "lucide-react"
+import { Search, ChevronDown, ChevronUp, Save, X, Upload, FileText } from "lucide-react"
 import { CHECKLISTS, AUDIT_TYPES } from "@/lib/uploaded-audit/checklists"
 import type { AuditType, Section } from "@/lib/uploaded-audit/checklists"
 import OfficeLayout from "./OfficeLayout"
@@ -17,6 +17,7 @@ interface QuestionAnswer {
   shariaComment: string
   ncDescription?: string
   obsDescription?: string
+  files: File[]
 }
 
 interface NCModal {
@@ -112,6 +113,32 @@ export default function OfficeAuditQuestionsPage() {
     setAnswer(obsModal.qKey, "finding", "obs")
     setObsModal({ isOpen: false, qKey: "", description: "" })
     toast.success("Observation recorded")
+  }
+
+  const addFiles = (qKey: string, newFiles: File[]) => {
+    setAnswers(prev => {
+      const current = prev[qKey] || { answer: undefined, finding: undefined, customerComment: "", auditorComment: "", shariaComment: "", files: [] }
+      const combined = [...(current.files || []), ...newFiles]
+      const limited = combined.slice(0, 5)
+      return {
+        ...prev,
+        [qKey]: { ...current, files: limited }
+      }
+    })
+    if (newFiles.length > 0) {
+      toast.success(`${newFiles.length} file(s) added`)
+    }
+  }
+
+  const removeFile = (qKey: string, fileIdx: number) => {
+    setAnswers(prev => {
+      const current = prev[qKey] || { answer: undefined, finding: undefined, customerComment: "", auditorComment: "", shariaComment: "", files: [] }
+      const updated = current.files.filter((_, idx) => idx !== fileIdx)
+      return {
+        ...prev,
+        [qKey]: { ...current, files: updated }
+      }
+    })
   }
 
   const handleSaveAll = async () => {
@@ -416,6 +443,109 @@ export default function OfficeAuditQuestionsPage() {
                                               Sharia Comment
                                               <textarea value={record.shariaComment} onChange={e => setAnswer(qKey, "shariaComment", e.target.value)} style={{ width: "100%", minHeight: 70, padding: "8px 10px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 12, fontFamily: "inherit", marginTop: 5, resize: "vertical", outline: "none", color: DARK }} />
                                             </label>
+                                          </div>
+
+                                          {/* File Upload */}
+                                          <div style={{ marginTop: 16 }}>
+                                            <label style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 8 }}>
+                                              Supporting Documents ({(record.files?.length || 0)}/5)
+                                            </label>
+                                            <div
+                                              style={{
+                                                padding: 12,
+                                                border: `2px dashed ${C.border}`,
+                                                borderRadius: 6,
+                                                textAlign: "center",
+                                                cursor: "pointer",
+                                                background: "#fafbfc",
+                                                marginBottom: 12,
+                                                transition: "all 0.2s"
+                                              }}
+                                              onDragOver={e => {
+                                                e.preventDefault()
+                                                e.currentTarget.style.borderColor = BLUE
+                                                e.currentTarget.style.background = `${BLUE}08`
+                                              }}
+                                              onDragLeave={e => {
+                                                e.currentTarget.style.borderColor = C.border
+                                                e.currentTarget.style.background = "#fafbfc"
+                                              }}
+                                              onDrop={e => {
+                                                e.preventDefault()
+                                                e.currentTarget.style.borderColor = C.border
+                                                e.currentTarget.style.background = "#fafbfc"
+                                                const files = Array.from(e.dataTransfer.files)
+                                                if (files.length > 0) {
+                                                  addFiles(qKey, files)
+                                                }
+                                              }}
+                                              onClick={() => {
+                                                const input = document.createElement("input")
+                                                input.type = "file"
+                                                input.multiple = true
+                                                input.onchange = (e: any) => {
+                                                  const files = Array.from(e.target.files || [])
+                                                  if (files.length > 0) {
+                                                    addFiles(qKey, files as File[])
+                                                  }
+                                                }
+                                                input.click()
+                                              }}
+                                            >
+                                              <Upload size={16} style={{ margin: "0 auto 8px", color: BLUE }} />
+                                              <p style={{ margin: 0, fontSize: 12, color: DARK, fontWeight: 500 }}>
+                                                Drag files here or click to upload
+                                              </p>
+                                              <p style={{ margin: "4px 0 0", fontSize: 11, color: C.muted }}>
+                                                Maximum 5 files per question
+                                              </p>
+                                            </div>
+
+                                            {/* File List */}
+                                            {record.files && record.files.length > 0 && (
+                                              <div>
+                                                {record.files.map((file, fIdx) => (
+                                                  <div
+                                                    key={fIdx}
+                                                    style={{
+                                                      display: "flex",
+                                                      alignItems: "center",
+                                                      gap: 8,
+                                                      padding: "8px 10px",
+                                                      background: "#f0f7ff",
+                                                      border: `1px solid ${C.border}`,
+                                                      borderRadius: 6,
+                                                      marginBottom: 8,
+                                                      fontSize: 12
+                                                    }}
+                                                  >
+                                                    <FileText size={14} color={BLUE} style={{ flexShrink: 0 }} />
+                                                    <span style={{ flex: 1, color: DARK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                      {file.name}
+                                                    </span>
+                                                    <span style={{ fontSize: 11, color: C.muted, flexShrink: 0 }}>
+                                                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                                                    </span>
+                                                    <button
+                                                      onClick={() => removeFile(qKey, fIdx)}
+                                                      style={{
+                                                        background: "none",
+                                                        border: "none",
+                                                        cursor: "pointer",
+                                                        padding: 0,
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        color: "#d13438",
+                                                        flexShrink: 0
+                                                      }}
+                                                      title="Remove file"
+                                                    >
+                                                      <X size={14} />
+                                                    </button>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            )}
                                           </div>
                                         </div>
                                       </div>
