@@ -11,12 +11,13 @@ import {
 import { toast } from "react-hot-toast"
 import CustomerLayout from "./CustomerLayout"
 import { getApplication, getCompanyInfo, getPaymentStatus, getEventLogs, signApplicationAgreement } from "@/api/applications"
-import { getApplicationAuditReport, saveApplicationAuditReport } from "@/api/audits"
+import { getApplicationAuditReport, saveCustomerAuditComments } from "@/api/audits"
 import { C, getStatusStyle, formatDate, formatDateTime } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
 import { addNotification } from "@/lib/notifications"
 import { addAuditLog } from "@/lib/auditLog"
 import { loadApplicationBilling, loadInvoiceByApp, invoiceStatusStyle, formatInvoiceDate, loadStripeConfig, addPaymentEvidence } from "@/lib/billing"
+import { DEFAULT_AUDIT_TRACKS } from "@/lib/hcbWorkflow"
 import type { Invoice } from "@/lib/billing"
 import type { ApplicationAuditReportDto, AuditAnswerDto } from "@/api/audits"
 
@@ -34,6 +35,34 @@ const STAGES = [
   { key: "CERTIFICATION_REVIEW", label: "Cert. Review" },
   { key: "CERTIFIED",            label: "Certified" },
 ]
+
+const normalizeActivityCategory = (key?: string) => {
+  const raw = (key ?? "").trim().toLowerCase()
+  if (!raw) return ""
+  const compact = raw.replace(/[^a-z0-9]+/g, "")
+
+  if (["mfg", "manufacturing", "manufacturer", "manufacture", "factory", "production"].includes(compact)) return "mfg"
+  if (["slaughter", "slaughterhouse", "slaughterhouses", "slaughtering", "abattoir"].includes(compact)) return "slaughter"
+  if (["meat", "meatprocessing", "meatprocessor", "meatpacking", "poultryprocessing"].includes(compact)) return "meat-processing"
+
+  if (compact.includes("manufactur") || compact.includes("factory") || compact.includes("mfg")) return "mfg"
+  if (compact.includes("slaughter") || compact.includes("abattoir")) return "slaughter"
+  if (compact.includes("meat") || compact.includes("poultry")) return "meat-processing"
+
+  return raw
+}
+
+const activityCategoriesFromApp = (app: any): string[] => {
+  const factory = (app?.snapshotFactories ?? []).find((f: any) => !app?.factoryId || f.id === app.factoryId)
+  const values = [
+    ...(Array.isArray(factory?.activityCategories) ? factory.activityCategories : []),
+    ...(Array.isArray(app?.activityCategories) ? app.activityCategories : []),
+    ...(Array.isArray(app?.snapshotCategories) ? app.snapshotCategories : []),
+    ...(app?.activityCategoryKey ? [app.activityCategoryKey] : []),
+    ...(app?.activityCategory ? [app.activityCategory] : []),
+  ].map(normalizeActivityCategory).filter(Boolean)
+  return Array.from(new Set(values))
+}
 
 const AGR_LANGUAGES = [
   { code: "en",    label: "English",               flag: "🇬🇧" },
@@ -184,7 +213,7 @@ export default function CustomerApplicationDetailPage() {
   const evKey = `hcs_pay_evidence_${id}`
 
   // Audit state
-  const [auditCategoryKey, setAuditCategoryKey] = useState("HALAL")
+  const [auditCategoryKey, setAuditCategoryKey] = useState("mfg")
   const [auditAnswers, setAuditAnswers] = useState<Record<number, AuditAnswerDto>>({})
   const [savingAudit, setSavingAudit] = useState(false)
   const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set())
@@ -249,6 +278,11 @@ export default function CustomerApplicationDetailPage() {
   const localApp = loadLocalApp(id ?? "")
   const app = apiApp ?? localApp
   const isLocalApp = !apiApp && !!localApp
+  const appCategoryKeys = activityCategoriesFromApp(app)
+  const inferredAuditCategoryKey =
+    DEFAULT_AUDIT_TRACKS.find(track => (track.activityCategoryKeys ?? []).some(key => appCategoryKeys.includes(key)))?.activityCategoryKeys?.[0] ||
+    appCategoryKeys[0] ||
+    "mfg"
 
   const { data: company } = useQuery({
     queryKey: ["customer-app-company", appId],
@@ -269,6 +303,10 @@ export default function CustomerApplicationDetailPage() {
   const auditStatuses = ["AUDIT_PLANNING", "AUDIT_PLAN", "AUDIT_SCHEDULED", "AUDIT_IN_PROGRESS", "AUDIT_COMPLETED", "CERTIFICATION_REVIEW", "CERTIFIED"]
   const showAuditQuestions = app && auditStatuses.includes(app.status)
 
+  useEffect(() => {
+    setAuditCategoryKey(inferredAuditCategoryKey)
+  }, [inferredAuditCategoryKey])
+
   const { data: auditReportData } = useQuery({
     queryKey: ["customer-app-audit", appId, auditCategoryKey],
     queryFn: () => getApplicationAuditReport(appId, auditCategoryKey),
@@ -278,7 +316,19 @@ export default function CustomerApplicationDetailPage() {
   useEffect(() => {
     if (auditReportData) {
       const answerMap: Record<number, AuditAnswerDto> = {}
-      auditReportData.answers.forEach((answer, idx) => {
+      const configQuestions = auditReportData.configuration?.questions ?? []
+      const rows = configQuestions.length
+        ? configQuestions.map((question, idx) => {
+            const existing = auditReportData.answers.find(answer =>
+              (question.id && answer.questionId === question.id) || answer.questionText === question.questionText
+            )
+            return existing ?? {
+              questionId: question.id,
+              questionText: question.questionText,
+            } as AuditAnswerDto
+          })
+        : auditReportData.answers
+      rows.forEach((answer, idx) => {
         answerMap[idx] = answer
       })
       setAuditAnswers(answerMap)
@@ -361,14 +411,16 @@ export default function CustomerApplicationDetailPage() {
       const report = auditReportData as ApplicationAuditReportDto
       const updatedAnswers = Object.values(auditAnswers)
       const payload: ApplicationAuditReportDto = {
+        id: report.id,
         applicationId: appId,
+        configurationId: report.configurationId,
         status: report.status,
         answers: updatedAnswers,
         activityCategoryKey: report.activityCategoryKey,
         generalComment: report.generalComment,
         completedAt: report.completedAt,
       }
-      await saveApplicationAuditReport(appId, payload)
+      await saveCustomerAuditComments(appId, payload)
       addNotification("office", {
         type: "info",
         title: "Comments Saved",
@@ -806,6 +858,19 @@ export default function CustomerApplicationDetailPage() {
         {/* ── Audit Checklist Section ── */}
         {showAuditQuestions && auditReportData && (() => {
           const report = auditReportData as ApplicationAuditReportDto
+          const configQuestions = report.configuration?.questions ?? []
+          const auditRows: AuditAnswerDto[] = configQuestions.length
+            ? configQuestions.map((question, idx) => {
+                const existing = report.answers.find(answer =>
+                  (question.id && answer.questionId === question.id) || answer.questionText === question.questionText
+                )
+                return existing ?? {
+                  questionId: question.id,
+                  questionText: question.questionText,
+                  customerComment: auditAnswers[idx]?.customerComment ?? "",
+                } as AuditAnswerDto
+              })
+            : report.answers
           return (
           <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", marginBottom: 20, boxShadow: C.cardShadow }}>
             {/* Header */}
@@ -818,7 +883,7 @@ export default function CustomerApplicationDetailPage() {
 
             {/* Questions */}
             <div style={{ padding: 20, display: "grid", gap: 12 }}>
-              {report.answers.map((answer: AuditAnswerDto, idx: number) => (
+              {auditRows.map((answer: AuditAnswerDto, idx: number) => (
                 <div key={`audit-q-${idx}`} style={{ border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden" }}>
                   {/* Question header */}
                   <div
@@ -894,7 +959,7 @@ export default function CustomerApplicationDetailPage() {
               ))}
 
               {/* Save button */}
-              {report.answers.length > 0 && (
+              {auditRows.length > 0 && (
                 <button
                   onClick={saveAuditComments}
                   disabled={savingAudit}

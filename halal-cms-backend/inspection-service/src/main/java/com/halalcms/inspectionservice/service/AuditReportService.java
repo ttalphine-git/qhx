@@ -27,8 +27,11 @@ public class AuditReportService {
 
     @Transactional(readOnly = true)
     public AuditReportConfigurationDto getByActivityCategory(String categoryKey) {
+        String normalizedCategoryKey = normalizeActivityCategory(categoryKey);
         return getConfigurations().stream()
-                .filter(c -> c.getActivityCategoryKeys() != null && c.getActivityCategoryKeys().contains(categoryKey))
+                .filter(c -> c.getActivityCategoryKeys() != null && c.getActivityCategoryKeys().stream()
+                        .map(this::normalizeActivityCategory)
+                        .anyMatch(normalizedCategoryKey::equals))
                 .findFirst()
                 .orElseGet(() -> getConfigurations().stream().findFirst().orElse(null));
     }
@@ -85,7 +88,11 @@ public class AuditReportService {
     public ApplicationAuditReportDto getReportForApplication(Long applicationId, String activityCategoryKey) {
         AuditReport report = reportRepository.findByApplicationId(applicationId)
                 .orElseGet(() -> createReport(applicationId, activityCategoryKey));
-        if ((report.getConfiguration() == null || report.getActivityCategoryKey() == null) && activityCategoryKey != null) {
+        String requestedCategoryKey = normalizeActivityCategory(activityCategoryKey);
+        String reportCategoryKey = normalizeActivityCategory(report.getActivityCategoryKey());
+        if (activityCategoryKey != null && (report.getConfiguration() == null
+                || report.getActivityCategoryKey() == null
+                || !requestedCategoryKey.equals(reportCategoryKey))) {
             applyConfiguration(report, activityCategoryKey);
             report = reportRepository.save(report);
         }
@@ -191,12 +198,15 @@ public class AuditReportService {
 
     private void applyConfiguration(AuditReport report, String activityCategoryKey) {
         List<AuditReportConfiguration> configs = configurationRepository.findByActiveTrueOrderBySortOrderAscIdAsc();
+        String normalizedCategoryKey = normalizeActivityCategory(activityCategoryKey);
         AuditReportConfiguration config = configs.stream()
-                .filter(c -> split(c.getActivityCategoryKeys()).contains(activityCategoryKey))
+                .filter(c -> split(c.getActivityCategoryKeys()).stream()
+                        .map(this::normalizeActivityCategory)
+                        .anyMatch(normalizedCategoryKey::equals))
                 .findFirst()
                 .orElse(configs.isEmpty() ? null : configs.get(0));
         report.setConfiguration(config);
-        report.setActivityCategoryKey(activityCategoryKey);
+        report.setActivityCategoryKey(normalizedCategoryKey.isBlank() ? activityCategoryKey : normalizedCategoryKey);
     }
 
     private AuditReportConfigurationDto toConfigurationDto(AuditReportConfiguration config) {
@@ -251,6 +261,22 @@ public class AuditReportService {
     private String join(List<String> values) {
         if (values == null) return "";
         return String.join("|", values.stream().filter(Objects::nonNull).map(String::trim).filter(s -> !s.isBlank()).toList());
+    }
+
+    private String normalizeActivityCategory(String value) {
+        if (value == null || value.isBlank()) return "";
+        String raw = value.trim().toLowerCase(Locale.ROOT);
+        String compact = raw.replaceAll("[^a-z0-9]+", "");
+
+        if (Set.of("mfg", "manufacturing", "manufacturer", "manufacture", "factory", "production").contains(compact)) return "mfg";
+        if (Set.of("slaughter", "slaughterhouse", "slaughterhouses", "slaughtering", "abattoir").contains(compact)) return "slaughter";
+        if (Set.of("meat", "meatprocessing", "meatprocessor", "meatpacking", "poultryprocessing").contains(compact)) return "meat-processing";
+
+        if (compact.contains("manufactur") || compact.contains("factory") || compact.contains("mfg")) return "mfg";
+        if (compact.contains("slaughter") || compact.contains("abattoir")) return "slaughter";
+        if (compact.contains("meat") || compact.contains("poultry")) return "meat-processing";
+
+        return raw;
     }
 
     private String nullToDefault(String value, String fallback) {
