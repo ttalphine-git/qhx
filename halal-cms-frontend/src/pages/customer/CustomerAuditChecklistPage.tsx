@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query"
 import { ArrowLeft, Save } from "lucide-react"
 import { getApplication } from "@/api/applications"
 import { getApplicationAuditReport, saveApplicationAuditReport, type ApplicationAuditReportDto, type AuditReportConfigurationDto } from "@/api/audits"
-import { C, formatDate } from "@/lib/utils"
-import { CHECKLISTS } from "@/lib/uploaded-audit/checklists"
+import { C } from "@/lib/utils"
+import { CHECKLISTS, type AuditType, type Section as ChecklistSection } from "@/lib/uploaded-audit/checklists"
 import { toast } from "react-hot-toast"
 import CustomerLayout from "./CustomerLayout"
 
@@ -62,26 +62,37 @@ export default function CustomerAuditChecklistPage() {
   }, [auditData])
 
   const auditConfig = auditData?.configuration as AuditReportConfigurationDto | undefined
-  const auditQuestions = auditConfig?.questions || []
+  const auditType: AuditType = "manufacturing"
+  const checklist = CHECKLISTS[auditType]
 
-  // Group questions into sections
-  const sections = useMemo(() => {
-    const grouped: Record<string, number[]> = {}
-    auditQuestions.forEach((q: any, idx: number) => {
-      const part = q.part || "General"
-      if (!grouped[part]) grouped[part] = []
-      grouped[part].push(idx)
+  // Flatten all sections from checklist with part info
+  const allSections = useMemo(() => {
+    const result: (ChecklistSection & { partNum: string; partTitle: string })[] = []
+    checklist.parts.forEach(part => {
+      part.sections.forEach(section => {
+        result.push({ ...section, partNum: part.n, partTitle: part.title })
+      })
     })
-    return Object.entries(grouped).map(([title, indices]) => ({
-      id: title.toLowerCase().replace(/\s+/g, "-"),
-      title,
-      questionIndices: indices
+    return result
+  }, [checklist])
+
+  // Map questions to section indices
+  const sections = useMemo(() => {
+    return allSections.map((section, sectionIdx) => ({
+      id: `${section.partNum}-${section.id}`,
+      title: section.title,
+      partTitle: section.partTitle,
+      questionIndices: section.qs.map((_, qIdx) => {
+        // Calculate global question index based on all previous sections
+        const globalIdx = allSections.slice(0, sectionIdx).reduce((sum, s) => sum + s.qs.length, 0) + qIdx
+        return globalIdx
+      })
     }))
-  }, [auditQuestions])
+  }, [allSections])
 
   // Count answered
-  const totalQuestions = auditQuestions.length
-  const answeredQuestions = auditQuestions.filter((_, idx) => answers[`q-${idx}`]?.customerComment?.trim()).length
+  const totalQuestions = allSections.reduce((sum, s) => sum + s.qs.length, 0)
+  const answeredQuestions = Array.from({ length: totalQuestions }, (_, idx) => answers[`q-${idx}`]?.customerComment?.trim()).filter(Boolean).length
   const completionPct = totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0
 
   const setComment = (qIdx: number, value: string) => {
@@ -105,17 +116,21 @@ export default function CustomerAuditChecklistPage() {
     if (!appId || !auditData) return
     setSaving(true)
     try {
-      const auditAnswers = auditQuestions.map((q: any, idx: number) => {
-        const ans = answers[`q-${idx}`] || { customerComment: "" }
-        return {
-          questionId: q.id,
-          questionText: q.questionText,
-          answer: "" as "" | "yes" | "no" | "na" | undefined,
-          finding: "" as "" | "nc" | "obs" | undefined,
-          customerComment: ans.customerComment || "",
-          auditorComment: "",
-          shariaComment: ""
-        }
+      const auditAnswers: any[] = []
+      allSections.forEach(section => {
+        section.qs.forEach((question, qIdx) => {
+          const globalIdx = allSections.slice(0, allSections.indexOf(section)).reduce((sum, s) => sum + s.qs.length, 0) + qIdx
+          const ans = answers[`q-${globalIdx}`] || { customerComment: "" }
+          auditAnswers.push({
+            questionId: globalIdx,
+            questionText: question[1],
+            answer: "" as "" | "yes" | "no" | "na" | undefined,
+            finding: "" as "" | "nc" | "obs" | undefined,
+            customerComment: ans.customerComment || "",
+            auditorComment: "",
+            shariaComment: ""
+          })
+        })
       })
 
       await saveApplicationAuditReport(appId, {
@@ -180,25 +195,26 @@ export default function CustomerAuditChecklistPage() {
                       onClick={() => toggleSection(section.id)}
                       style={{
                         width: "100%",
-                        padding: "10px 16px",
+                        padding: "10px 12px",
                         background: "none",
                         border: "none",
                         textAlign: "left",
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: 600,
                         color: DARK,
                         cursor: "pointer",
                         display: "flex",
-                        alignItems: "center",
+                        alignItems: "flex-start",
                         justifyContent: "space-between",
-                        borderLeft: `3px solid ${BLUE}`
+                        borderLeft: `3px solid ${BLUE}`,
+                        lineHeight: 1.3
                       }}
                     >
-                      <span>{section.title}</span>
-                      <span style={{ fontSize: 11, color: C.muted }}>{sectionAnswered}/{section.questionIndices.length}</span>
+                      <span style={{ flex: 1, paddingRight: 8 }}>{section.title}</span>
+                      <span style={{ fontSize: 10, color: C.muted, minWidth: 35, textAlign: "right" }}>{sectionAnswered}/{section.questionIndices.length}</span>
                     </button>
                     {openSections.has(section.id) && (
-                      <div style={{ background: "#f9fafb", paddingLeft: 16 }}>
+                      <div style={{ background: "#f9fafb", paddingLeft: 12 }}>
                         {section.questionIndices.map((qIdx) => {
                           const record = answers[`q-${qIdx}`] || { customerComment: "" }
                           const hasComment = record.customerComment?.trim()
@@ -211,21 +227,21 @@ export default function CustomerAuditChecklistPage() {
                               }}
                               style={{
                                 width: "100%",
-                                padding: "8px 12px",
+                                padding: "6px 10px",
                                 background: "none",
                                 border: "none",
                                 textAlign: "left",
-                                fontSize: 12,
+                                fontSize: 11,
                                 color: hasComment ? "#107c10" : "#64748b",
                                 cursor: "pointer",
                                 display: "flex",
                                 alignItems: "center",
-                                gap: 8,
+                                gap: 6,
                                 borderLeft: `2px solid ${hasComment ? "#107c10" : "transparent"}`
                               }}
                             >
-                              <span style={{ minWidth: 20, textAlign: "center", fontWeight: 600 }}>{qIdx + 1}</span>
-                              <span style={{ fontSize: 11 }}>Q{qIdx + 1}</span>
+                              <span style={{ minWidth: 18, textAlign: "center", fontWeight: 600, fontSize: 10 }}>{qIdx + 1}</span>
+                              <span style={{ fontSize: 10 }}>Q{qIdx + 1}</span>
                             </button>
                           )
                         })}
@@ -240,38 +256,52 @@ export default function CustomerAuditChecklistPage() {
           {/* Questions Content */}
           <div style={{ overflowY: "auto", padding: 20, flex: 1 }}>
             <div style={{ display: "grid", gap: 16, maxWidth: 900 }}>
-              {auditQuestions.map((question, idx) => {
-                const qKey = `q-${idx}`
-                const record = answers[qKey] || { customerComment: "" }
-                const hasComment = record.customerComment?.trim()
-
+              {allSections.map((section, sectionIdx) => {
+                const globalQStartIdx = allSections.slice(0, sectionIdx).reduce((sum, s) => sum + s.qs.length, 0)
                 return (
-                  <div key={qKey} id={`question-${idx}`} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-                      <span style={{ minWidth: 36, height: 32, borderRadius: 8, background: hasComment ? "#e6f4e6" : "#f0f7ff", color: hasComment ? "#107c10" : BLUE, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>
-                        {idx + 1}
-                      </span>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: DARK, fontWeight: 600 }}>
-                          {question.questionText}
-                        </p>
-                      </div>
-                    </div>
+                  <div key={section.id}>
+                    <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 700, color: DARK }}>{section.title}</h3>
+                    {section.qs.map((question, localQIdx) => {
+                      const globalIdx = globalQStartIdx + localQIdx
+                      const qKey = `q-${globalIdx}`
+                      const record = answers[qKey] || { customerComment: "" }
+                      const hasComment = record.customerComment?.trim()
 
-                    {/* Comment */}
-                    <div>
-                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", marginBottom: 6 }}>
-                        Your Comment
-                      </label>
-                      <textarea
-                        value={record.customerComment}
-                        onChange={e => setComment(idx, e.target.value)}
-                        placeholder="Add your comment or response..."
-                        style={{ width: "100%", minHeight: 70, padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 12, fontFamily: "inherit", outline: "none", resize: "vertical", color: DARK }}
-                        onFocus={e => (e.currentTarget.style.borderColor = BLUE)}
-                        onBlur={e => (e.currentTarget.style.borderColor = C.border)}
-                      />
-                    </div>
+                      return (
+                        <div key={qKey} id={`question-${globalIdx}`} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
+                            <span style={{ minWidth: 36, height: 32, borderRadius: 8, background: hasComment ? "#e6f4e6" : "#f0f7ff", color: hasComment ? "#107c10" : BLUE, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>
+                              {globalIdx + 1}
+                            </span>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: DARK, fontWeight: 600 }}>
+                                {question[1]}
+                              </p>
+                              {question[2] && (
+                                <p style={{ margin: "6px 0 0", fontSize: 12, color: "#64748b", fontStyle: "italic" }}>
+                                  {question[2]}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Comment */}
+                          <div>
+                            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", marginBottom: 6 }}>
+                              Your Comment
+                            </label>
+                            <textarea
+                              value={record.customerComment}
+                              onChange={e => setComment(globalIdx, e.target.value)}
+                              placeholder="Add your comment or response..."
+                              style={{ width: "100%", minHeight: 70, padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 12, fontFamily: "inherit", outline: "none", resize: "vertical", color: DARK }}
+                              onFocus={e => (e.currentTarget.style.borderColor = BLUE)}
+                              onBlur={e => (e.currentTarget.style.borderColor = C.border)}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 )
               })}
