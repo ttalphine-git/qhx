@@ -1,70 +1,79 @@
-import { useState } from "react"
-import { ChevronDown, ChevronUp, Search } from "lucide-react"
+import { useState, useMemo } from "react"
+import { Search } from "lucide-react"
 import { CHECKLISTS, AUDIT_TYPES } from "@/lib/uploaded-audit/checklists"
-import type { AuditType } from "@/lib/uploaded-audit/checklists"
+import type { AuditType, Section } from "@/lib/uploaded-audit/checklists"
 import OfficeLayout from "./OfficeLayout"
 import { C } from "@/lib/utils"
 
+const BLUE = "#2563eb"
+const DARK = "#0f172a"
+
 export default function OfficeAuditQuestionsPage() {
   const [selectedType, setSelectedType] = useState<AuditType>("manufacturing")
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
+  const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
   const checklist = CHECKLISTS[selectedType]
 
-  const toggleSection = (sectionId: string) => {
-    const updated = new Set(expandedSections)
-    if (updated.has(sectionId)) {
-      updated.delete(sectionId)
-    } else {
-      updated.add(sectionId)
-    }
-    setExpandedSections(updated)
-  }
+  const allSections = useMemo(() => {
+    const sections: (Section & { partNum: string; partTitle: string })[] = []
+    checklist.parts.forEach(part => {
+      part.sections.forEach(section => {
+        sections.push({ ...section, partNum: part.n, partTitle: part.title })
+      })
+    })
+    return sections
+  }, [checklist])
 
-  const filteredParts = checklist.parts.map(part => ({
-    ...part,
-    sections: part.sections.map(section => ({
-      ...section,
-      qs: section.qs.filter(q =>
+  const filteredSections = useMemo(() => {
+    if (!searchQuery) return allSections
+    return allSections.filter(s =>
+      s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.qs.some(q =>
         q[1].toLowerCase().includes(searchQuery.toLowerCase()) ||
         (q[2] && q[2].toLowerCase().includes(searchQuery.toLowerCase()))
       )
-    })).filter(s => s.qs.length > 0)
-  })).filter(p => p.sections.length > 0)
+    )
+  }, [allSections, searchQuery])
+
+  const currentSection = selectedSection
+    ? allSections.find(s => `${s.partNum}-${s.id}` === selectedSection)
+    : filteredSections[0]
+
+  const currentSectionId = currentSection ? `${currentSection.partNum}-${currentSection.id}` : null
 
   return (
     <OfficeLayout title="Audit Questions">
-      <div style={{ padding: "2rem", maxWidth: 1400, margin: "0 auto" }}>
+      <div style={{ padding: "1.5rem 2rem", height: "100%", display: "flex", flexDirection: "column" }}>
 
         {/* Header */}
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: C.textDark }}>Audit Questions</h1>
-          <p style={{ margin: "4px 0 0", fontSize: 14, color: C.muted }}>Browse all audit checklist questions organized by section</p>
+        <div style={{ marginBottom: 20 }}>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: DARK }}>{checklist.name} Audit Questions</h1>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b" }}>{checklist.form} • {checklist.rev}</p>
         </div>
 
         {/* Controls */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
-          {/* Audit Type Dropdown */}
+        <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 16, marginBottom: 16 }}>
+          {/* Activity Category Dropdown */}
           <div>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", marginBottom: 8 }}>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", marginBottom: 6 }}>
               Activity Category
             </label>
             <select
               value={selectedType}
               onChange={e => {
                 setSelectedType(e.target.value as AuditType)
-                setExpandedSections(new Set())
+                setSelectedSection(null)
               }}
               style={{
                 width: "100%",
-                padding: "10px 12px",
-                border: `1px solid ${C.border}`,
-                borderRadius: 8,
-                fontSize: 14,
+                padding: "8px 10px",
+                border: `1px solid #e2e8f0`,
+                borderRadius: 6,
+                fontSize: 13,
                 fontFamily: "inherit",
                 background: "#fff",
-                color: C.textDark,
+                color: DARK,
                 cursor: "pointer",
                 outline: "none"
               }}
@@ -79,132 +88,131 @@ export default function OfficeAuditQuestionsPage() {
 
           {/* Search */}
           <div>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", marginBottom: 8 }}>
-              Search Questions
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", marginBottom: 6 }}>
+              Search Sections
             </label>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-              <Search size={16} style={{ position: "absolute", left: 12, color: C.muted }} />
+              <Search size={14} style={{ position: "absolute", left: 10, color: "#94a3b8" }} />
               <input
                 type="text"
-                placeholder="Search questions..."
+                placeholder="Search..."
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={e => {
+                  setSearchQuery(e.target.value)
+                  setSelectedSection(null)
+                }}
                 style={{
                   width: "100%",
-                  padding: "10px 12px 10px 38px",
-                  border: `1px solid ${C.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
+                  padding: "8px 10px 8px 36px",
+                  border: `1px solid #e2e8f0`,
+                  borderRadius: 6,
+                  fontSize: 13,
                   fontFamily: "inherit",
                   outline: "none"
                 }}
-                onFocus={e => (e.currentTarget.style.borderColor = "#3b82f6")}
-                onBlur={e => (e.currentTarget.style.borderColor = C.border)}
+                onFocus={e => (e.currentTarget.style.borderColor = BLUE)}
+                onBlur={e => (e.currentTarget.style.borderColor = "#e2e8f0")}
               />
             </div>
           </div>
         </div>
 
-        {/* Info Bar */}
-        <div style={{ background: "#f0f9ff", border: `1px solid #bfdbfe`, borderRadius: 8, padding: "12px 16px", marginBottom: 24 }}>
-          <p style={{ margin: 0, fontSize: 13, color: "#1e40af" }}>
-            <strong>{checklist.name}</strong> • {checklist.form} • {checklist.rev}
-          </p>
-        </div>
+        {/* Main Content */}
+        <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 16, flex: 1, minHeight: 0 }}>
 
-        {/* Questions by Part */}
-        <div style={{ display: "grid", gap: 24 }}>
-          {filteredParts.map(part => (
-            <div key={part.n} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden", boxShadow: C.cardShadow }}>
+          {/* Left Sidebar - Sections List */}
+          <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+            <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: "#f8fafc" }}>
+              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Audit Sections</p>
+            </div>
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              {filteredSections.map((section, idx) => {
+                const sectionKey = `${section.partNum}-${section.id}`
+                const isSelected = currentSectionId === sectionKey
+                return (
+                  <button
+                    key={sectionKey}
+                    onClick={() => setSelectedSection(sectionKey)}
+                    style={{
+                      width: "100%",
+                      padding: "12px 14px",
+                      border: "none",
+                      background: isSelected ? "#eff6ff" : "#fff",
+                      borderLeft: isSelected ? `3px solid ${BLUE}` : "3px solid transparent",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      borderBottom: idx < filteredSections.length - 1 ? "1px solid #f1f5f9" : "none",
+                      transition: "background 0.1s"
+                    }}
+                    onMouseOver={e => { if (!isSelected) e.currentTarget.style.background = "#f8fafc" }}
+                    onMouseOut={e => { if (!isSelected) e.currentTarget.style.background = "#fff" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8, justifyContent: "space-between" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: isSelected ? BLUE : DARK, lineHeight: 1.3 }}>
+                          {section.id}
+                        </p>
+                        <p style={{ margin: "2px 0 0", fontSize: 11, color: "#64748b", lineHeight: 1.3 }}>
+                          {section.title}
+                        </p>
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", flexShrink: 0 }}>
+                        {section.qs.length}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
-              {/* Part Header */}
-              <div style={{ padding: "16px 20px", background: "#f8fafc", borderBottom: `1px solid ${C.border}` }}>
-                <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.textDark }}>
-                  Part {part.n}: {part.title}
-                </h2>
-              </div>
+          {/* Right Content - Questions */}
+          <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+            {currentSection ? (
+              <>
+                {/* Section Header */}
+                <div style={{ padding: "14px 18px", borderBottom: `1px solid ${C.border}`, background: "#f8fafc" }}>
+                  <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: DARK }}>
+                    Section {currentSection.id}: {currentSection.title}
+                  </h2>
+                  <p style={{ margin: "3px 0 0", fontSize: 12, color: "#64748b" }}>
+                    {currentSection.qs.length} questions
+                  </p>
+                </div>
 
-              {/* Sections */}
-              <div style={{ display: "grid", gap: 0 }}>
-                {part.sections.map((section, sIdx) => {
-                  const sectionId = `${part.n}-${section.id}`
-                  const isExpanded = expandedSections.has(sectionId)
-                  return (
-                    <div key={sectionId} style={{ borderBottom: sIdx < part.sections.length - 1 ? `1px solid ${C.border}` : "none" }}>
-
-                      {/* Section Header */}
-                      <button
-                        onClick={() => toggleSection(sectionId)}
-                        style={{
-                          width: "100%",
-                          padding: "16px 20px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 12,
-                          background: isExpanded ? "#f1f5f9" : "#fff",
-                          border: "none",
-                          cursor: "pointer",
-                          textAlign: "left",
-                          transition: "background 0.15s"
-                        }}
-                        onMouseOver={e => (e.currentTarget.style.background = "#f8fafc")}
-                        onMouseOut={e => (e.currentTarget.style.background = isExpanded ? "#f1f5f9" : "#fff")}
-                      >
-                        <div style={{ flex: 1 }}>
-                          <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: C.textDark }}>
-                            Section {section.id}: {section.title}
-                          </h3>
-                          <p style={{ margin: "2px 0 0", fontSize: 12, color: C.muted }}>
-                            {section.qs.length} question{section.qs.length !== 1 ? "s" : ""}
-                          </p>
+                {/* Questions */}
+                <div style={{ flex: 1, overflowY: "auto", padding: "14px 18px", display: "grid", gap: 12 }}>
+                  {currentSection.qs.map((question, qIdx) => (
+                    <div key={`q-${qIdx}`} style={{ borderBottom: qIdx < currentSection.qs.length - 1 ? `1px solid #e2e8f0` : "none", paddingBottom: 12 }}>
+                      {/* Question Number and Text */}
+                      <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+                        <div style={{ width: 24, height: 24, borderRadius: 4, background: BLUE, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>
+                          {question[0]}
                         </div>
-                        {isExpanded ? (
-                          <ChevronUp size={18} color={C.muted} style={{ flexShrink: 0 }} />
-                        ) : (
-                          <ChevronDown size={18} color={C.muted} style={{ flexShrink: 0 }} />
-                        )}
-                      </button>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: DARK, lineHeight: 1.5, flex: 1 }}>
+                          {question[1]}
+                        </p>
+                      </div>
 
-                      {/* Questions */}
-                      {isExpanded && (
-                        <div style={{ padding: "0 20px 20px", display: "grid", gap: 12 }}>
-                          {section.qs.map((question, qIdx) => (
-                            <div key={`${sectionId}-q${qIdx}`} style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: 14, background: "#f9fafb" }}>
-                              <div style={{ display: "flex", gap: 12, marginBottom: 8 }}>
-                                <div style={{ width: 28, height: 28, borderRadius: 6, background: C.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>
-                                  {question[0]}
-                                </div>
-                                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.textDark, lineHeight: 1.5, flex: 1 }}>
-                                  {question[1]}
-                                </p>
-                              </div>
-                              {question[2] && (
-                                <div style={{ marginLeft: 40, padding: "10px 12px", background: "#eff6ff", borderLeft: "3px solid #2563eb", borderRadius: 4 }}>
-                                  <p style={{ margin: 0, fontSize: 12, color: "#1e40af", lineHeight: 1.4 }}>
-                                    <strong>Note:</strong> {question[2]}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                      {/* Guidance Note */}
+                      {question[2] && (
+                        <div style={{ marginLeft: 34, padding: "8px 10px", background: "#f0f7ff", borderLeft: "2px solid #3b82f6", borderRadius: 4 }}>
+                          <p style={{ margin: 0, fontSize: 12, color: "#1e40af", lineHeight: 1.4 }}>
+                            {question[2]}
+                          </p>
                         </div>
                       )}
                     </div>
-                  )
-                })}
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <p style={{ margin: 0, fontSize: 13, color: "#94a3b8" }}>No sections found</p>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Empty state */}
-        {filteredParts.length === 0 && (
-          <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, padding: "60px 20px", textAlign: "center", boxShadow: C.cardShadow }}>
-            <Search size={32} color={C.border} style={{ margin: "0 auto 12px", display: "block" }} />
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: C.textDark }}>No questions found</p>
-            <p style={{ margin: "4px 0 0", fontSize: 12, color: C.muted }}>Try adjusting your search or selecting a different category</p>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </OfficeLayout>
   )
