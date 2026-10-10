@@ -3655,7 +3655,12 @@ export default function ApplicationsPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              navigate(`/office/applications/${app.id}/audit`)
+                              updateApplicationStatus(app.id, "Audit started - next, waiting NC report")
+                                .then(() => {
+                                  navigate(`/office/applications/${app.id}/audit`)
+                                  queryClient.invalidateQueries({ queryKey: ["applications"] })
+                                })
+                                .catch(err => console.error("Failed to update status:", err))
                             }}
                             style={{ padding:"6px 12px", background:"#2563eb", color:"#fff", border:"none", borderRadius:6, fontSize:"0.7rem", fontWeight:600, cursor:"pointer", whiteSpace:"nowrap" }}
                             onMouseOver={e => (e.currentTarget.style.background = "#1d4ed8")}

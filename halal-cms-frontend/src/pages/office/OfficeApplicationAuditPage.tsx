@@ -7,7 +7,7 @@ import { NcsTab } from "@/components/NcsTab"
 import { useAuthStore } from "@/store/authStore"
 import "@/styles/audit.css"
 import apiClient from "@/api/client"
-import { getApplications } from "@/api/applications"
+import { getApplications, updateApplicationStatus } from "@/api/applications"
 import {
   getApplicationAuditReport,
   getAuditReportConfigurations,
@@ -244,6 +244,7 @@ function AuditChecklistTab({ app }: { app: any }) {
   const [currentSection, setCurrentSection] = useState<string | null>(null)
   const [showReference, setShowReference] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [showAuditCompleteDialog, setShowAuditCompleteDialog] = useState(false)
 
   const configsQ = useQuery({
     queryKey: ["audit-report-configurations"],
@@ -535,6 +536,9 @@ function AuditChecklistTab({ app }: { app: any }) {
       })
 
       await reportQ.refetch()
+
+      // Show audit completion dialog
+      setShowAuditCompleteDialog(true)
     } catch (err: any) {
       console.error('[Audit Save Error]', err)
       const errorMsg = err?.response?.data?.message || err?.message || 'An unexpected error occurred'
@@ -1037,6 +1041,74 @@ function AuditChecklistTab({ app }: { app: any }) {
             {saving ? '💾 Saving...' : '💾 Save Report'}
           </button>
         </div>
+
+        {/* Audit Complete Confirmation Dialog */}
+        {showAuditCompleteDialog && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+            <div style={{ background: "#fff", borderRadius: 12, padding: 24, maxWidth: 420, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}>
+              <h2 style={{ margin: "0 0 12px", fontSize: "18px", fontWeight: 700, color: "#111827" }}>Audit Complete?</h2>
+              <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#64748b", lineHeight: 1.5 }}>
+                Did you complete the audit for this application? This action will update the status to <strong>"Audit competed - Next step is Clear NC"</strong>.
+              </p>
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAuditCompleteDialog(false)}
+                  style={{
+                    padding: "8px 20px",
+                    background: "#f1f5f9",
+                    color: "#475569",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    fontFamily: F
+                  }}
+                >
+                  No, Not yet
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setShowAuditCompleteDialog(false)
+                    try {
+                      await updateApplicationStatus(numericApplicationId, "Audit competed - Next step is Clear NC")
+                      addNotification('office', {
+                        title: 'Status updated',
+                        body: 'Application status changed to: Audit competed - Next step is Clear NC',
+                        type: 'success'
+                      })
+                      queryClient.invalidateQueries({ queryKey: ["applications"] })
+                    } catch (err) {
+                      console.error("Failed to update status:", err)
+                      addNotification('office', {
+                        title: 'Failed to update status',
+                        body: 'Could not update application status',
+                        type: 'error'
+                      })
+                    }
+                  }}
+                  style={{
+                    padding: "8px 20px",
+                    background: BLUE,
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    fontFamily: F
+                  }}
+                  onMouseOver={e => (e.currentTarget.style.background = '#1d4ed8')}
+                  onMouseOut={e => (e.currentTarget.style.background = BLUE)}
+                >
+                  Yes, Complete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
