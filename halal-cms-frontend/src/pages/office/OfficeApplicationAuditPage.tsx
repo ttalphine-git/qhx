@@ -448,10 +448,15 @@ function AuditChecklistTab({ app }: { app: any }) {
       let savedNcCount = 0
       let savedObservationCount = 0
 
+      console.log(`[Audit Save] Starting NC/Observation save for ${selectedTrack.questions.length} questions`)
+      console.log(`[Audit Save] Application ID: ${numericApplicationId}, Category: ${activityCategoryKey}`)
+
       for (let index = 0; index < selectedTrack.questions.length; index++) {
         const question = sourceConfig?.questions?.[index]
         const record = (answers[`${selectedTrack.id}-${index}`] ?? blankAuditAnswer()) as any
         const questionText = selectedTrack.questions[index]
+
+        console.log(`[Audit Save] Question ${index}: finding="${record.finding}", ncDesc="${record.ncDescription?.substring(0, 50)}..."`)
 
         if (record.finding === 'nc' && record.ncDescription) {
           const ncPayload = {
@@ -468,8 +473,11 @@ function AuditChecklistTab({ app }: { app: any }) {
             shariaEvidence: stripBase64(record.shariaEvidence),
           }
 
+          console.log(`[Audit Save] Saving NC for question ${index}:`, ncPayload)
+
           try {
-            await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
+            const response = await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
+            console.log(`[Audit Save] NC saved successfully for question ${index}:`, response.data)
             savedNcCount++
           } catch (err) {
             console.error(`[Audit Save] Failed to save NC at question ${index}:`, err)
@@ -488,8 +496,11 @@ function AuditChecklistTab({ app }: { app: any }) {
             shariaEvidence: stripBase64(record.shariaEvidence),
           }
 
+          console.log(`[Audit Save] Saving Observation for question ${index}:`, obsPayload)
+
           try {
-            await apiClient.post(`/applications/${numericApplicationId}/observations`, obsPayload)
+            const response = await apiClient.post(`/applications/${numericApplicationId}/observations`, obsPayload)
+            console.log(`[Audit Save] Observation saved successfully for question ${index}:`, response.data)
             savedObservationCount++
           } catch (err) {
             console.error(`[Audit Save] Failed to save Observation at question ${index}:`, err)
@@ -498,6 +509,7 @@ function AuditChecklistTab({ app }: { app: any }) {
       }
 
       // Invalidate NCs query to refresh the NCs tab
+      console.log(`[Audit Save] Completed NC/Observation save: ${savedNcCount} NCs, ${savedObservationCount} Observations`)
       await queryClient.invalidateQueries({ queryKey: ['ncs', numericApplicationId] })
 
       const findingsSummary = [
