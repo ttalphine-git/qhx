@@ -415,9 +415,62 @@ function AuditChecklistTab({ app }: { app: any }) {
           })
       }
 
+      // Save NCs and Observations to separate database tables
+      const stripBase64 = (files: any[]) => files?.map(f => ({ originalName: f.name, size: f.size, type: f.type })) || []
+      let savedNcCount = 0
+      let savedObservationCount = 0
+
+      for (let index = 0; index < selectedTrack.questions.length; index++) {
+        const question = sourceConfig?.questions?.[index]
+        const record = (answers[`${selectedTrack.id}-${index}`] ?? blankAuditAnswer()) as any
+        const questionText = selectedTrack.questions[index]
+
+        if (record.finding === 'nc' && record.ncDescription) {
+          const ncPayload = {
+            questionId: question?.id || `q-${index}`,
+            questionText,
+            category: activityCategoryKey,
+            description: record.ncDescription,
+            ncEvidence: stripBase64(record.ncEvidence),
+            customerComment: record.customerComment || '',
+            customerEvidence: stripBase64(record.customerEvidence),
+            auditorComment: record.auditorComment || '',
+            auditorEvidence: stripBase64(record.auditorEvidence),
+            shariaComment: record.shariaComment || '',
+            shariaEvidence: stripBase64(record.shariaEvidence),
+          }
+
+          await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
+          savedNcCount++
+        } else if (record.finding === 'obs' && record.obsDescription) {
+          const obsPayload = {
+            questionId: question?.id || `q-${index}`,
+            questionText,
+            category: activityCategoryKey,
+            obsEvidence: stripBase64(record.obsEvidence),
+            customerComment: record.customerComment || '',
+            customerEvidence: stripBase64(record.customerEvidence),
+            auditorComment: record.auditorComment || '',
+            auditorEvidence: stripBase64(record.auditorEvidence),
+            shariaComment: record.shariaComment || '',
+            shariaEvidence: stripBase64(record.shariaEvidence),
+          }
+
+          await apiClient.post(`/applications/${numericApplicationId}/observations`, obsPayload)
+          savedObservationCount++
+        }
+      }
+
+      const findingsSummary = [
+        savedNcCount ? `${savedNcCount} NC${savedNcCount !== 1 ? 's' : ''}` : '',
+        savedObservationCount ? `${savedObservationCount} observation${savedObservationCount !== 1 ? 's' : ''}` : '',
+      ].filter(Boolean).join(' and ')
+
       addNotification('office', {
         title: 'Report saved',
-        body: `Audit report saved successfully`,
+        body: findingsSummary
+          ? `Audit report saved with ${findingsSummary}`
+          : `Audit report saved successfully`,
         type: 'success'
       })
 
