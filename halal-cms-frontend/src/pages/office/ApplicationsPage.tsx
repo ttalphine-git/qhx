@@ -3655,7 +3655,7 @@ export default function ApplicationsPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              updateApplicationStatus(app.id, "Audit started - next, waiting NC report")
+                              updateApplicationStatus(app.id, "AUDIT_IN_PROGRESS")
                                 .then(() => {
                                   navigate(`/office/applications/${app.id}/audit`)
                                   queryClient.invalidateQueries({ queryKey: ["applications"] })

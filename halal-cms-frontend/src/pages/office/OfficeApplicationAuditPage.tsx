@@ -1048,7 +1048,7 @@ function AuditChecklistTab({ app }: { app: any }) {
             <div style={{ background: "#fff", borderRadius: 12, padding: 24, maxWidth: 420, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}>
               <h2 style={{ margin: "0 0 12px", fontSize: "18px", fontWeight: 700, color: "#111827" }}>Audit Complete?</h2>
               <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#64748b", lineHeight: 1.5 }}>
-                Did you complete the audit for this application? This action will update the status to <strong>"Audit competed - Next step is Clear NC"</strong>.
+                Did you complete the audit for this application? This action will update the status to <strong>"NC Clearance"</strong> (next step: clear NCs).
               </p>
               <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                 <button
@@ -1073,10 +1073,10 @@ function AuditChecklistTab({ app }: { app: any }) {
                   onClick={async () => {
                     setShowAuditCompleteDialog(false)
                     try {
-                      await updateApplicationStatus(numericApplicationId, "Audit competed - Next step is Clear NC")
+                      await updateApplicationStatus(numericApplicationId, "NC_CLEARANCE")
                       addNotification('office', {
                         title: 'Status updated',
-                        body: 'Application status changed to: Audit competed - Next step is Clear NC',
+                        body: 'Application status changed to: NC Clearance (Next step: Clear NCs)',
                         type: 'success'
                       })
                       queryClient.invalidateQueries({ queryKey: ["applications"] })
