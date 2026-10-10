@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   Search, RefreshCw, FileText,
@@ -2190,13 +2191,15 @@ function AuditChecklistTab({ app }: { app:any }) {
                                           onChange={(e) => handleEvidenceUpload(key, role as any, e)}
                                           style={{ display: 'none' }}
                                         />
-                                        <button
-                                          type="button"
-                                          onClick={() => document.getElementById(`evidence-comment-${key}-${field}`)?.click()}
-                                          style={{ padding: '4px 10px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', color: '#2563eb' }}
-                                        >
-                                          📎 Attach evidence
-                                        </button>
+                                        {role !== 'customer' && (
+                                          <button
+                                            type="button"
+                                            onClick={() => document.getElementById(`evidence-comment-${key}-${field}`)?.click()}
+                                            style={{ padding: '4px 10px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', color: '#2563eb' }}
+                                          >
+                                            📎 Attach evidence
+                                          </button>
+                                        )}
                                         {((record[evidenceField as keyof AuditQuestionAnswer] as any) || []).length > 0 && (
                                           <div style={{ marginTop: '6px' }}>
                                             {((record[evidenceField as keyof AuditQuestionAnswer] as any) || []).map((file: any, idx: number) => (
@@ -2422,6 +2425,7 @@ function factoryLocation(app: LocalApp) {
 // "" Page """"""""""""""""""""""""""""""""""""""""""""""
 
 export default function ApplicationsPage() {
+  const navigate = useNavigate()
   const { user } = useAuthStore()
   const [search, setSearch]             = useState("")
   const [statusGroup, setStatusGroup]   = useState(ACTIVE_STATUSES)
@@ -3531,7 +3535,7 @@ export default function ApplicationsPage() {
           <table style={{ width:"100%", borderCollapse:"collapse", fontFamily:F }}>
             <thead>
               <tr style={{ borderBottom:`1px solid ${C.border}`, background:"#fafbfc" }}>
-                {["App #","Company","Contact","Type","Status","Progress","Country","Factory Location","Standard","Products","Total Price","Payment","Submitted","Updated","Auditor","Approved By"].map(h => (
+                {["App #","Company","Contact","Type","Status","Progress","Country","Factory Location","Standard","Products","Total Price","Payment","Submitted","Updated","Auditor","Approved By","Actions"].map(h => (
                   <th key={h} style={{ padding:"13px 14px", textAlign:"left", fontSize:"0.64rem", fontWeight:700, color:C.muted, letterSpacing:"0.06em", textTransform:"uppercase", whiteSpace:"nowrap", fontFamily:F }}>{h}</th>
                 ))}
               </tr>
@@ -3540,16 +3544,16 @@ export default function ApplicationsPage() {
               {isLoading ? (
                 Array.from({ length: 8 }).map((_,i) => (
                   <tr key={i} style={{ borderBottom:`1px solid ${C.border}` }}>
-                    {Array.from({ length: 16 }).map((_,j) => (
+                    {Array.from({ length: 17 }).map((_,j) => (
                       <td key={j} style={{ padding:"14px 14px" }}>
-                        <div className="animate-pulse" style={{ height:12, borderRadius:4, background:"#f0f0f0", width: j===15?50:"75%" }} />
+                        <div className="animate-pulse" style={{ height:12, borderRadius:4, background:"#f0f0f0", width: j===16?60:"75%" }} />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : applications.length === 0 ? (
                 <tr>
-                  <td colSpan={16} style={{ padding:"60px 20px", textAlign:"center" }}>
+                  <td colSpan={17} style={{ padding:"60px 20px", textAlign:"center" }}>
                     <FileText style={{ width:34, height:34, margin:"0 auto 10px", display:"block", color:"#d1d5db" }} />
                     <p style={{ margin:0, fontSize:"0.8rem", fontWeight:600, color:C.muted, fontFamily:F }}>No applications found</p>
                     <p style={{ margin:"4px 0 0", fontSize:"0.7rem", color:"#9ca3af", fontFamily:F }}>Try adjusting your search or filters</p>
@@ -3637,13 +3641,26 @@ export default function ApplicationsPage() {
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F, whiteSpace:"nowrap" }}>{app.updatedAt ? formatDate(app.updatedAt) : "-"}</td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F }}>{app.assignedAuditorName ?? "-"}</td>
                       <td style={{ padding:"13px 14px", fontSize:"0.75rem", color:C.muted, fontFamily:F }}>{(app as any).approvedBy ?? "-"}</td>
+                      <td style={{ padding:"13px 14px" }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/office/applications/${app.id}/audit`)
+                          }}
+                          style={{ padding:"6px 12px", background:"#2563eb", color:"#fff", border:"none", borderRadius:6, fontSize:"0.7rem", fontWeight:600, cursor:"pointer", whiteSpace:"nowrap" }}
+                          onMouseOver={e => (e.currentTarget.style.background = "#1d4ed8")}
+                          onMouseOut={e => (e.currentTarget.style.background = "#2563eb")}
+                        >
+                          📋 Audit Data
+                        </button>
+                      </td>
                     </tr>
                   )
                 })
               )}
               {applications.length > 0 && Array.from({ length: Math.max(0, 8 - applications.length) }).map((_, i) => (
                 <tr key={`empty-${i}`} style={{ borderBottom: "1px solid #f1f5f9", height: 55 }}>
-                  <td colSpan={16} style={{ padding: "13px 14px", background: "transparent" }}></td>
+                  <td colSpan={17} style={{ padding: "13px 14px", background: "transparent" }}></td>
                 </tr>
               ))}
             </tbody>

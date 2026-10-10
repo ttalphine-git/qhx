@@ -3,9 +3,9 @@ import { ColorProvider } from "./context/ColorContext";
 import OfficeLogin from "./pages/office/OfficeLogin";
 import OfficeRegister from "./pages/office/OfficeRegister";
 import OfficeDashboard from "./pages/office/OfficeDashboard";
-import OfficeAnalyticsPage from "./pages/office/OfficeAnalyticsPage";
 import ApplicationsPage from "./pages/office/ApplicationsPage";
 import ApplicationDetailPage from "./pages/office/ApplicationDetailPage";
+import OfficeApplicationAuditPage from "./pages/office/OfficeApplicationAuditPage";
 import OfficeApplicationsListPage from "./pages/office/OfficeApplicationsListPage";
 import OfficeApplicationFormPage from "./pages/office/OfficeApplicationFormPage";
 import OfficeBatchApplicationsPage from "./pages/office/OfficeBatchApplicationsPage";
@@ -45,8 +45,8 @@ export default function App() {
         <Route path="/office/login" element={<OfficeLogin />} />
         <Route path="/office/register" element={<OfficeRegister />} />
         <Route path="/office/dashboard" element={<OfficeDashboard />} />
-        <Route path="/office/analytics" element={<OfficeAnalyticsPage />} />
         <Route path="/office/applications" element={<ApplicationsPage />} />
+        <Route path="/office/applications/:applicationId/audit" element={<OfficeApplicationAuditPage />} />
         <Route path="/office/applications-list" element={<OfficeApplicationsListPage />} />
         <Route path="/office/applications-list/new" element={<OfficeApplicationFormPage />} />
         <Route path="/office/applications/:id" element={<ApplicationDetailPage />} />
