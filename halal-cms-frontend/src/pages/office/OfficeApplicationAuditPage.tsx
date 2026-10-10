@@ -444,7 +444,7 @@ function AuditChecklistTab({ app }: { app: any }) {
       }
 
       // Save NCs and Observations to separate database tables
-      const stripBase64 = (files: any[]) => files?.map(f => ({ originalName: f.name, size: f.size, type: f.type })) || []
+      const stripBase64 = (files: any[]) => files?.map(f => ({ name: f.name, size: f.size, type: f.type })) || []
       let savedNcCount = 0
       let savedObservationCount = 0
 
