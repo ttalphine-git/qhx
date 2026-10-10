@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { X, MessageSquare } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
 import { NcsTab } from "@/components/NcsTab"
@@ -230,6 +230,7 @@ const canEditCommentSection = (userRole: string | undefined, sectionRole: string
 
 function AuditChecklistTab({ app }: { app: any }) {
   const user = useAuthStore(state => state.user)
+  const queryClient = useQueryClient()
   const numericApplicationId = Number(app.id)
   const canUseDatabase = Number.isFinite(numericApplicationId)
   const appCategoryKeys = activityCategoriesFromApp(app)
@@ -467,8 +468,12 @@ function AuditChecklistTab({ app }: { app: any }) {
             shariaEvidence: stripBase64(record.shariaEvidence),
           }
 
-          await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
-          savedNcCount++
+          try {
+            await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
+            savedNcCount++
+          } catch (err) {
+            console.error(`[Audit Save] Failed to save NC at question ${index}:`, err)
+          }
         } else if (record.finding === 'obs' && record.obsDescription) {
           const obsPayload = {
             questionId: question?.id || `q-${index}`,
@@ -483,10 +488,17 @@ function AuditChecklistTab({ app }: { app: any }) {
             shariaEvidence: stripBase64(record.shariaEvidence),
           }
 
-          await apiClient.post(`/applications/${numericApplicationId}/observations`, obsPayload)
-          savedObservationCount++
+          try {
+            await apiClient.post(`/applications/${numericApplicationId}/observations`, obsPayload)
+            savedObservationCount++
+          } catch (err) {
+            console.error(`[Audit Save] Failed to save Observation at question ${index}:`, err)
+          }
         }
       }
+
+      // Invalidate NCs query to refresh the NCs tab
+      await queryClient.invalidateQueries({ queryKey: ['ncs', numericApplicationId] })
 
       const findingsSummary = [
         savedNcCount ? `${savedNcCount} NC${savedNcCount !== 1 ? 's' : ''}` : '',
