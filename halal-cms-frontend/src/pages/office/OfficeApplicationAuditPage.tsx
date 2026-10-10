@@ -583,6 +583,63 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   {commentCount > 0 && <span className="cnt">{commentCount}</span>}
                                 </button>
                               </div>
+                              {record.finding && (
+                                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', marginTop: '12px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: 700, padding: '4px 10px', borderRadius: '6px', background: record.finding === 'nc' ? '#fde7e9' : '#fff8e5', color: record.finding === 'nc' ? '#d13438' : '#8a6000', textTransform: 'uppercase' }}>
+                                      {record.finding === 'nc' ? 'Non-Conformity' : 'Observation'}
+                                    </span>
+                                    <span style={{ fontSize: '12px', color: '#64748b' }}>Ref {question.label}</span>
+                                  </div>
+                                  <div style={{ marginBottom: '12px' }}>
+                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '6px', textTransform: 'uppercase' }}>
+                                      State the {record.finding === 'nc' ? 'non-conformity' : 'observation'}: what was found, where, and which requirement it breaches.
+                                    </label>
+                                    <textarea
+                                      value={record.finding === 'nc' ? (record.ncDescription || '') : (record.obsDescription || '')}
+                                      onChange={e => updateAnswer(key, { [record.finding === 'nc' ? 'ncDescription' : 'obsDescription']: e.target.value })}
+                                      placeholder={`Describe the ${record.finding === 'nc' ? 'non-conformity' : 'observation'}...`}
+                                      style={{ width: '100%', minHeight: '80px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontFamily: 'inherit', fontSize: '14px', resize: 'vertical' }}
+                                    />
+                                  </div>
+                                  <div>
+                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#d13438', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                      Evidence required for a {record.finding === 'nc' ? 'non-conformity' : 'observation'}
+                                    </label>
+                                    <div style={{ marginBottom: '8px' }}>
+                                      <input
+                                        type="file"
+                                        id={`evidence-${key}-${record.finding}`}
+                                        onChange={(e) => handleEvidenceUpload(key, record.finding as any, e)}
+                                        style={{ display: 'none' }}
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => document.getElementById(`evidence-${key}-${record.finding}`)?.click()}
+                                        style={{ padding: '8px 14px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', color: '#2563eb', fontWeight: 600 }}
+                                      >
+                                        📎 Attach evidence
+                                      </button>
+                                    </div>
+                                    {((record.finding === 'nc' ? record.ncEvidence : record.obsEvidence) || []).length > 0 && (
+                                      <div style={{ marginTop: '8px' }}>
+                                        {((record.finding === 'nc' ? record.ncEvidence : record.obsEvidence) || []).map((file, idx) => (
+                                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: '#f1f5f9', borderRadius: '4px', marginBottom: '4px', fontSize: '12px' }}>
+                                            <span>📄 {file.name}</span>
+                                            <button
+                                              type="button"
+                                              onClick={() => updateAnswer(key, { [(record.finding === 'nc' ? 'ncEvidence' : 'obsEvidence') as keyof AuditQuestionAnswer]: ((record.finding === 'nc' ? record.ncEvidence : record.obsEvidence) || []).filter((_, i) => i !== idx) } as Partial<AuditQuestionAnswer>)}
+                                              style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#d13438', cursor: 'pointer', padding: '0 4px', fontSize: '12px' }}
+                                            >
+                                              ✕
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                               {commentsOpen && (
                                 <div className="cmts" id={`comments-${key}`}>
                                   {[
