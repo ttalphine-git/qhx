@@ -484,8 +484,10 @@ function AuditChecklistTab({ app }: { app: any }) {
             const response = await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
             console.log(`[Audit Save] NC saved successfully for question ${index}:`, response.data)
             savedNcCount++
-          } catch (err) {
-            console.error(`[Audit Save] Failed to save NC at question ${index}:`, err)
+          } catch (err: any) {
+            const errorMsg = err?.response?.data?.message || err?.message || 'Unknown error'
+            const status = err?.response?.status || 'unknown'
+            console.error(`[Audit Save] Failed to save NC at question ${index} (${status}):`, errorMsg)
           }
         } else if (record.finding === 'obs' && record.obsDescription) {
           const obsPayload = {
@@ -507,8 +509,10 @@ function AuditChecklistTab({ app }: { app: any }) {
             const response = await apiClient.post(`/applications/${numericApplicationId}/observations`, obsPayload)
             console.log(`[Audit Save] Observation saved successfully for question ${index}:`, response.data)
             savedObservationCount++
-          } catch (err) {
-            console.error(`[Audit Save] Failed to save Observation at question ${index}:`, err)
+          } catch (err: any) {
+            const errorMsg = err?.response?.data?.message || err?.message || 'Unknown error'
+            const status = err?.response?.status || 'unknown'
+            console.error(`[Audit Save] Failed to save Observation at question ${index} (${status}):`, errorMsg)
           }
         }
       }
@@ -531,11 +535,14 @@ function AuditChecklistTab({ app }: { app: any }) {
       })
 
       await reportQ.refetch()
-    } catch (err) {
+    } catch (err: any) {
       console.error('[Audit Save Error]', err)
+      const errorMsg = err?.response?.data?.message || err?.message || 'An unexpected error occurred'
+      const status = err?.response?.status
+      const statusText = status === 401 ? ' (Unauthorized - check your permissions)' : status === 403 ? ' (Forbidden)' : ''
       addNotification('office', {
         title: 'Failed to save report',
-        body: err instanceof Error ? err.message : 'An unexpected error occurred',
+        body: `${errorMsg}${statusText}`,
         type: 'error'
       })
     } finally {
