@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { X, MessageSquare } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
+import { NcsTab } from "@/components/NcsTab"
 import "@/styles/audit.css"
 import apiClient from "@/api/client"
 import { getApplications } from "@/api/applications"
@@ -875,6 +876,7 @@ function AuditChecklistTab({ app }: { app: any }) {
 export default function OfficeApplicationAuditPage() {
   const { applicationId } = useParams<{ applicationId: string }>()
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState("Audit")
 
   const { data: applicationsData } = useQuery({
     queryKey: ["applications", { page: 0, size: 1, search: applicationId }],
@@ -920,7 +922,22 @@ export default function OfficeApplicationAuditPage() {
         </div>
 
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-          <AuditChecklistTab app={viewApp} />
+          <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", background: "#fafbfc", padding: "0 20px", gap: 0 }}>
+            {["Audit", "NCs"].map(tab => {
+              const isActive = activeTab === tab
+              return (
+                <button key={tab} onClick={() => setActiveTab(tab)}
+                  style={{ padding: "14px 20px", fontSize: "0.75rem", fontWeight: isActive ? 700 : 500, color: isActive ? "#0f2170" : "#64748b", borderBottom: isActive ? "2.5px solid #0f2170" : "2.5px solid transparent", marginBottom: -1, background: "transparent", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}>
+                  {tab}
+                </button>
+              )
+            })}
+          </div>
+
+          <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+            {activeTab === "Audit" && <AuditChecklistTab app={viewApp} />}
+            {activeTab === "NCs" && <NcsTab applicationId={viewApp.id} />}
+          </div>
         </div>
       </div>
     </OfficeLayout>
