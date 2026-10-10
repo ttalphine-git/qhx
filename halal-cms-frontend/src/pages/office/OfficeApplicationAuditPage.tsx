@@ -1168,7 +1168,7 @@ export default function OfficeApplicationAuditPage() {
 
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
           <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", background: "#fafbfc", padding: "0 20px", gap: 0, overflowX: "auto" }}>
-            {["Audit", "NCs", "Application", "Products", "Documents"].map(tab => {
+            {["Audit", "NCs", "Products"].map(tab => {
               const isActive = activeTab === tab
               return (
                 <button key={tab} onClick={() => setActiveTab(tab)}
@@ -1182,36 +1182,6 @@ export default function OfficeApplicationAuditPage() {
           <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
             {activeTab === "Audit" && <AuditChecklistTab app={viewApp} />}
             {activeTab === "NCs" && <NcsTab applicationId={viewApp.id} />}
-            {activeTab === "Application" && (
-              <div style={{ padding: "24px", fontFamily: F }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-                  <div>
-                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Company Name</p>
-                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.companyName || "-"}</p>
-                  </div>
-                  <div>
-                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Application #</p>
-                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.applicationNumber || "-"}</p>
-                  </div>
-                  <div>
-                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Business Category</p>
-                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.businessCategory || viewApp.category || "-"}</p>
-                  </div>
-                  <div>
-                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</p>
-                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.email || "-"}</p>
-                  </div>
-                  <div>
-                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Phone</p>
-                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.phone || "-"}</p>
-                  </div>
-                  <div>
-                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Country</p>
-                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.country || "-"}</p>
-                  </div>
-                </div>
-              </div>
-            )}
             {activeTab === "Products" && (
               <div style={{ padding: "24px", fontFamily: F }}>
                 {viewApp.products && viewApp.products.length > 0 ? (
@@ -1242,20 +1212,6 @@ export default function OfficeApplicationAuditPage() {
                     <div style={{ fontSize: "0.8rem", marginTop: 4 }}>Products added by the customer will appear here.</div>
                   </div>
                 )}
-              </div>
-            )}
-            {activeTab === "Documents" && (
-              <div style={{ padding: "24px", fontFamily: F }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: "#111827" }}>Customer uploaded documents</h3>
-                    <p style={{ margin: "4px 0 0", fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>0 files uploaded</p>
-                  </div>
-                </div>
-                <div style={{ padding: "40px 24px", textAlign: "center", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 }}>
-                  <p style={{ margin: "0 0 4px", fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}>No documents uploaded yet</p>
-                  <p style={{ margin: 0, fontSize: "0.72rem", color: "#64748b" }}>Documents uploaded by the customer will appear here.</p>
-                </div>
               </div>
             )}
           </div>
