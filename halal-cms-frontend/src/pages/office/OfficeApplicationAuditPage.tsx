@@ -499,20 +499,13 @@ function AuditChecklistTab({ app }: { app: any }) {
   if (!selectedTrack) return <div style={{ padding: "44px 20px" }}>Loading audit configuration...</div>
 
   return (
-    <div id="app" style={{ background: "var(--page)", margin: -22, maxHeight: "calc(100vh - 190px)", overflow: "auto" }}>
+    <div id="app" style={{ background: "var(--page)", margin: -22, maxHeight: "calc(100vh - 190px)", overflow: "auto", paddingBottom: "80px" }}>
       <div className="wrap" style={{ maxWidth: "none", padding: "20px" }}>
         <div className="pagehead">
           <div className="grow">
             <h1>{selectedTrack.reportTitle || selectedTrack.name}</h1>
             <p>{app.applicationNumber || app.id} · {app.companyName || "-"}</p>
           </div>
-          <div className="prog">
-            <div className="bar"><i style={{ width: `${percent}%` }} /></div>
-            <span>{completed} of {total} answered</span>
-          </div>
-          <button type="button" className="btn primary" onClick={saveReport} disabled={saving}>
-            {saving ? "Saving..." : "Save Report"}
-          </button>
         </div>
 
         <div className="toolbar">
@@ -812,6 +805,64 @@ function AuditChecklistTab({ app }: { app: any }) {
             </div>
           </div>
         )}
+
+        {/* Floating Save Bar */}
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: '#fff',
+          borderTop: '1px solid #e2e8f0',
+          boxShadow: '0 -2px 8px rgba(15, 23, 42, 0.08)',
+          padding: '16px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          zIndex: 100,
+          fontFamily: F,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <div>
+              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Progress</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 120, height: 6, borderRadius: 999, background: '#f1f5f9', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${percent}%`, background: BLUE, borderRadius: 999 }} />
+                </div>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: DARK, minWidth: 100 }}>{completed} of {total} answered</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={saveReport}
+            disabled={saving}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: 40,
+              padding: '0 28px',
+              background: saving ? '#94a3b8' : BLUE,
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              cursor: saving ? 'wait' : 'pointer',
+              fontFamily: F,
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={e => !saving && (e.currentTarget.style.background = '#1d4ed8')}
+            onMouseOut={e => !saving && (e.currentTarget.style.background = BLUE)}
+          >
+            {saving ? '💾 Saving...' : '💾 Save Report'}
+          </button>
+        </div>
       </div>
     </div>
   )
