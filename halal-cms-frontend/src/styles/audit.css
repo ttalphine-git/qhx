@@ -292,7 +292,7 @@ svg{flex:none}
 .closing .panel-hd{border-bottom:1px solid var(--border-2)}
 
 .parthead{
-  margin:0; padding:18px 22px; background:var(--band-soft);
+  margin:0; padding:18px 22px; background:#ffffff;
   scroll-margin-top:calc(env(safe-area-inset-top,0px) + 16px);
 }
 .parthead .eyebrow{font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:#64748B; font-weight:700}
@@ -304,7 +304,7 @@ svg{flex:none}
 }
 .sec-hd{
   display:flex; align-items:center; gap:12px; flex-wrap:wrap;
-  padding:14px 22px; background:var(--band-soft);
+  padding:14px 22px; background:#ffffff;
   border-bottom:1px solid var(--border);
 }
 .sec + .sec .sec-hd{border-top:4px solid var(--border)}
