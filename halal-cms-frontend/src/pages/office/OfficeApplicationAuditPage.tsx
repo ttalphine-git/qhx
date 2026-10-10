@@ -656,35 +656,36 @@ function AuditChecklistTab({ app }: { app: any }) {
                         <span className="sec-meta">{sectionCounts.answered} / {sectionCounts.total} answered</span>
                         {sectionLeft > 0 && <span className="sec-warn">{sectionLeft} unanswered</span>}
                       </div>
-                      <div className="sec-body">
-                        {section.questions.map(question => {
-                          const key = `${selectedTrack.id}-${question.index}`
-                          const record = answers[key] ?? blankAuditAnswer()
-                          const commentCount = [record.customerComment, record.auditorComment, record.shariaComment].filter(comment => comment.trim()).length
-                          const commentsOpen = !!openComments[key]
-                          return (
-                            <article className="q" id={`q-${key}`} key={key}>
-                              <div className="q-top">
-                                <span className="q-n" style={record.answer ? { background: "var(--green)", color: "#fff" } : undefined}>{question.label}</span>
-                                <div>
-                                  <p className="q-t">{question.text}</p>
+                      <div className="sec-body" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '16px', alignItems: 'start' }}>
+                        <div>
+                          {section.questions.map(question => {
+                            const key = `${selectedTrack.id}-${question.index}`
+                            const record = answers[key] ?? blankAuditAnswer()
+                            const commentCount = [record.customerComment, record.auditorComment, record.shariaComment].filter(comment => comment.trim()).length
+                            const commentsOpen = !!openComments[key]
+                            return (
+                              <article className="q" id={`q-${key}`} key={key} style={{ marginBottom: '12px', padding: '12px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+                              <div className="q-top" style={{ marginBottom: '10px' }}>
+                                <span className="q-n" style={record.answer ? { background: "var(--green)", color: "#fff", fontSize: '12px', padding: '2px 8px', borderRadius: '4px' } : { background: '#f1f5f9', color: '#64748b', fontSize: '12px', padding: '2px 8px', borderRadius: '4px' }}>{question.label}</span>
+                                <div style={{ marginTop: '6px' }}>
+                                  <p className="q-t" style={{ fontSize: '13px', lineHeight: '1.4', margin: 0 }}>{question.text}</p>
                                 </div>
                               </div>
-                              <div className="q-ctl">
-                                <div className="seg" role="group" aria-label={`Answer for question ${question.label}`}>
-                                  <button type="button" data-v="yes" aria-pressed={record.answer === "yes"} onClick={() => updateAnswer(key, { answer: record.answer === "yes" ? "" : "yes" })}>Yes</button>
-                                  <button type="button" data-v="no" aria-pressed={record.answer === "no"} onClick={() => updateAnswer(key, { answer: record.answer === "no" ? "" : "no" })}>No</button>
-                                  <button type="button" data-v="na" aria-pressed={record.answer === "na"} onClick={() => updateAnswer(key, { answer: record.answer === "na" ? "" : "na" })}>N/A</button>
+                              <div className="q-ctl" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <div className="seg" role="group" aria-label={`Answer for question ${question.label}`} style={{ display: 'flex', gap: '4px' }}>
+                                  <button type="button" data-v="yes" aria-pressed={record.answer === "yes"} onClick={() => updateAnswer(key, { answer: record.answer === "yes" ? "" : "yes" })} style={{ flex: 1, padding: '6px 8px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'yes' ? '2px solid #2563eb' : '1px solid #e2e8f0', background: record.answer === 'yes' ? '#eff6ff' : '#fff', cursor: 'pointer' }}>Yes</button>
+                                  <button type="button" data-v="no" aria-pressed={record.answer === "no"} onClick={() => updateAnswer(key, { answer: record.answer === "no" ? "" : "no" })} style={{ flex: 1, padding: '6px 8px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'no' ? '2px solid #d13438' : '1px solid #e2e8f0', background: record.answer === 'no' ? '#fef2f2' : '#fff', cursor: 'pointer' }}>No</button>
+                                  <button type="button" data-v="na" aria-pressed={record.answer === "na"} onClick={() => updateAnswer(key, { answer: record.answer === "na" ? "" : "na" })} style={{ flex: 1, padding: '6px 8px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'na' ? '2px solid #f59e0b' : '1px solid #e2e8f0', background: record.answer === 'na' ? '#fffbeb' : '#fff', cursor: 'pointer' }}>N/A</button>
                                 </div>
-                                <div className="findbtns">
+                                <div className="findbtns" style={{ display: 'flex', gap: '4px' }}>
                                   <button type="button" className="findbtn" data-f="nc" aria-pressed={record.finding === "nc"} onClick={() => {
                                     console.log(`[NC Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
                                     updateAnswer(key, { finding: record.finding === "nc" ? "" : "nc" })
-                                  }}>NC</button>
+                                  }} style={{ flex: 1, padding: '6px 8px', fontSize: '12px', borderRadius: '4px', background: record.finding === 'nc' ? '#d13438' : '#fff', color: record.finding === 'nc' ? '#fff' : '#d13438', border: '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 }}>NC</button>
                                   <button type="button" className="findbtn" data-f="obs" aria-pressed={record.finding === "obs"} onClick={() => {
                                     console.log(`[Obs Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
                                     updateAnswer(key, { finding: record.finding === "obs" ? "" : "obs" })
-                                  }}>Observation</button>
+                                  }} style={{ flex: 1, padding: '6px 8px', fontSize: '12px', borderRadius: '4px', background: record.finding === 'obs' ? '#f59e0b' : '#fff', color: record.finding === 'obs' ? '#fff' : '#f59e0b', border: '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 }}>Obs</button>
                                 </div>
                                 <button
                                   type="button"
@@ -692,27 +693,27 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   aria-expanded={commentsOpen}
                                   aria-controls={`comments-${key}`}
                                   onClick={() => toggleComments(key)}
+                                  style={{ padding: '6px 8px', fontSize: '12px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#475569' }}
                                 >
-                                  <MessageSquare size={14} />
-                                  <span>{commentsOpen ? "Hide comments" : "Comments"}</span>
-                                  {commentCount > 0 && <span className="cnt">{commentCount}</span>}
+                                  <MessageSquare size={12} />
+                                  <span>{commentsOpen ? "Hide" : "Cmts"}</span>
+                                  {commentCount > 0 && <span style={{ marginLeft: 'auto', background: '#2563eb', color: '#fff', borderRadius: '2px', padding: '1px 4px', fontSize: '10px' }}>{commentCount}</span>}
                                 </button>
                               </div>
                               {record.finding && (
-                                <div className="cmts" style={{ marginTop: '12px' }}>
-                                  <div className="cmt" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    <div className="lbl" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <i className="tag" />
-                                      <span style={{ fontWeight: 700 }}>
-                                        {record.finding === 'nc' ? 'Non-Conformity' : 'Observation'}
+                                <div className="cmts" style={{ marginTop: '10px', padding: '10px', background: '#fafbfc', borderRadius: '4px', borderLeft: `3px solid ${record.finding === 'nc' ? '#d13438' : '#f59e0b'}` }}>
+                                  <div className="cmt" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <div className="lbl" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <span style={{ fontWeight: 700, fontSize: '12px', color: record.finding === 'nc' ? '#d13438' : '#f59e0b' }}>
+                                        {record.finding === 'nc' ? '🔴 NC' : '🟡 Obs'}
                                       </span>
-                                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 400 }}>
+                                      <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 400 }}>
                                         Ref {question.label}
                                       </span>
                                     </div>
                                     <div>
-                                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '6px' }}>
-                                        State the {record.finding === 'nc' ? 'non-conformity' : 'observation'}: what was found, where, and which requirement it breaches.
+                                      <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                                        Describe:
                                       </label>
                                       <textarea
                                         value={record.finding === 'nc' ? (record.ncDescription || '') : (record.obsDescription || '')}
@@ -720,15 +721,15 @@ function AuditChecklistTab({ app }: { app: any }) {
                                           console.log(`[NC/Obs Description] Changed for ${record.finding === 'nc' ? 'NC' : 'Obs'}: ${e.target.value.substring(0, 50)}...`)
                                           updateAnswer(key, { [record.finding === 'nc' ? 'ncDescription' : 'obsDescription']: e.target.value })
                                         }}
-                                        placeholder={`Describe the ${record.finding === 'nc' ? 'non-conformity' : 'observation'}...`}
-                                        style={{ width: '100%', minHeight: '80px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px', fontFamily: 'inherit', fontSize: '14px', resize: 'vertical' }}
+                                        placeholder={`Describe...`}
+                                        style={{ width: '100%', minHeight: '60px', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '3px', fontFamily: 'inherit', fontSize: '12px', resize: 'vertical' }}
                                       />
                                     </div>
-                                    <div style={{ paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
-                                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#d13438', marginBottom: '8px' }}>
-                                        Evidence required for a {record.finding === 'nc' ? 'non-conformity' : 'observation'}
+                                    <div style={{ paddingTop: '6px', borderTop: '1px solid #e2e8f0' }}>
+                                      <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: '#d13438', marginBottom: '4px' }}>
+                                        Evidence required
                                       </label>
-                                      <div style={{ marginBottom: '8px' }}>
+                                      <div style={{ marginBottom: '4px' }}>
                                         <input
                                           type="file"
                                           id={`evidence-${key}-${record.finding}`}
@@ -738,20 +739,20 @@ function AuditChecklistTab({ app }: { app: any }) {
                                         <button
                                           type="button"
                                           onClick={() => document.getElementById(`evidence-${key}-${record.finding}`)?.click()}
-                                          style={{ padding: '4px 10px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', color: '#2563eb', fontWeight: 600 }}
+                                          style={{ padding: '4px 8px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '3px', cursor: 'pointer', fontSize: '11px', color: '#2563eb', fontWeight: 600 }}
                                         >
-                                          📎 Attach evidence
+                                          📎 Attach
                                         </button>
                                       </div>
                                       {((record.finding === 'nc' ? record.ncEvidence : record.obsEvidence) || []).length > 0 && (
-                                        <div style={{ marginTop: '6px' }}>
+                                        <div style={{ marginTop: '4px' }}>
                                           {((record.finding === 'nc' ? record.ncEvidence : record.obsEvidence) || []).map((file, idx) => (
-                                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 6px', background: '#f1f5f9', borderRadius: '4px', marginBottom: '3px', fontSize: '11px' }}>
-                                              <span>📄 {file.name}</span>
+                                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 4px', background: '#fff', borderRadius: '3px', marginBottom: '2px', fontSize: '10px', border: '1px solid #e2e8f0' }}>
+                                              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>📄 {file.name}</span>
                                               <button
                                                 type="button"
                                                 onClick={() => updateAnswer(key, { [(record.finding === 'nc' ? 'ncEvidence' : 'obsEvidence') as keyof AuditQuestionAnswer]: ((record.finding === 'nc' ? record.ncEvidence : record.obsEvidence) || []).filter((_, i) => i !== idx) } as Partial<AuditQuestionAnswer>)}
-                                                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#d13438', cursor: 'pointer', padding: '0 2px', fontSize: '11px' }}
+                                                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#d13438', cursor: 'pointer', padding: '0 2px', fontSize: '10px', flexShrink: 0 }}
                                               >
                                                 ✕
                                               </button>
@@ -764,28 +765,36 @@ function AuditChecklistTab({ app }: { app: any }) {
                                 </div>
                               )}
                               {commentsOpen && (
-                                <div className="cmts" id={`comments-${key}`}>
+                                <div className="cmts" id={`comments-${key}`} style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #e2e8f0' }}>
                                   {[
-                                    ["customerComment", "customer", "Customer comment", "customerEvidence"],
-                                    ["auditorComment", "auditor", "Auditor comment", "auditorEvidence"],
-                                    ["shariaComment", "sharia", "Sharia comment", "shariaEvidence"],
+                                    ["customerComment", "customer", "👤 Customer", "customerEvidence"],
+                                    ["auditorComment", "auditor", "✓ Auditor", "auditorEvidence"],
+                                    ["shariaComment", "sharia", "🕌 Sharia", "shariaEvidence"],
                                   ].map(([field, role, label, evidenceField]) => {
                                     const canEdit = canEditCommentSection(user?.role, role)
                                     const isReadOnly = !canEdit
                                     return (
-                                      <div className="cmt" data-role={role} key={field} style={{ opacity: isReadOnly ? 0.7 : 1 }}>
-                                        <div className="lbl"><i className="tag" /><span>{label}{isReadOnly ? ' (read-only)' : ''}</span></div>
+                                      <div className="cmt" data-role={role} key={field} style={{ opacity: isReadOnly ? 0.6 : 1, marginBottom: '8px', padding: '8px', background: '#fafbfc', borderRadius: '4px' }}>
+                                        <div className="lbl" style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}><span>{label}{isReadOnly ? ' (view)' : ''}</span></div>
                                         <textarea
                                           value={record[field as keyof AuditQuestionAnswer] as string}
                                           onChange={e => canEdit && updateAnswer(key, { [field]: e.target.value } as Partial<AuditQuestionAnswer>)}
                                           disabled={isReadOnly}
                                           style={{
+                                            width: '100%',
+                                            minHeight: '50px',
+                                            padding: '6px',
+                                            fontSize: '12px',
+                                            border: '1px solid #e2e8f0',
+                                            borderRadius: '3px',
                                             opacity: isReadOnly ? 0.6 : 1,
                                             cursor: isReadOnly ? 'not-allowed' : 'auto',
                                             backgroundColor: isReadOnly ? '#f5f5f5' : '#fff',
+                                            fontFamily: 'inherit',
+                                            resize: 'vertical'
                                           }}
                                         />
-                                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
+                                        <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #e2e8f0' }}>
                                           <input
                                             type="file"
                                             id={`evidence-comment-${key}-${field}`}
@@ -797,21 +806,21 @@ function AuditChecklistTab({ app }: { app: any }) {
                                             <button
                                               type="button"
                                               onClick={() => document.getElementById(`evidence-comment-${key}-${field}`)?.click()}
-                                              style={{ padding: '4px 10px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', color: '#2563eb' }}
+                                              style={{ padding: '3px 8px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '3px', cursor: 'pointer', fontSize: '10px', color: '#2563eb', fontWeight: 600 }}
                                             >
-                                              📎 Attach evidence
+                                              📎 Attach
                                             </button>
                                           )}
                                           {((record[evidenceField as keyof AuditQuestionAnswer] as any) || []).length > 0 && (
-                                            <div style={{ marginTop: '6px' }}>
+                                            <div style={{ marginTop: '4px' }}>
                                               {((record[evidenceField as keyof AuditQuestionAnswer] as any) || []).map((file: any, idx: number) => (
-                                                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 6px', background: '#f1f5f9', borderRadius: '4px', marginBottom: '3px', fontSize: '11px' }}>
-                                                  <span>📄 {file.name}</span>
+                                                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 4px', background: '#fff', borderRadius: '3px', marginBottom: '2px', fontSize: '10px', border: '1px solid #e2e8f0' }}>
+                                                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>📄 {file.name}</span>
                                                   {canEdit && (
                                                     <button
                                                       type="button"
                                                       onClick={() => updateAnswer(key, { [evidenceField]: ((record[evidenceField as keyof AuditQuestionAnswer] as any) || []).filter((_: any, i: number) => i !== idx) } as Partial<AuditQuestionAnswer>)}
-                                                      style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#d13438', cursor: 'pointer', padding: '0 2px', fontSize: '11px' }}
+                                                      style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#d13438', cursor: 'pointer', padding: '0 2px', fontSize: '10px', flexShrink: 0 }}
                                                     >
                                                       ✕
                                                     </button>
@@ -827,8 +836,83 @@ function AuditChecklistTab({ app }: { app: any }) {
                                 </div>
                               )}
                             </article>
-                          )
-                        })}
+                            )
+                          })}
+                        </div>
+
+                        {/* Documents Card */}
+                        <div style={{
+                          background: '#fafbfc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '6px',
+                          padding: '12px',
+                          maxHeight: 'calc(100vh - 300px)',
+                          overflow: 'auto',
+                          position: 'sticky',
+                          top: '16px'
+                        }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.05em' }}>
+                            📁 Documents
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {section.questions.map(question => {
+                              const key = `${selectedTrack.id}-${question.index}`
+                              const record = answers[key] ?? blankAuditAnswer()
+                              const allDocuments = [
+                                ...((record.ncEvidence || []).map(f => ({ name: f.name, type: 'NC', label: question.label }))),
+                                ...((record.obsEvidence || []).map(f => ({ name: f.name, type: 'Obs', label: question.label }))),
+                                ...((record.customerEvidence || []).map(f => ({ name: f.name, type: 'Customer', label: question.label }))),
+                                ...((record.auditorEvidence || []).map(f => ({ name: f.name, type: 'Auditor', label: question.label }))),
+                                ...((record.shariaEvidence || []).map(f => ({ name: f.name, type: 'Sharia', label: question.label }))),
+                              ]
+
+                              if (allDocuments.length === 0) return null
+
+                              return (
+                                <div key={key}>
+                                  <div style={{ fontSize: '10px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                                    Q{question.label}
+                                  </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                    {allDocuments.map((doc, idx) => (
+                                      <div key={idx} style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        padding: '4px 6px',
+                                        background: '#fff',
+                                        borderRadius: '3px',
+                                        border: '1px solid #e2e8f0',
+                                        fontSize: '10px',
+                                        overflow: 'hidden'
+                                      }}>
+                                        <span style={{ fontSize: '10px', color: '#2563eb', fontWeight: 600 }}>
+                                          {doc.type === 'NC' ? '🔴' : doc.type === 'Obs' ? '🟡' : doc.type === 'Customer' ? '👤' : doc.type === 'Auditor' ? '✓' : '🕌'}
+                                        </span>
+                                        <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#64748b' }}>
+                                          {doc.name}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+
+                          {!section.questions.some(q => {
+                            const key = `${selectedTrack.id}-${q.index}`
+                            const record = answers[key] ?? blankAuditAnswer()
+                            const hasAnyDocs = (record.ncEvidence?.length || 0) + (record.obsEvidence?.length || 0) +
+                                              (record.customerEvidence?.length || 0) + (record.auditorEvidence?.length || 0) +
+                                              (record.shariaEvidence?.length || 0) > 0
+                            return hasAnyDocs
+                          }) && (
+                            <div style={{ textAlign: 'center', padding: '20px 8px', color: '#94a3b8', fontSize: '12px' }}>
+                              No documents yet
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </section>
                   )
