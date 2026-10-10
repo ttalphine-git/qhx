@@ -311,7 +311,12 @@ function AuditChecklistTab({ app }: { app: any }) {
   }, [reportQ.data?.id, selectedTrack?.id])
 
   const updateAnswer = (key: string, patch: Partial<AuditQuestionAnswer>) => {
-    setAnswers(prev => ({ ...prev, [key]: { ...(prev[key] ?? blankAuditAnswer()), ...patch } }))
+    console.log(`[updateAnswer] Key: ${key}, Patch:`, patch)
+    setAnswers(prev => {
+      const updated = { ...prev, [key]: { ...(prev[key] ?? blankAuditAnswer()), ...patch } }
+      console.log(`[updateAnswer] Updated state for ${key}:`, updated[key])
+      return updated
+    })
   }
 
   const toggleComments = (key: string) => {
@@ -665,8 +670,14 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   <button type="button" data-v="na" aria-pressed={record.answer === "na"} onClick={() => updateAnswer(key, { answer: record.answer === "na" ? "" : "na" })}>N/A</button>
                                 </div>
                                 <div className="findbtns">
-                                  <button type="button" className="findbtn" data-f="nc" aria-pressed={record.finding === "nc"} onClick={() => updateAnswer(key, { finding: record.finding === "nc" ? "" : "nc" })}>NC</button>
-                                  <button type="button" className="findbtn" data-f="obs" aria-pressed={record.finding === "obs"} onClick={() => updateAnswer(key, { finding: record.finding === "obs" ? "" : "obs" })}>Observation</button>
+                                  <button type="button" className="findbtn" data-f="nc" aria-pressed={record.finding === "nc"} onClick={() => {
+                                    console.log(`[NC Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
+                                    updateAnswer(key, { finding: record.finding === "nc" ? "" : "nc" })
+                                  }}>NC</button>
+                                  <button type="button" className="findbtn" data-f="obs" aria-pressed={record.finding === "obs"} onClick={() => {
+                                    console.log(`[Obs Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
+                                    updateAnswer(key, { finding: record.finding === "obs" ? "" : "obs" })
+                                  }}>Observation</button>
                                 </div>
                                 <button
                                   type="button"
@@ -698,7 +709,10 @@ function AuditChecklistTab({ app }: { app: any }) {
                                       </label>
                                       <textarea
                                         value={record.finding === 'nc' ? (record.ncDescription || '') : (record.obsDescription || '')}
-                                        onChange={e => updateAnswer(key, { [record.finding === 'nc' ? 'ncDescription' : 'obsDescription']: e.target.value })}
+                                        onChange={e => {
+                                          console.log(`[NC/Obs Description] Changed for ${record.finding === 'nc' ? 'NC' : 'Obs'}: ${e.target.value.substring(0, 50)}...`)
+                                          updateAnswer(key, { [record.finding === 'nc' ? 'ncDescription' : 'obsDescription']: e.target.value })
+                                        }}
                                         placeholder={`Describe the ${record.finding === 'nc' ? 'non-conformity' : 'observation'}...`}
                                         style={{ width: '100%', minHeight: '80px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '4px', fontFamily: 'inherit', fontSize: '14px', resize: 'vertical' }}
                                       />
