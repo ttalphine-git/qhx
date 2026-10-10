@@ -1095,8 +1095,8 @@ export default function OfficeApplicationAuditPage() {
         </div>
 
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-          <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", background: "#fafbfc", padding: "0 20px", gap: 0 }}>
-            {["Audit", "NCs"].map(tab => {
+          <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", background: "#fafbfc", padding: "0 20px", gap: 0, overflowX: "auto" }}>
+            {["Audit", "NCs", "Application Data", "Products"].map(tab => {
               const isActive = activeTab === tab
               return (
                 <button key={tab} onClick={() => setActiveTab(tab)}
@@ -1110,6 +1110,96 @@ export default function OfficeApplicationAuditPage() {
           <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
             {activeTab === "Audit" && <AuditChecklistTab app={viewApp} />}
             {activeTab === "NCs" && <NcsTab applicationId={viewApp.id} />}
+            {activeTab === "Application Data" && (
+              <div style={{ padding: "20px" }}>
+                <div style={{ fontSize: "13px", lineHeight: "1.6", color: "#475569" }}>
+                  <div style={{ marginBottom: "20px" }}>
+                    <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111827", marginBottom: "12px" }}>Company Information</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "16px" }}>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Company Name</label>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.companyName || "-"}</p>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Application #</label>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.applicationNumber || "-"}</p>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Business Category</label>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.businessCategory || viewApp.category || "-"}</p>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Facility Type</label>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.facilityType || "-"}</p>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Country</label>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.country || "-"}</p>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Status</label>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.status || "-"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111827", marginBottom: "12px" }}>Contact Information</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "16px" }}>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Contact Person</label>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.contactPerson || "-"}</p>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Email</label>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.email || "-"}</p>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Phone</label>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.phone || "-"}</p>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Address</label>
+                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.address || "-"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeTab === "Products" && (
+              <div style={{ padding: "20px" }}>
+                {viewApp.products && viewApp.products.length > 0 ? (
+                  <div>
+                    <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111827", marginBottom: "12px" }}>Product List</h3>
+                    <div style={{ display: "grid", gap: "12px" }}>
+                      {viewApp.products.map((product: any, idx: number) => (
+                        <div key={idx} style={{ padding: "12px", border: "1px solid #e2e8f0", borderRadius: "6px", background: "#f9fafb" }}>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", fontSize: "13px" }}>
+                            <div>
+                              <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Product Name</label>
+                              <p style={{ margin: "4px 0 0", color: "#111827" }}>{product.name || product.productName || "-"}</p>
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Category</label>
+                              <p style={{ margin: "4px 0 0", color: "#111827" }}>{product.category || product.productCategory || "-"}</p>
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Description</label>
+                              <p style={{ margin: "4px 0 0", color: "#111827" }}>{product.description || "-"}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: "40px 20px", textAlign: "center", color: "#94a3b8" }}>
+                    <p style={{ fontSize: "13px", fontWeight: 500 }}>No products added</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
