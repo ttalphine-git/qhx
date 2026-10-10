@@ -47,7 +47,12 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
   // Fetch all NCs for application
   const { data: ncWorkflows = [], isLoading, error } = useQuery({
     queryKey: ["ncs", applicationId],
-    queryFn: () => apiClient.get<NCWorkflowStatus[]>(`/nc/application/${applicationId}`).then(r => r.data),
+    queryFn: async () => {
+      console.log(`[NcsTab] Fetching NCs for application ${applicationId}`)
+      const response = await apiClient.get<NCWorkflowStatus[]>(`/nc/application/${applicationId}`)
+      console.log(`[NcsTab] Received ${response.data.length} NCs:`, response.data)
+      return response.data
+    },
     enabled: !!applicationId,
   })
 
