@@ -2426,6 +2426,7 @@ function factoryLocation(app: LocalApp) {
 
 export default function ApplicationsPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { user } = useAuthStore()
   const [search, setSearch]             = useState("")
   const [statusGroup, setStatusGroup]   = useState(ACTIVE_STATUSES)
