@@ -275,9 +275,16 @@ function AuditChecklistTab({ app }: { app: any }) {
       next[`${selectedTrack.id}-${questionIndex >= 0 ? questionIndex : index}`] = {
         answer: answer.answer ?? "",
         finding: answer.finding ?? "",
+        ncDescription: answer.ncDescription ?? "",
+        obsDescription: answer.obsDescription ?? "",
         customerComment: answer.customerComment ?? "",
         auditorComment: answer.auditorComment ?? "",
         shariaComment: answer.shariaComment ?? "",
+        ncEvidence: (answer as any).ncEvidence ?? [],
+        obsEvidence: (answer as any).obsEvidence ?? [],
+        customerEvidence: (answer as any).customerEvidence ?? [],
+        auditorEvidence: (answer as any).auditorEvidence ?? [],
+        shariaEvidence: (answer as any).shariaEvidence ?? [],
       } as any
     })
     setAnswers(next)
