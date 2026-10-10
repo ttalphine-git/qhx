@@ -4,9 +4,9 @@ spring:
   application:
     name: inspection-service
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/halalcms_inspections}
-    username: ${DB_USER:halalcms}
-    password: ${DB_PASSWORD:halalcms}
+    url: ${INSPECTION_DB_URL:${DB_URL:jdbc:postgresql://localhost:5432/halalcms_inspections}}
+    username: ${DB_USER:halal_user}
+    password: ${DB_PASSWORD:halal@secure123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -28,7 +28,7 @@ app:
   email:
     signature: "Halal Certification Board"
 jwt:
-  secret: ${JWT_SECRET:dev-secret-key-change-in-production-32chars-dev-only}
+  secret: ${JWT_SECRET:changeme-use-256-bit-secret-in-production}
 eureka:
   client:
     enabled: false
