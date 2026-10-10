@@ -35,6 +35,13 @@ export interface AuditAnswerDto {
   customerComment?: string
   auditorComment?: string
   shariaComment?: string
+  ncDescription?: string
+  obsDescription?: string
+  ncEvidence?: { name: string; data: string; size: number; type?: string }[]
+  obsEvidence?: { name: string; data: string; size: number; type?: string }[]
+  customerEvidence?: { name: string; data: string; size: number; type?: string }[]
+  auditorEvidence?: { name: string; data: string; size: number; type?: string }[]
+  shariaEvidence?: { name: string; data: string; size: number; type?: string }[]
 }
 
 export interface ApplicationAuditReportDto {
