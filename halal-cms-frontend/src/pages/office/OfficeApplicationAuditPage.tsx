@@ -1183,110 +1183,78 @@ export default function OfficeApplicationAuditPage() {
             {activeTab === "Audit" && <AuditChecklistTab app={viewApp} />}
             {activeTab === "NCs" && <NcsTab applicationId={viewApp.id} />}
             {activeTab === "Application" && (
-              <div style={{ padding: "20px" }}>
-                <div style={{ fontSize: "13px", lineHeight: "1.6", color: "#475569" }}>
-                  <div style={{ marginBottom: "20px" }}>
-                    <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111827", marginBottom: "12px" }}>Company Information</h3>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "16px" }}>
-                      <div>
-                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Company Name</label>
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.companyName || "-"}</p>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Application #</label>
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.applicationNumber || "-"}</p>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Business Category</label>
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.businessCategory || viewApp.category || "-"}</p>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Facility Type</label>
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.facilityType || "-"}</p>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Country</label>
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.country || "-"}</p>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Status</label>
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.status || "-"}</p>
-                      </div>
-                    </div>
-                  </div>
-
+              <div style={{ padding: "24px", fontFamily: F }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
                   <div>
-                    <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111827", marginBottom: "12px" }}>Contact Information</h3>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "16px" }}>
-                      <div>
-                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Contact Person</label>
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.contactPerson || "-"}</p>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Email</label>
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.email || "-"}</p>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Phone</label>
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.phone || "-"}</p>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Address</label>
-                        <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#111827" }}>{viewApp.address || "-"}</p>
-                      </div>
-                    </div>
+                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Company Name</p>
+                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.companyName || "-"}</p>
+                  </div>
+                  <div>
+                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Application #</p>
+                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.applicationNumber || "-"}</p>
+                  </div>
+                  <div>
+                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Business Category</p>
+                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.businessCategory || viewApp.category || "-"}</p>
+                  </div>
+                  <div>
+                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</p>
+                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.email || "-"}</p>
+                  </div>
+                  <div>
+                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Phone</p>
+                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.phone || "-"}</p>
+                  </div>
+                  <div>
+                    <p style={{ margin: "0 0 6px", fontSize: "0.68rem", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Country</p>
+                    <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600, color: "#111827" }}>{viewApp.country || "-"}</p>
                   </div>
                 </div>
               </div>
             )}
             {activeTab === "Products" && (
-              <div style={{ padding: "20px" }}>
+              <div style={{ padding: "24px", fontFamily: F }}>
                 {viewApp.products && viewApp.products.length > 0 ? (
                   <div>
-                    <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111827", marginBottom: "12px" }}>Product List</h3>
-                    <div style={{ display: "grid", gap: "12px" }}>
-                      {viewApp.products.map((product: any, idx: number) => (
-                        <div key={idx} style={{ padding: "12px", border: "1px solid #e2e8f0", borderRadius: "6px", background: "#f9fafb" }}>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", fontSize: "13px" }}>
-                            <div>
-                              <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Product Name</label>
-                              <p style={{ margin: "4px 0 0", color: "#111827" }}>{product.name || product.productName || "-"}</p>
-                            </div>
-                            <div>
-                              <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Category</label>
-                              <p style={{ margin: "4px 0 0", color: "#111827" }}>{product.category || product.productCategory || "-"}</p>
-                            </div>
-                            <div>
-                              <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Description</label>
-                              <p style={{ margin: "4px 0 0", color: "#111827" }}>{product.description || "-"}</p>
-                            </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                      <span style={{ fontSize: "0.82rem", fontWeight: 700, color: DARK, fontFamily: F }}>Products for Certification</span>
+                      <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#fff", background: BLUE, padding: "1px 10px", borderRadius: 10 }}>{viewApp.products.length}</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {viewApp.products.map((p: any, i: number) => (
+                        <div key={i} style={{ border: "1px solid #e2e8f0", borderRadius: 10, background: "#fff", padding: "16px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 140px", gap: 12, alignItems: "start" }}>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ margin: "0 0 8px", fontSize: "0.76rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Product Name</p>
+                            <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 600, color: "#111827" }}>{p.name || p.productName || "-"}</p>
+                          </div>
+                          <div>
+                            <p style={{ margin: "0 0 8px", fontSize: "0.76rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Category</p>
+                            <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 600, color: "#111827" }}>{p.category || p.productCategory || "-"}</p>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : (
-                  <div style={{ padding: "40px 20px", textAlign: "center", color: "#94a3b8" }}>
-                    <p style={{ fontSize: "13px", fontWeight: 500 }}>No products added</p>
+                  <div style={{ textAlign: "center", padding: "60px 20px", color: "#94a3b8" }}>
+                    <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>📦</div>
+                    <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "#64748b" }}>No products submitted</div>
+                    <div style={{ fontSize: "0.8rem", marginTop: 4 }}>Products added by the customer will appear here.</div>
                   </div>
                 )}
               </div>
             )}
             {activeTab === "Documents" && (
-              <div style={{ padding: "20px", fontFamily: F }}>
-                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 360px", gap: 18, alignItems: "start" }}>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: "#111827" }}>Customer uploaded documents</h3>
-                        <p style={{ margin: "4px 0 0", fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>0 files uploaded</p>
-                      </div>
-                    </div>
-                    <div style={{ padding: "32px", textAlign: "center", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 }}>
-                      <p style={{ margin: "0 0 4px", fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}>No documents uploaded yet</p>
-                      <p style={{ margin: 0, fontSize: "0.72rem", color: "#64748b" }}>Documents uploaded by the customer will appear here.</p>
-                    </div>
+              <div style={{ padding: "24px", fontFamily: F }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: "#111827" }}>Customer uploaded documents</h3>
+                    <p style={{ margin: "4px 0 0", fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>0 files uploaded</p>
                   </div>
+                </div>
+                <div style={{ padding: "40px 24px", textAlign: "center", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 }}>
+                  <p style={{ margin: "0 0 4px", fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}>No documents uploaded yet</p>
+                  <p style={{ margin: 0, fontSize: "0.72rem", color: "#64748b" }}>Documents uploaded by the customer will appear here.</p>
                 </div>
               </div>
             )}
