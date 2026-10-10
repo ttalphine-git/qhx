@@ -13,12 +13,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Component
+@Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Value("${jwt.secret}")
@@ -29,9 +31,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
         String header = request.getHeader("Authorization");
+        String requestPath = request.getRequestURI();
+
         if (header != null && header.startsWith("Bearer ")) {
             try {
                 String token = header.substring(7);
+                log.debug("[JWT] Attempting to validate token for: {}", requestPath);
+
                 Claims claims = Jwts.parser()
                         .verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8)))
                         .build()
@@ -41,6 +47,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String userId = claims.getSubject();
                 String role   = claims.get("role", String.class);
 
+                log.info("[JWT] Token validated successfully. UserId: {}, Role: {}, Path: {}", userId, role, requestPath);
+
                 var auth = new UsernamePasswordAuthenticationToken(
                         userId,
                         null,
@@ -48,9 +56,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 );
                 auth.setDetails(claims);
                 SecurityContextHolder.getContext().setAuthentication(auth);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.error("[JWT] Token validation failed for path {}: {}", requestPath, e.getMessage(), e);
                 SecurityContextHolder.clearContext();
             }
+        } else {
+            log.debug("[JWT] No Bearer token found for path: {}", requestPath);
         }
         chain.doFilter(request, response);
     }
