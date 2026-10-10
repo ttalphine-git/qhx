@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { X, MessageSquare } from "lucide-react"
+import { X, MessageSquare, CheckCircle2 } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
 import { NcsTab } from "@/components/NcsTab"
 import { useAuthStore } from "@/store/authStore"
@@ -1168,7 +1168,7 @@ export default function OfficeApplicationAuditPage() {
 
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
           <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", background: "#fafbfc", padding: "0 20px", gap: 0, overflowX: "auto" }}>
-            {["Audit", "NCs", "Application Data", "Products"].map(tab => {
+            {["Audit", "NCs", "Application", "Products", "Documents"].map(tab => {
               const isActive = activeTab === tab
               return (
                 <button key={tab} onClick={() => setActiveTab(tab)}
@@ -1182,7 +1182,7 @@ export default function OfficeApplicationAuditPage() {
           <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
             {activeTab === "Audit" && <AuditChecklistTab app={viewApp} />}
             {activeTab === "NCs" && <NcsTab applicationId={viewApp.id} />}
-            {activeTab === "Application Data" && (
+            {activeTab === "Application" && (
               <div style={{ padding: "20px" }}>
                 <div style={{ fontSize: "13px", lineHeight: "1.6", color: "#475569" }}>
                   <div style={{ marginBottom: "20px" }}>
@@ -1270,6 +1270,24 @@ export default function OfficeApplicationAuditPage() {
                     <p style={{ fontSize: "13px", fontWeight: 500 }}>No products added</p>
                   </div>
                 )}
+              </div>
+            )}
+            {activeTab === "Documents" && (
+              <div style={{ padding: "20px", fontFamily: F }}>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 360px", gap: 18, alignItems: "start" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: "#111827" }}>Customer uploaded documents</h3>
+                        <p style={{ margin: "4px 0 0", fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>0 files uploaded</p>
+                      </div>
+                    </div>
+                    <div style={{ padding: "32px", textAlign: "center", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 }}>
+                      <p style={{ margin: "0 0 4px", fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}>No documents uploaded yet</p>
+                      <p style={{ margin: 0, fontSize: "0.72rem", color: "#64748b" }}>Documents uploaded by the customer will appear here.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
