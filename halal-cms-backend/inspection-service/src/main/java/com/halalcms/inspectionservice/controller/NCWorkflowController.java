@@ -92,7 +92,12 @@ public class NCWorkflowController {
 
     private Long extractUserId(Authentication auth) {
         if (auth != null && auth.getPrincipal() instanceof String) {
-            return Long.parseLong(auth.getPrincipal().toString());
+            try {
+                return Long.parseLong(auth.getPrincipal().toString());
+            } catch (NumberFormatException ex) {
+                log.warn("Authenticated principal is not numeric: {}", auth.getPrincipal());
+                return null;
+            }
         }
         return 1L; // Default for development
     }

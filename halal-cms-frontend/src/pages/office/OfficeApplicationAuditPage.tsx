@@ -495,9 +495,6 @@ function AuditChecklistTab({ app }: { app: any }) {
           try {
             const response = await apiClient.post(`/applications/${numericApplicationId}/non-conformities`, ncPayload)
             await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
-              .catch(error => {
-                console.warn('[Audit Save] NC workflow mirror failed:', error?.response?.data?.message || error?.message)
-              })
             console.log(`[Audit Save] NC saved successfully for question ${index}:`, response.data)
             savedNcCount++
           } catch (err: any) {
@@ -700,6 +697,16 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   <button type="button" data-v="no" aria-pressed={record.answer === "no"} onClick={() => updateAnswer(key, { answer: record.answer === "no" ? "" : "no" })}>No</button>
                                   <button type="button" data-v="na" aria-pressed={record.answer === "na"} onClick={() => updateAnswer(key, { answer: record.answer === "na" ? "" : "na" })}>N/A</button>
                                 </div>
+                                <div className="findbtns">
+                                  <button type="button" className="findbtn" data-f="nc" aria-pressed={record.finding === "nc"} onClick={() => {
+                                    console.log(`[NC Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
+                                    updateAnswer(key, { finding: record.finding === "nc" ? "" : "nc" })
+                                  }}>NC</button>
+                                  <button type="button" className="findbtn" data-f="obs" aria-pressed={record.finding === "obs"} onClick={() => {
+                                    console.log(`[Obs Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
+                                    updateAnswer(key, { finding: record.finding === "obs" ? "" : "obs" })
+                                  }}>Obs</button>
+                                </div>
                                 <button
                                   type="button"
                                   className="cmt-btn"
@@ -711,21 +718,11 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   <span>{commentsOpen ? "Hide" : "Cmts"}</span>
                                   {commentCount > 0 && <span style={{ marginLeft: 'auto', background: '#2563eb', color: '#fff', borderRadius: '2px', padding: '1px 4px', fontSize: '10px', fontWeight: 600 }}>{commentCount}</span>}
                                 </button>
-                                <div className="findbtns">
-                                  <button type="button" className="findbtn" data-f="nc" aria-pressed={record.finding === "nc"} onClick={() => {
-                                    console.log(`[NC Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
-                                    updateAnswer(key, { finding: record.finding === "nc" ? "" : "nc" })
-                                  }}>NC</button>
-                                  <button type="button" className="findbtn" data-f="obs" aria-pressed={record.finding === "obs"} onClick={() => {
-                                    console.log(`[Obs Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
-                                    updateAnswer(key, { finding: record.finding === "obs" ? "" : "obs" })
-                                  }}>Obs</button>
-                                </div>
                               </div>
                               </div>
                               {record.finding && (
-                                <div className="cmts" style={{ marginTop: '10px', padding: '10px', background: '#fafbfc', borderRadius: '4px', borderLeft: `3px solid ${record.finding === 'nc' ? '#d13438' : '#f59e0b'}` }}>
-                                  <div className="cmt" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div className="cmts" style={{ marginTop: '8px', padding: '8px', background: '#fafbfc', borderRadius: '4px', borderLeft: `3px solid ${record.finding === 'nc' ? '#d13438' : '#f59e0b'}` }}>
+                                  <div className="cmt" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '8px' }}>
                                     <div className="lbl" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                       <span style={{ fontWeight: 700, fontSize: '12px', color: record.finding === 'nc' ? '#d13438' : '#f59e0b' }}>
                                         {record.finding === 'nc' ? '🔴 NC' : '🟡 Obs'}
@@ -745,10 +742,10 @@ function AuditChecklistTab({ app }: { app: any }) {
                                           updateAnswer(key, { [record.finding === 'nc' ? 'ncDescription' : 'obsDescription']: e.target.value })
                                         }}
                                         placeholder={`Describe...`}
-                                        style={{ width: '100%', minHeight: '60px', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '3px', fontFamily: 'inherit', fontSize: '12px', resize: 'vertical' }}
+                                        style={{ width: '100%', minHeight: '44px', padding: '7px 8px', border: '1px solid #e2e8f0', borderRadius: '3px', fontFamily: 'inherit', fontSize: '12px', resize: 'vertical' }}
                                       />
                                     </div>
-                                    <div style={{ paddingTop: '6px', borderTop: '1px solid #e2e8f0' }}>
+                                    <div style={{ paddingTop: '5px', borderTop: '1px solid #e2e8f0' }}>
                                       <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: '#d13438', marginBottom: '4px' }}>
                                         Evidence required
                                       </label>
@@ -797,12 +794,12 @@ function AuditChecklistTab({ app }: { app: any }) {
                                     const canEdit = canEditCommentSection(user?.role, role)
                                     const isReadOnly = !canEdit
                                     return (
-                                      <div className="cmt" data-role={role} key={field} style={{ opacity: isReadOnly ? 0.6 : 1, marginBottom: '8px', padding: '8px', background: '#fafbfc', borderRadius: '4px' }}>
-                                        <div className="lbl" style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}><span>{label}{isReadOnly ? ' (view)' : ''}</span></div>
+                                      <div className="cmt" data-role={role} key={field} style={{ opacity: 1, marginBottom: '8px', padding: '8px', background: '#fafbfc', borderRadius: '4px' }}>
+                                        <div className="lbl" style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}><span>{label}{isReadOnly ? ' (read only)' : ''}</span></div>
                                         <textarea
                                           value={record[field as keyof AuditQuestionAnswer] as string}
                                           onChange={e => canEdit && updateAnswer(key, { [field]: e.target.value } as Partial<AuditQuestionAnswer>)}
-                                          disabled={isReadOnly}
+                                          readOnly={isReadOnly}
                                           style={{
                                             width: '100%',
                                             minHeight: '50px',
@@ -810,9 +807,10 @@ function AuditChecklistTab({ app }: { app: any }) {
                                             fontSize: '12px',
                                             border: '1px solid #e2e8f0',
                                             borderRadius: '3px',
-                                            opacity: isReadOnly ? 0.6 : 1,
-                                            cursor: isReadOnly ? 'not-allowed' : 'auto',
-                                            backgroundColor: isReadOnly ? '#f5f5f5' : '#fff',
+                                            opacity: 1,
+                                            cursor: 'text',
+                                            backgroundColor: '#fff',
+                                            color: '#111827',
                                             fontFamily: 'inherit',
                                             resize: 'vertical'
                                           }}
@@ -823,7 +821,6 @@ function AuditChecklistTab({ app }: { app: any }) {
                                             id={`evidence-comment-${key}-${field}`}
                                             onChange={(e) => canEdit && handleEvidenceUpload(key, role as any, e)}
                                             style={{ display: 'none' }}
-                                            disabled={isReadOnly}
                                           />
                                           {canEdit && (
                                             <button

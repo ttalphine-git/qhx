@@ -1848,9 +1848,6 @@ function AuditChecklistTab({ app }: { app:any }) {
 
           await apiClient.post(`/applications/${numericApplicationId}/non-conformities`, ncPayload)
           await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
-            .catch(error => {
-              console.warn('[Audit Save] NC workflow mirror failed:', error?.response?.data?.message || error?.message)
-            })
           savedNcCount++
         } else if (record.finding === 'obs' && record.obsDescription) {
           const obsPayload = {
@@ -2110,29 +2107,29 @@ function AuditChecklistTab({ app }: { app:any }) {
                                 </button>
                               </div>
                               {record.finding && (
-                                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', marginTop: '12px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginTop: '8px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                     <span style={{ fontSize: '12px', fontWeight: 700, padding: '4px 10px', borderRadius: '6px', background: record.finding === 'nc' ? '#fde7e9' : '#fff8e5', color: record.finding === 'nc' ? '#d13438' : '#8a6000', textTransform: 'uppercase' }}>
                                       {record.finding === 'nc' ? 'Non-Conformity' : 'Observation'}
                                     </span>
                                     <span style={{ fontSize: '12px', color: '#64748b' }}>Ref {question.label}</span>
                                   </div>
-                                  <div style={{ marginBottom: '12px' }}>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#64748b', marginBottom: '6px', textTransform: 'uppercase' }}>
+                                  <div style={{ marginBottom: '8px' }}>
+                                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>
                                       State the {record.finding === 'nc' ? 'non-conformity' : 'observation'}: what was found, where, and which requirement it breaches.
                                     </label>
                                     <textarea
                                       value={record.finding === 'nc' ? (record.ncDescription || '') : (record.obsDescription || '')}
                                       onChange={e => updateAnswer(key, { [record.finding === 'nc' ? 'ncDescription' : 'obsDescription']: e.target.value })}
                                       placeholder={`Describe the ${record.finding === 'nc' ? 'non-conformity' : 'observation'}...`}
-                                      style={{ width: '100%', minHeight: '80px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontFamily: 'inherit', fontSize: '14px', resize: 'vertical' }}
+                                      style={{ width: '100%', minHeight: '52px', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', fontFamily: 'inherit', fontSize: '13px', resize: 'vertical' }}
                                     />
                                   </div>
                                   <div>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#d13438', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#d13438', marginBottom: '5px', textTransform: 'uppercase' }}>
                                       Evidence required for a {record.finding === 'nc' ? 'non-conformity' : 'observation'}
                                     </label>
-                                    <div style={{ marginBottom: '8px' }}>
+                                    <div style={{ marginBottom: '5px' }}>
                                       <input
                                         type="file"
                                         id={`evidence-${key}-${record.finding}`}
@@ -2142,7 +2139,7 @@ function AuditChecklistTab({ app }: { app:any }) {
                                       <button
                                         type="button"
                                         onClick={() => document.getElementById(`evidence-${key}-${record.finding}`)?.click()}
-                                        style={{ padding: '8px 14px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', color: '#2563eb', fontWeight: 600 }}
+                                        style={{ padding: '5px 10px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', color: '#2563eb', fontWeight: 600 }}
                                       >
                                         📎 Attach evidence
                                       </button>
@@ -2163,7 +2160,7 @@ function AuditChecklistTab({ app }: { app:any }) {
                                         ))}
                                       </div>
                                     )}
-                                    <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", gap:8, marginTop:12, paddingTop:12, borderTop:"1px solid #e2e8f0" }}>
+                                    <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", gap:8, marginTop:8, paddingTop:8, borderTop:"1px solid #e2e8f0" }}>
                                       <button
                                         type="button"
                                         onClick={saveReport}
@@ -2187,16 +2184,19 @@ function AuditChecklistTab({ app }: { app:any }) {
                                       <div className="lbl"><i className="tag" /><span>{label}</span></div>
                                       <textarea
                                         value={record[field as keyof AuditQuestionAnswer] as string}
-                                        onChange={e => updateAnswer(key, { [field]: e.target.value } as Partial<AuditQuestionAnswer>)}
+                                        readOnly
+                                        onChange={() => undefined}
+                                        style={{ background: '#fff', color: DARK, opacity: 1, cursor: 'text' }}
                                       />
                                       <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
                                         <input
                                           type="file"
                                           id={`evidence-comment-${key}-${field}`}
-                                          onChange={(e) => handleEvidenceUpload(key, role as any, e)}
+                                          onChange={() => undefined}
                                           style={{ display: 'none' }}
+                                          disabled
                                         />
-                                        {role !== 'customer' && (
+                                        {false && role !== 'customer' && (
                                           <button
                                             type="button"
                                             onClick={() => document.getElementById(`evidence-comment-${key}-${field}`)?.click()}
@@ -2212,8 +2212,9 @@ function AuditChecklistTab({ app }: { app:any }) {
                                                 <span>📄 {file.name}</span>
                                                 <button
                                                   type="button"
-                                                  onClick={() => updateAnswer(key, { [evidenceField]: ((record[evidenceField as keyof AuditQuestionAnswer] as any) || []).filter((_: any, i: number) => i !== idx) } as Partial<AuditQuestionAnswer>)}
-                                                  style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#d13438', cursor: 'pointer', padding: '0 2px', fontSize: '11px' }}
+                                                  disabled
+                                                  onClick={() => undefined}
+                                                  style={{ display: 'none' }}
                                                 >
                                                   ✕
                                                 </button>
