@@ -1,19 +1,14 @@
 import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { useMemo } from "react"
 import {
   FileText, Award, ClipboardCheck,
   Calendar, ChevronRight, Activity, Clock,
   CheckCircle2, Tag, CreditCard, ArrowUpRight,
   Users, DollarSign, MessageSquare, Star, Trophy,
-  Download, MoreHorizontal, MapPin,
+  Download, MoreHorizontal,
 } from "lucide-react"
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet"
-import L from "leaflet"
-import "leaflet/dist/leaflet.css"
 import OfficeLayout from "./OfficeLayout"
 import { getPendingTasks, getUpcomingAudits, getApplicationStages, getRecentEvents } from "@/api/dashboard"
-import { getApplications } from "@/api/applications"
 import { C, getStatusStyle, formatDate, formatDateTime, getPriorityStyle } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
 
@@ -51,100 +46,6 @@ function Sparkline({ points, color }: { points: number[]; color: string }) {
     <svg viewBox="0 0 100 52" preserveAspectRatio="none" style={{ width:"100%", height:58, display:"block" }}>
       <path d={d} fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
-  )
-}
-
-const markerIcon = L.divIcon({
-  className: "office-map-pin",
-  html: '<span></span>',
-  iconSize: [30, 30],
-  iconAnchor: [15, 28],
-  popupAnchor: [0, -28],
-})
-
-type MapPoint = {
-  id: string
-  applicationId: number
-  companyName: string
-  status: string
-  factoryName: string
-  address: string
-  country?: string
-  lat: number
-  lng: number
-}
-
-function pointsFromApplication(app: any): MapPoint[] {
-  const payload = app.payloadJson ? (typeof app.payloadJson === "object" ? app.payloadJson : JSON.parse(app.payloadJson)) : {}
-  const factories = payload.snapshotFactories ?? []
-  const source = factories.length ? factories : []
-
-  return source.flatMap((factory: any, index: number) => {
-    const lat = Number.parseFloat(String(factory.lat ?? ""))
-    const lng = Number.parseFloat(String(factory.lng ?? ""))
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return []
-    return [{
-      id: `${app.id}-${factory.id ?? index}`,
-      applicationId: app.id,
-      companyName: app.companyName,
-      status: app.status,
-      factoryName: factory.name || payload.factoryName || "Factory",
-      address: [factory.address, factory.city, factory.country].filter(Boolean).join(", "),
-      country: factory.country || app.country,
-      lat,
-      lng,
-    }]
-  })
-}
-
-function CustomerLocationsMap() {
-  const { data: applicationsData } = useQuery({
-    queryKey: ["dashboard-map-applications"],
-    queryFn: () => getApplications({ page: 0, size: 500 }),
-  })
-
-  const points = useMemo(
-    () => (applicationsData?.content ?? []).flatMap(pointsFromApplication),
-    [applicationsData]
-  )
-
-  if (!points.length) {
-    return (
-      <div style={{ height: "100%", display: "grid", placeItems: "center", color: "#64748b", fontWeight: 700, fontSize: "0.9rem" }}>
-        No customer locations mapped yet
-      </div>
-    )
-  }
-
-  return (
-    <MapContainer
-      center={[23.4241, 53.8478]}
-      zoom={5}
-      style={{ height: "100%", width: "100%" }}
-    >
-      <TileLayer
-        attribution='&copy; OpenStreetMap contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {points.map(point => {
-        const statusStyle = getStatusStyle(point.status as any)
-        return (
-          <Marker key={point.id} position={[point.lat, point.lng]} icon={markerIcon}>
-            <Popup>
-              <div style={{ minWidth: 200 }}>
-                <div style={{ fontWeight: 800, color: "#0f172a", marginBottom: 4 }}>{point.companyName}</div>
-                <div style={{ fontSize: 12, color: "#475569", marginBottom: 8 }}>{point.factoryName}</div>
-                <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>{point.address || point.country || "Location saved"}</div>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 999, background: statusStyle.bg, color: statusStyle.color, fontSize: 11, fontWeight: 800 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: 99, background: statusStyle.dot }} />
-                  {statusStyle.label}
-                </span>
-              </div>
-            </Popup>
-          </Marker>
-        )
-      })}
-    </MapContainer>
   )
 }
 
@@ -399,23 +300,6 @@ export default function OfficeDashboard() {
             </div>
           </div>
 
-        </div>
-
-        {/* Customer Locations Map */}
-        <div style={{ ...card, marginTop: 14 }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 22px", borderBottom:"1px solid #f1f5f9" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <MapPin size={16} color={C.primary} />
-              <p style={{ fontSize:"0.875rem", fontWeight:700, color:C.textDark }}>Customer Locations</p>
-            </div>
-            <button onClick={() => navigate("/office/map-view")}
-              style={{ fontSize:"0.6875rem", fontWeight:600, color:C.primary, background:"none", border:"none", cursor:"pointer" }}>
-              Full Map →
-            </button>
-          </div>
-          <div style={{ height:420, background:"#f1f5f9" }}>
-            <CustomerLocationsMap />
-          </div>
         </div>
 
         {/* Operations Overview + Sidebar */}
