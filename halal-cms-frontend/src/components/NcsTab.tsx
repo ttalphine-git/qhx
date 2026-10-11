@@ -11,11 +11,18 @@ interface NCWorkflowStatus {
   questionText?: string
   category?: string
   description?: string
+  ncEvidence?: EvidenceAttachment[]
   currentStatus: string
   correctiveAction?: string
   dueDate?: string
   evidenceSubmissions: EvidenceSubmission[]
   currentIteration: number
+}
+
+interface EvidenceAttachment {
+  name?: string
+  size?: number
+  type?: string
 }
 
 interface EvidenceSubmission {
@@ -205,6 +212,11 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
                   <p style={{ margin: "6px 0 0", fontSize: "0.75rem", color: "#64748b" }}>
                     {[nc.questionText, nc.category, `Status: ${nc.currentStatus}`].filter(Boolean).join(" - ")}
                   </p>
+                  {!!nc.ncEvidence?.length && (
+                    <p style={{ margin: "6px 0 0", fontSize: "0.75rem", color: "#2563eb", fontFamily: F }}>
+                      {nc.ncEvidence.length} attachment{nc.ncEvidence.length === 1 ? "" : "s"}
+                    </p>
+                  )}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <StatusBadge status={nc.currentStatus} />
@@ -220,6 +232,38 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
 
               {isExpanded && (
                 <div style={{ padding: "20px", borderTop: "1px solid #e2e8f0", background: "#f8fafc" }}>
+                  {current.description && (
+                    <div style={{ marginBottom: 20, padding: "12px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 6 }}>
+                      <p style={{ margin: "0 0 6px", fontSize: "0.75rem", fontWeight: 700, color: "#475569", fontFamily: F }}>
+                        NC Description
+                      </p>
+                      <p style={{ margin: 0, fontSize: "0.85rem", color: "#0f172a", whiteSpace: "pre-wrap", fontFamily: F }}>
+                        {current.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {!!current.ncEvidence?.length && (
+                    <div style={{ marginBottom: 20, padding: "12px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 6 }}>
+                      <p style={{ margin: "0 0 10px", fontSize: "0.75rem", fontWeight: 700, color: "#475569", fontFamily: F }}>
+                        NC Attachments
+                      </p>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {current.ncEvidence.map((file, index) => (
+                          <div key={`${file.name || "attachment"}-${index}`} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.8rem", color: "#0f172a", fontFamily: F }}>
+                            <FileText size={14} color="#2563eb" />
+                            <span>{file.name || `Attachment ${index + 1}`}</span>
+                            {typeof file.size === "number" && (
+                              <span style={{ color: "#64748b", fontSize: "0.72rem" }}>
+                                ({Math.ceil(file.size / 1024)} KB)
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Corrective Action */}
                   {(nc.currentStatus === "PENDING_CUSTOMER_ACTION" || nc.currentStatus === "PENDING_EVIDENCE") && (
                     <div style={{ marginBottom: 20 }}>

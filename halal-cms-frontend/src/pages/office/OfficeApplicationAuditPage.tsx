@@ -475,7 +475,7 @@ function AuditChecklistTab({ app }: { app: any }) {
         console.log(`[Audit Save] Question ${index}: finding="${record.finding}", ncDesc="${record.ncDescription?.substring(0, 50)}..."`)
 
         if (record.finding === 'nc') {
-          const ncDescription = record.ncDescription?.trim() || questionText
+          const ncDescription = record.ncDescription?.trim() || ''
           const ncPayload = {
             questionId: question?.id || `q-${index}`,
             questionText,
@@ -493,8 +493,11 @@ function AuditChecklistTab({ app }: { app: any }) {
           console.log(`[Audit Save] Saving NC for question ${index}:`, ncPayload)
 
           try {
-            const response = await apiClient.post(`/applications/${numericApplicationId}/non-conformities`, ncPayload)
-            await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
+            const response = await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
+            await apiClient.post(`/applications/${numericApplicationId}/non-conformities`, ncPayload)
+              .catch(error => {
+                console.warn('[Audit Save] Legacy NC mirror save failed:', error?.response?.data?.message || error?.message)
+              })
             console.log(`[Audit Save] NC saved successfully for question ${index}:`, response.data)
             savedNcCount++
           } catch (err: any) {
@@ -715,13 +718,13 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   onClick={() => toggleComments(key)}
                                 >
                                   <MessageSquare size={12} />
-                                  <span>{commentsOpen ? "Hide" : "Cmts"}</span>
+                                  <span>{commentsOpen ? "Hide" : "Comments"}</span>
                                   {commentCount > 0 && <span style={{ marginLeft: 'auto', background: '#2563eb', color: '#fff', borderRadius: '2px', padding: '1px 4px', fontSize: '10px', fontWeight: 600 }}>{commentCount}</span>}
                                 </button>
                               </div>
                               </div>
                               {record.finding && (
-                                <div className="cmts" style={{ marginTop: '8px', padding: '8px', background: '#fafbfc', borderRadius: '4px', borderLeft: `3px solid ${record.finding === 'nc' ? '#d13438' : '#f59e0b'}` }}>
+                                <div className="cmts" style={{ marginTop: '8px', padding: '8px', background: '#fafbfc', borderRadius: '4px' }}>
                                   <div className="cmt" style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '8px' }}>
                                     <div className="lbl" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                       <span style={{ fontWeight: 700, fontSize: '12px', color: record.finding === 'nc' ? '#d13438' : '#f59e0b' }}>

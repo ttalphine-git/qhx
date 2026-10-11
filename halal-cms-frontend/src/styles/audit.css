@@ -610,7 +610,6 @@ td input:focus{border-color:var(--blue); background:var(--card)}
   padding:16px!important;
   background:#f8fbff!important;
   border:1px solid var(--border)!important;
-  border-left:4px solid #dc3545!important;
   border-radius:8px!important;
 }
 .audit-workspace .cmts textarea,

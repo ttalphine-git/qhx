@@ -1,6 +1,7 @@
 package com.halalcms.inspectionservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.halalcms.inspectionservice.dto.NCEvidenceDto;
 import com.halalcms.inspectionservice.dto.NCWorkflowDto;
@@ -239,6 +240,7 @@ public class NCWorkflowService {
             .questionText(nc.getQuestionText())
             .category(nc.getCategory())
             .description(nc.getDescription())
+            .ncEvidence(parseEvidenceJson(nc.getNcEvidenceJson()))
             .currentStatus(nc.getStatus())
             .correctiveAction(nc.getCustomerCorrectiveAction())
             .dueDate(nc.getCustomerDueDate())
@@ -279,6 +281,18 @@ public class NCWorkflowService {
             return objectMapper.writeValueAsString(value);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Unable to serialize NC evidence metadata", e);
+        }
+    }
+
+    private List<java.util.Map<String, Object>> parseEvidenceJson(String value) {
+        if (value == null || value.isBlank()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(value, new TypeReference<List<java.util.Map<String, Object>>>() {});
+        } catch (JsonProcessingException e) {
+            log.warn("Unable to parse NC evidence metadata: {}", e.getMessage());
+            return List.of();
         }
     }
 }

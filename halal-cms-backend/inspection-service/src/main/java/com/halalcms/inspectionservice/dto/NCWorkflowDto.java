@@ -48,6 +48,7 @@ public class NCWorkflowDto {
         private String questionText;
         private String category;
         private String description;
+        private List<Map<String, Object>> ncEvidence;
         private String currentStatus;
         private String correctiveAction;
         private LocalDate dueDate;

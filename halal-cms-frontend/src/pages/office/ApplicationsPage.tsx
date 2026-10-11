@@ -1831,7 +1831,7 @@ function AuditChecklistTab({ app }: { app:any }) {
         const questionText = selectedTrack.questions[index]
 
         if (record.finding === 'nc') {
-          const ncDescription = record.ncDescription?.trim() || questionText
+          const ncDescription = record.ncDescription?.trim() || ''
           const ncPayload = {
             questionId: question?.id || `q-${index}`,
             questionText,
@@ -1846,8 +1846,11 @@ function AuditChecklistTab({ app }: { app:any }) {
             shariaEvidence: stripBase64(record.shariaEvidence),
           }
 
-          await apiClient.post(`/applications/${numericApplicationId}/non-conformities`, ncPayload)
           await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
+          await apiClient.post(`/applications/${numericApplicationId}/non-conformities`, ncPayload)
+            .catch(error => {
+              console.warn('[Audit Save] Legacy NC mirror save failed:', error?.response?.data?.message || error?.message)
+            })
           savedNcCount++
         } else if (record.finding === 'obs' && record.obsDescription) {
           const obsPayload = {
