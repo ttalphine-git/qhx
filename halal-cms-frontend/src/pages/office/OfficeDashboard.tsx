@@ -5,7 +5,7 @@ import {
   Calendar, ChevronRight, Activity, Clock,
   CheckCircle2, Tag, CreditCard, ArrowUpRight,
   Users, DollarSign, MessageSquare, Star, Trophy,
-  Download, MoreHorizontal,
+  Download, MoreHorizontal, Map,
 } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
 import { getPendingTasks, getUpcomingAudits, getApplicationStages, getRecentEvents } from "@/api/dashboard"
@@ -297,6 +297,26 @@ export default function OfficeDashboard() {
               <p style={{ margin:"7px 0 0", textAlign:"center", fontSize:"0.7rem", color:"#64748b" }}>
                 <strong style={{ color:"#10b981", fontSize:"1.05rem" }}>86%</strong> of users are satisfied with their purchases.
               </p>
+            </div>
+          </div>
+
+          <div className="od-snap-card" style={{ cursor:"pointer" }} onClick={() => navigate("/office/map-view")}
+            onMouseOver={e=>(e.currentTarget.style.background="#f8fbff")}
+            onMouseOut={e=>(e.currentTarget.style.background="#fff")}>
+            <div>
+              <div className="od-snap-top">
+                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                  <span className="od-snap-icon"><Map size={12} color="#0284c7" /></span>
+                  <p className="od-snap-label">Customer Locations</p>
+                </div>
+                <span className="od-snap-menu"><ChevronRight size={14} color="#94a3b8" /></span>
+              </div>
+              <p className="od-snap-value" style={{ color:"#0284c7" }}>View Map</p>
+              <p className="od-snap-sub">See all customer locations on an interactive map with certification status.</p>
+            </div>
+            <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", paddingTop:8, borderTop:"1px solid #f1f5f9", marginTop:8 }}>
+              <span style={{ fontSize:"0.7rem", color:"#64748b" }}>📍 {total} certified locations</span>
+              <span style={{ fontSize:"0.75rem", fontWeight:600, color:"#0284c7" }}>Open Map →</span>
             </div>
           </div>
         </div>
