@@ -611,29 +611,29 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   <p className="q-t" style={{ fontSize: '13px', lineHeight: '1.4', margin: 0 }}>{question.text}</p>
                                 </div>
                               </div>
-                              <div className="q-ctl" style={{ display: 'flex', flexDirection: 'row', gap: '4px', flexWrap: 'wrap' }}>
-                                <button type="button" data-v="yes" aria-pressed={record.answer === "yes"} onClick={() => updateAnswer(key, { answer: record.answer === "yes" ? "" : "yes" })} style={{ flex: 1, minWidth: '50px', padding: '6px 8px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'yes' ? '2px solid #2563eb' : '1px solid #e2e8f0', background: record.answer === 'yes' ? '#eff6ff' : '#fff', cursor: 'pointer', fontWeight: record.answer === 'yes' ? 600 : 400 }}>Yes</button>
-                                <button type="button" data-v="no" aria-pressed={record.answer === "no"} onClick={() => updateAnswer(key, { answer: record.answer === "no" ? "" : "no" })} style={{ flex: 1, minWidth: '50px', padding: '6px 8px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'no' ? '2px solid #d13438' : '1px solid #e2e8f0', background: record.answer === 'no' ? '#fef2f2' : '#fff', cursor: 'pointer', fontWeight: record.answer === 'no' ? 600 : 400 }}>No</button>
-                                <button type="button" data-v="na" aria-pressed={record.answer === "na"} onClick={() => updateAnswer(key, { answer: record.answer === "na" ? "" : "na" })} style={{ flex: 1, minWidth: '50px', padding: '6px 8px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'na' ? '2px solid #f59e0b' : '1px solid #e2e8f0', background: record.answer === 'na' ? '#fffbeb' : '#fff', cursor: 'pointer', fontWeight: record.answer === 'na' ? 600 : 400 }}>N/A</button>
+                              <div className="q-ctl" style={{ display: 'flex', flexDirection: 'row', gap: '6px', width: '100%' }}>
+                                <button type="button" data-v="yes" aria-pressed={record.answer === "yes"} onClick={() => updateAnswer(key, { answer: record.answer === "yes" ? "" : "yes" })} style={{ flex: 1, padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'yes' ? '2px solid #2563eb' : '1px solid #e2e8f0', background: record.answer === 'yes' ? '#eff6ff' : '#fff', cursor: 'pointer', fontWeight: record.answer === 'yes' ? 600 : 400 }}>Yes</button>
+                                <button type="button" data-v="no" aria-pressed={record.answer === "no"} onClick={() => updateAnswer(key, { answer: record.answer === "no" ? "" : "no" })} style={{ flex: 1, padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'no' ? '2px solid #d13438' : '1px solid #e2e8f0', background: record.answer === 'no' ? '#fef2f2' : '#fff', cursor: 'pointer', fontWeight: record.answer === 'no' ? 600 : 400 }}>No</button>
+                                <button type="button" data-v="na" aria-pressed={record.answer === "na"} onClick={() => updateAnswer(key, { answer: record.answer === "na" ? "" : "na" })} style={{ flex: 1, padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'na' ? '2px solid #f59e0b' : '1px solid #e2e8f0', background: record.answer === 'na' ? '#fffbeb' : '#fff', cursor: 'pointer', fontWeight: record.answer === 'na' ? 600 : 400 }}>N/A</button>
                                 <button type="button" className="findbtn" data-f="nc" aria-pressed={record.finding === "nc"} onClick={() => {
                                   console.log(`[NC Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
                                   updateAnswer(key, { finding: record.finding === "nc" ? "" : "nc" })
-                                }} style={{ flex: 1, minWidth: '45px', padding: '6px 8px', fontSize: '12px', borderRadius: '4px', background: record.finding === 'nc' ? '#d13438' : '#fff', color: record.finding === 'nc' ? '#fff' : '#d13438', border: record.finding === 'nc' ? '2px solid #d13438' : '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 }}>NC</button>
+                                }} style={{ flex: 1, padding: '6px 12px', fontSize: '12px', borderRadius: '4px', background: record.finding === 'nc' ? '#d13438' : '#fff', color: record.finding === 'nc' ? '#fff' : '#d13438', border: record.finding === 'nc' ? '2px solid #d13438' : '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 }}>NC</button>
                                 <button type="button" className="findbtn" data-f="obs" aria-pressed={record.finding === "obs"} onClick={() => {
                                   console.log(`[Obs Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
                                   updateAnswer(key, { finding: record.finding === "obs" ? "" : "obs" })
-                                }} style={{ flex: 1, minWidth: '50px', padding: '6px 8px', fontSize: '12px', borderRadius: '4px', background: record.finding === 'obs' ? '#f59e0b' : '#fff', color: record.finding === 'obs' ? '#fff' : '#f59e0b', border: record.finding === 'obs' ? '2px solid #f59e0b' : '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 }}>Obs</button>
+                                }} style={{ flex: 1, padding: '6px 12px', fontSize: '12px', borderRadius: '4px', background: record.finding === 'obs' ? '#f59e0b' : '#fff', color: record.finding === 'obs' ? '#fff' : '#f59e0b', border: record.finding === 'obs' ? '2px solid #f59e0b' : '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 }}>Obs</button>
                                 <button
                                   type="button"
                                   className="cmt-btn"
                                   aria-expanded={commentsOpen}
                                   aria-controls={`comments-${key}`}
                                   onClick={() => toggleComments(key)}
-                                  style={{ flex: 1, minWidth: '60px', padding: '6px 8px', fontSize: '12px', background: commentsOpen ? '#e0f2fe' : '#f1f5f9', border: commentsOpen ? '2px solid #0284c7' : '1px solid #e2e8f0', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: commentsOpen ? '#0284c7' : '#475569', fontWeight: commentsOpen ? 600 : 400 }}
+                                  style={{ flex: 1, padding: '6px 12px', fontSize: '12px', background: commentsOpen ? '#e0f2fe' : '#f1f5f9', border: commentsOpen ? '2px solid #0284c7' : '1px solid #e2e8f0', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: commentsOpen ? '#0284c7' : '#475569', fontWeight: commentsOpen ? 600 : 400 }}
                                 >
                                   <MessageSquare size={12} />
                                   <span>{commentsOpen ? "Hide" : "Cmts"}</span>
-                                  {commentCount > 0 && <span style={{ marginLeft: '4px', background: '#2563eb', color: '#fff', borderRadius: '2px', padding: '1px 4px', fontSize: '10px', fontWeight: 600 }}>{commentCount}</span>}
+                                  {commentCount > 0 && <span style={{ marginLeft: 'auto', background: '#2563eb', color: '#fff', borderRadius: '2px', padding: '1px 4px', fontSize: '10px', fontWeight: 600 }}>{commentCount}</span>}
                                 </button>
                               </div>
                               {record.finding && (
@@ -1009,7 +1009,7 @@ export default function OfficeApplicationAuditPage() {
     <OfficeLayout title="Audit">
       <div style={{ display: "flex", flexDirection: "column", gap: 0, height: "100%", background: "#f1f5f9" }}>
         {/* Blue Header Bar */}
-        <div style={{ padding: "14px 20px", background: "#2563eb", borderBottom: "1px solid #1d4ed8", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+        <div style={{ padding: "14px 20px", background: "#0f2170", borderBottom: "1px solid #0a1650", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
           <span style={{ fontFamily: "monospace", fontSize: "0.8rem", fontWeight: 700, color: "#fff", background: "rgba(255,255,255,0.15)", padding: "3px 10px", borderRadius: 6, flexShrink: 0 }}>
             {viewApp.applicationNumber || viewApp.id}
           </span>
