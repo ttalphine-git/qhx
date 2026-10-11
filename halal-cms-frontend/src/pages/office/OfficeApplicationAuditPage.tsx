@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { X, MessageSquare, CheckCircle2, Save } from "lucide-react"
+import { X, MessageSquare, Save } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
 import { NcsTab } from "@/components/NcsTab"
 import { useAuthStore } from "@/store/authStore"
@@ -1085,21 +1085,6 @@ export default function OfficeApplicationAuditPage() {
     )
   }
 
-  const workflowSteps = [
-    "Application submitted",
-    "Application approved",
-    "Sign agreement",
-    "Payment",
-    "Audit plan",
-    "Submit documents",
-    "F1 audit",
-    "F2 audit",
-    "NC clearance",
-    "Decision making",
-    "Factory certificate",
-    "Issue certificate",
-  ]
-
   return (
     <OfficeLayout title="Audit">
       <div className="audit-page-backdrop">
@@ -1118,19 +1103,6 @@ export default function OfficeApplicationAuditPage() {
           >
             ×
           </button>
-        </div>
-
-        <div className="audit-stepper">
-          {workflowSteps.map((step, index) => {
-            const done = index < 6
-            const active = index === 6
-            return (
-              <div className="audit-step" data-state={done ? "done" : active ? "active" : "todo"} key={step}>
-                <span>{done ? <CheckCircle2 size={17} /> : index + 1}</span>
-                <p>{step}</p>
-              </div>
-            )
-          })}
         </div>
 
         {/* Tab bar */}

@@ -460,23 +460,21 @@ td input:focus{border-color:var(--blue); background:var(--card)}
 /* ============ application audit modal view ============ */
 .audit-page-backdrop{
   min-height:calc(100vh - 120px);
-  padding:24px 34px 34px;
-  background:
-    linear-gradient(rgba(15,23,42,.42),rgba(15,23,42,.42)),
-    var(--page);
+  padding:0;
+  background:#eef4ff;
 }
 .audit-modal-shell{
-  width:min(1600px,calc(100vw - 68px));
-  margin:0 auto;
-  min-height:calc(100vh - 150px);
-  max-height:calc(100vh - 118px);
+  width:100%;
+  margin:0;
+  min-height:calc(100vh - 120px);
+  max-height:none;
   display:flex;
   flex-direction:column;
-  overflow:hidden;
+  overflow:visible;
   background:#fff;
-  border:1px solid rgba(37,99,235,.24);
-  border-radius:12px;
-  box-shadow:0 24px 70px rgba(15,23,42,.32);
+  border:0;
+  border-radius:0;
+  box-shadow:none;
 }
 .audit-modal-bar{
   min-height:58px;
@@ -488,62 +486,7 @@ td input:focus{border-color:var(--blue); background:var(--card)}
   gap:12px;
   flex:none;
 }
-.audit-stepper{
-  display:grid;
-  grid-template-columns:repeat(12,minmax(86px,1fr));
-  gap:12px;
-  padding:22px 24px;
-  background:#f8fbff;
-  border-bottom:1px solid var(--border);
-  overflow-x:auto;
-}
-.audit-step{
-  position:relative;
-  display:grid;
-  justify-items:center;
-  gap:7px;
-  min-width:86px;
-  color:#94a3b8;
-  font-size:10px;
-  line-height:1.25;
-  text-align:center;
-}
-.audit-step:not(:last-child)::after{
-  content:"";
-  position:absolute;
-  top:15px;
-  left:calc(50% + 26px);
-  width:calc(100% - 28px);
-  height:2px;
-  background:#d7e2f3;
-}
-.audit-step span{
-  position:relative;
-  z-index:1;
-  width:32px;
-  height:32px;
-  border-radius:999px;
-  display:grid;
-  place-items:center;
-  background:#eef4ff;
-  border:2px solid #d6e3f8;
-  font-weight:800;
-  color:#8aa0c4;
-}
-.audit-step[data-state="done"] span{
-  background:#16a34a;
-  border-color:#16a34a;
-  color:#fff;
-}
-.audit-step[data-state="done"]::after{background:#16a34a}
-.audit-step[data-state="active"] span{
-  background:#fff;
-  border-color:#2563eb;
-  color:#2563eb;
-  box-shadow:0 0 0 4px #e8f0fe;
-}
-.audit-step[data-state="active"] p{color:#0f1f55;font-weight:800}
-.audit-step p{margin:0;max-width:92px}
+.audit-modal-bar button{display:none!important}
 .audit-modal-tabs{
   display:flex;
   border-bottom:1px solid var(--border);
@@ -688,9 +631,8 @@ td input:focus{border-color:var(--blue); background:var(--card)}
   display:none!important;
 }
 @media (max-width:1100px){
-  .audit-page-backdrop{padding:12px}
+  .audit-page-backdrop{padding:0}
   .audit-modal-shell{width:100%;max-height:none}
-  .audit-stepper{grid-template-columns:repeat(12,96px)}
   .audit-cols{grid-template-columns:1fr}
   .audit-side{position:static;max-height:260px}
   .audit-report-head{align-items:flex-start;flex-direction:column}
