@@ -21,8 +21,11 @@ interface NCWorkflowStatus {
 
 interface EvidenceAttachment {
   name?: string
+  originalName?: string
+  data?: string
   size?: number
   type?: string
+  contentType?: string
 }
 
 interface EvidenceSubmission {
@@ -50,6 +53,29 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
   const [dueDate, setDueDate] = useState("")
   const [evidenceText, setEvidenceText] = useState("")
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([])
+
+  const attachmentName = (file: EvidenceAttachment, index: number) =>
+    file.name || file.originalName || `Attachment ${index + 1}`
+
+  const viewAttachment = (file: EvidenceAttachment, index: number) => {
+    if (!file.data) {
+      toast.error("This attachment was saved before file viewing was enabled")
+      return
+    }
+
+    const fileType = file.type || file.contentType || ""
+    if (fileType.startsWith("image/") || fileType === "application/pdf") {
+      window.open(file.data, "_blank", "noopener,noreferrer")
+      return
+    }
+
+    const link = document.createElement("a")
+    link.href = file.data
+    link.download = attachmentName(file, index)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  }
 
   // Fetch all NCs for application
   const { data: ncWorkflows = [], isLoading, error } = useQuery({
@@ -252,12 +278,32 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
                         {current.ncEvidence.map((file, index) => (
                           <div key={`${file.name || "attachment"}-${index}`} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.8rem", color: "#0f172a", fontFamily: F }}>
                             <FileText size={14} color="#2563eb" />
-                            <span>{file.name || `Attachment ${index + 1}`}</span>
+                            <span>{attachmentName(file, index)}</span>
                             {typeof file.size === "number" && (
                               <span style={{ color: "#64748b", fontSize: "0.72rem" }}>
                                 ({Math.ceil(file.size / 1024)} KB)
                               </span>
                             )}
+                            <button
+                              type="button"
+                              onClick={() => viewAttachment(file, index)}
+                              disabled={!file.data}
+                              title={file.data ? "View attachment" : "File content is not available for this saved attachment"}
+                              style={{
+                                marginLeft: "auto",
+                                padding: "4px 8px",
+                                border: "1px solid #dbeafe",
+                                background: file.data ? "#eff6ff" : "#f8fafc",
+                                color: file.data ? "#1d4ed8" : "#94a3b8",
+                                borderRadius: 5,
+                                cursor: file.data ? "pointer" : "not-allowed",
+                                fontSize: "0.72rem",
+                                fontWeight: 700,
+                                fontFamily: F,
+                              }}
+                            >
+                              View
+                            </button>
                           </div>
                         ))}
                       </div>

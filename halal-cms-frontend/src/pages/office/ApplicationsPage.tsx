@@ -1498,7 +1498,7 @@ type NCWorkflowQuestionState = {
   questionId?: string | number
   questionText?: string
   description?: string
-  ncEvidence?: { name?: string; size?: number; type?: string }[]
+  ncEvidence?: { name?: string; originalName?: string; data?: string; size?: number; type?: string; contentType?: string }[]
 }
 type AuditQuestionNode = { index: number; label: string; text: string }
 type AuditSectionNode = { id: string; title: string; questions: AuditQuestionNode[] }
@@ -1614,12 +1614,12 @@ function buildAuditParts(track: AuditTrack): AuditPartNode[] {
   return Array.from(parts.values())
 }
 
-const normalizeEvidenceForAnswer = (files?: { name?: string; size?: number; type?: string }[]) =>
+const normalizeEvidenceForAnswer = (files?: { name?: string; originalName?: string; data?: string; size?: number; type?: string; contentType?: string }[]) =>
   files?.map(file => ({
-    name: file.name || "Attachment",
-    data: "",
+    name: file.name || file.originalName || "Attachment",
+    data: file.data || "",
     size: file.size || 0,
-    type: file.type || "",
+    type: file.type || file.contentType || "",
   })) ?? []
 
 const findQuestionIndexForNc = (
@@ -1887,7 +1887,8 @@ function AuditChecklistTab({ app }: { app:any }) {
       }
 
       // Save NCs and Observations to separate database tables
-      const stripBase64 = (files: any[]) => files?.map(f => ({ originalName: f.name, size: f.size, type: f.type })) || []
+      const stripBase64 = (files: any[]) => files?.map(f => ({ name: f.name, size: f.size, type: f.type })) || []
+      const keepViewableEvidence = (files: any[]) => files?.map(f => ({ name: f.name, data: f.data, size: f.size, type: f.type })) || []
       let savedNcCount = 0
       let savedObservationCount = 0
 
@@ -1903,7 +1904,7 @@ function AuditChecklistTab({ app }: { app:any }) {
             questionText,
             category: activityCategoryKey,
             description: ncDescription,
-            ncEvidence: stripBase64(record.ncEvidence),
+            ncEvidence: keepViewableEvidence(record.ncEvidence),
             customerComment: record.customerComment || '',
             customerEvidence: stripBase64(record.customerEvidence),
             auditorComment: record.auditorComment || '',
