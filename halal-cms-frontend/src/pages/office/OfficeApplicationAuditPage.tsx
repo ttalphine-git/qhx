@@ -474,12 +474,13 @@ function AuditChecklistTab({ app }: { app: any }) {
 
         console.log(`[Audit Save] Question ${index}: finding="${record.finding}", ncDesc="${record.ncDescription?.substring(0, 50)}..."`)
 
-        if (record.finding === 'nc' && record.ncDescription) {
+        if (record.finding === 'nc') {
+          const ncDescription = record.ncDescription?.trim() || questionText
           const ncPayload = {
             questionId: question?.id || `q-${index}`,
             questionText,
             category: activityCategoryKey,
-            description: record.ncDescription,
+            description: ncDescription,
             ncEvidence: stripBase64(record.ncEvidence),
             customerComment: record.customerComment || '',
             customerEvidence: stripBase64(record.customerEvidence),
@@ -492,7 +493,11 @@ function AuditChecklistTab({ app }: { app: any }) {
           console.log(`[Audit Save] Saving NC for question ${index}:`, ncPayload)
 
           try {
-            const response = await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
+            const response = await apiClient.post(`/applications/${numericApplicationId}/non-conformities`, ncPayload)
+            await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
+              .catch(error => {
+                console.warn('[Audit Save] NC workflow mirror failed:', error?.response?.data?.message || error?.message)
+              })
             console.log(`[Audit Save] NC saved successfully for question ${index}:`, response.data)
             savedNcCount++
           } catch (err: any) {
@@ -695,16 +700,6 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   <button type="button" data-v="no" aria-pressed={record.answer === "no"} onClick={() => updateAnswer(key, { answer: record.answer === "no" ? "" : "no" })}>No</button>
                                   <button type="button" data-v="na" aria-pressed={record.answer === "na"} onClick={() => updateAnswer(key, { answer: record.answer === "na" ? "" : "na" })}>N/A</button>
                                 </div>
-                                <div className="findbtns">
-                                  <button type="button" className="findbtn" data-f="nc" aria-pressed={record.finding === "nc"} onClick={() => {
-                                    console.log(`[NC Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
-                                    updateAnswer(key, { finding: record.finding === "nc" ? "" : "nc" })
-                                  }}>NC</button>
-                                  <button type="button" className="findbtn" data-f="obs" aria-pressed={record.finding === "obs"} onClick={() => {
-                                    console.log(`[Obs Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
-                                    updateAnswer(key, { finding: record.finding === "obs" ? "" : "obs" })
-                                  }}>Obs</button>
-                                </div>
                                 <button
                                   type="button"
                                   className="cmt-btn"
@@ -716,6 +711,16 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   <span>{commentsOpen ? "Hide" : "Cmts"}</span>
                                   {commentCount > 0 && <span style={{ marginLeft: 'auto', background: '#2563eb', color: '#fff', borderRadius: '2px', padding: '1px 4px', fontSize: '10px', fontWeight: 600 }}>{commentCount}</span>}
                                 </button>
+                                <div className="findbtns">
+                                  <button type="button" className="findbtn" data-f="nc" aria-pressed={record.finding === "nc"} onClick={() => {
+                                    console.log(`[NC Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
+                                    updateAnswer(key, { finding: record.finding === "nc" ? "" : "nc" })
+                                  }}>NC</button>
+                                  <button type="button" className="findbtn" data-f="obs" aria-pressed={record.finding === "obs"} onClick={() => {
+                                    console.log(`[Obs Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
+                                    updateAnswer(key, { finding: record.finding === "obs" ? "" : "obs" })
+                                  }}>Obs</button>
+                                </div>
                               </div>
                               </div>
                               {record.finding && (

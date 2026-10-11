@@ -25,24 +25,27 @@ public class FindingsService {
                                            String category, Map<String, Object> findingData, String userId) throws Exception {
         log.info("Saving NC for application: {}, question: {}", applicationId, questionId);
 
-        NonConformity nc = NonConformity.builder()
-                .applicationId(applicationId)
-                .questionId(questionId)
-                .questionText(questionText)
-                .category(category)
-                .ncEvidenceJson(findingData.get("ncEvidence") != null ?
-                    objectMapper.writeValueAsString(findingData.get("ncEvidence")) : null)
-                .customerComment((String) findingData.get("customerComment"))
-                .customerEvidenceJson(findingData.get("customerEvidence") != null ?
-                    objectMapper.writeValueAsString(findingData.get("customerEvidence")) : null)
-                .auditorComment((String) findingData.get("auditorComment"))
-                .auditorEvidenceJson(findingData.get("auditorEvidence") != null ?
-                    objectMapper.writeValueAsString(findingData.get("auditorEvidence")) : null)
-                .shariaComment((String) findingData.get("shariaComment"))
-                .shariaEvidenceJson(findingData.get("shariaEvidence") != null ?
-                    objectMapper.writeValueAsString(findingData.get("shariaEvidence")) : null)
-                .createdBy(userId)
-                .build();
+        NonConformity nc = nonConformityRepository
+                .findByApplicationIdAndQuestionId(applicationId, questionId)
+                .orElseGet(NonConformity::new);
+
+        nc.setApplicationId(applicationId);
+        nc.setQuestionId(questionId);
+        nc.setQuestionText(questionText);
+        nc.setCategory(category);
+        nc.setDescription((String) findingData.get("description"));
+        nc.setNcEvidenceJson(findingData.get("ncEvidence") != null ?
+                objectMapper.writeValueAsString(findingData.get("ncEvidence")) : null);
+        nc.setCustomerComment((String) findingData.get("customerComment"));
+        nc.setCustomerEvidenceJson(findingData.get("customerEvidence") != null ?
+                objectMapper.writeValueAsString(findingData.get("customerEvidence")) : null);
+        nc.setAuditorComment((String) findingData.get("auditorComment"));
+        nc.setAuditorEvidenceJson(findingData.get("auditorEvidence") != null ?
+                objectMapper.writeValueAsString(findingData.get("auditorEvidence")) : null);
+        nc.setShariaComment((String) findingData.get("shariaComment"));
+        nc.setShariaEvidenceJson(findingData.get("shariaEvidence") != null ?
+                objectMapper.writeValueAsString(findingData.get("shariaEvidence")) : null);
+        nc.setCreatedBy(userId);
 
         return nonConformityRepository.save(nc);
     }

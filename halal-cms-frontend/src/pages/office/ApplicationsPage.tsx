@@ -1830,12 +1830,13 @@ function AuditChecklistTab({ app }: { app:any }) {
         const record = (answers[`${selectedTrack.id}-${index}`] ?? blankAuditAnswer()) as any
         const questionText = selectedTrack.questions[index]
 
-        if (record.finding === 'nc' && record.ncDescription) {
+        if (record.finding === 'nc') {
+          const ncDescription = record.ncDescription?.trim() || questionText
           const ncPayload = {
             questionId: question?.id || `q-${index}`,
             questionText,
             category: activityCategoryKey,
-            description: record.ncDescription,
+            description: ncDescription,
             ncEvidence: stripBase64(record.ncEvidence),
             customerComment: record.customerComment || '',
             customerEvidence: stripBase64(record.customerEvidence),
@@ -1845,7 +1846,11 @@ function AuditChecklistTab({ app }: { app:any }) {
             shariaEvidence: stripBase64(record.shariaEvidence),
           }
 
+          await apiClient.post(`/applications/${numericApplicationId}/non-conformities`, ncPayload)
           await apiClient.post(`/nc/application/${numericApplicationId}/findings`, ncPayload)
+            .catch(error => {
+              console.warn('[Audit Save] NC workflow mirror failed:', error?.response?.data?.message || error?.message)
+            })
           savedNcCount++
         } else if (record.finding === 'obs' && record.obsDescription) {
           const obsPayload = {
@@ -3713,9 +3718,9 @@ export default function ApplicationsPage() {
           <div ref={detailRef} style={{ width:"100%", height:"100%", maxWidth:1600, background:"#f1f5f9", borderRadius:16, display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 24px 64px rgba(0,0,0,0.25)" }}>
 
             {/* Panel header */}
-            <div style={{ padding:"14px 20px", background:"#2563eb", borderBottom:"1px solid #1d4ed8", display:"flex", alignItems:"center", gap:12 }}>
-              <span style={{ fontFamily:"monospace", fontSize:"0.8rem", fontWeight:700, color:"#fff", background:"rgba(255,255,255,0.15)", padding:"3px 10px", borderRadius:6, flexShrink:0 }}>{appNum}</span>
-              <span style={{ fontSize:"0.95rem", fontWeight:700, color:"#fff", flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{company}</span>
+            <div style={{ padding:"14px 20px", background:"#fff", borderBottom:"1px solid #e2e8f0", display:"flex", alignItems:"center", gap:12 }}>
+              <span style={{ fontFamily:"monospace", fontSize:"0.8rem", fontWeight:700, color:BLUE, background:"#eff6ff", padding:"3px 10px", borderRadius:6, flexShrink:0 }}>{appNum}</span>
+              <span style={{ fontSize:"0.95rem", fontWeight:700, color:DARK, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{company}</span>
               {/* Status flow badges */}
               {(() => {
                 const flow = STATUS_FLOW[status] ?? { done: s.label, upcoming: "-" }
@@ -3725,7 +3730,7 @@ export default function ApplicationsPage() {
                       <span style={{ fontSize:"0.68rem", fontWeight:900, color:BLUE, fontFamily:F }}>Current Status:</span>
                       <span style={{ fontSize:"0.72rem", fontWeight:700, color:"#111827", fontFamily:F }}>{flow.done}</span>
                     </div>
-                    <span style={{ color:"rgba(255,255,255,0.5)", fontSize:"1rem" }}></span>
+                    <span style={{ color:"#94a3b8", fontSize:"1rem" }}></span>
                     <div style={{ display:"flex", alignItems:"center", gap:5, background:"#ffffff", padding:"5px 14px", borderRadius:20, boxShadow:"0 2px 10px rgba(0,0,0,0.25)" }}>
                       <span style={{ fontSize:"0.68rem", fontWeight:900, color:BLUE, fontFamily:F }}>Pending Work:</span>
                       <span style={{ fontSize:"0.72rem", fontWeight:700, color:"#111827", fontFamily:F }}>{flow.upcoming}</span>
@@ -3733,9 +3738,9 @@ export default function ApplicationsPage() {
                   </div>
                 )
               })()}
-              {isLocal && <span style={{ fontSize:"0.67rem", color:"rgba(255,255,255,0.75)", background:"rgba(255,255,255,0.12)", padding:"2px 9px", borderRadius:9, fontWeight:600, flexShrink:0 }}>Pending sync</span>}
+              {isLocal && <span style={{ fontSize:"0.67rem", color:"#475569", background:"#f1f5f9", padding:"2px 9px", borderRadius:9, fontWeight:600, flexShrink:0 }}>Pending sync</span>}
               <button onClick={() => setViewApp(null)}
-                style={{ width:28, height:28, borderRadius:8, border:"1px solid rgba(255,255,255,0.25)", background:"rgba(255,255,255,0.12)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", flexShrink:0 }}>
+                style={{ width:28, height:28, borderRadius:8, border:"1px solid #cbd5e1", background:"#fff", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#475569", flexShrink:0 }}>
                 <X style={{ width:14, height:14 }} />
               </button>
             </div>
