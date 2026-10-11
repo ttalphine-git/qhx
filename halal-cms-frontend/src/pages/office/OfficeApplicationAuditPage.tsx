@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { X, MessageSquare, CheckCircle2 } from "lucide-react"
+import { X, MessageSquare, CheckCircle2, Save } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
 import { NcsTab } from "@/components/NcsTab"
 import { useAuthStore } from "@/store/authStore"
@@ -276,6 +276,16 @@ function AuditChecklistTab({ app }: { app: any }) {
     answered: part.sections.reduce((sum, section) => sum + countQuestions(section.questions).answered, 0),
     total: part.sections.reduce((sum, section) => sum + section.questions.length, 0),
   })
+  const markSection = (section: AuditSectionNode, patch: Partial<AuditQuestionAnswer>) => {
+    setAnswers(prev => {
+      const next = { ...prev }
+      section.questions.forEach(question => {
+        const key = `${selectedTrack.id}-${question.index}`
+        next[key] = { ...(next[key] ?? blankAuditAnswer()), ...patch }
+      })
+      return next
+    })
+  }
   const scrollToAuditNode = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
@@ -566,16 +576,78 @@ function AuditChecklistTab({ app }: { app: any }) {
   if (!selectedTrack) return <div style={{ padding: "44px 20px" }}>Loading audit configuration...</div>
 
   return (
-    <div id="app" style={{ background: "#fff", margin: 0, maxHeight: "calc(100vh - 190px)", overflow: "auto", paddingBottom: "80px" }}>
-      <div className="wrap" style={{ maxWidth: "none", padding: "20px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: DARK }}>{selectedTrack.reportTitle || selectedTrack.name}</h1>
+    <div id="app" className="audit-workspace">
+      <div className="audit-report-head">
+        <div>
+          <h1>{selectedTrack.reportTitle || selectedTrack.name}</h1>
+          <p>{app.applicationNumber || app.id} - {app.companyName || "-"}</p>
+        </div>
+        <div className="audit-head-actions">
+          <div className="prog">
+            <div className="bar"><i style={{ width: `${percent}%` }} /></div>
+            <span>{completed} of {total} answered</span>
           </div>
-          <button type="button" style={{ padding: "6px 14px", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 6, cursor: "pointer", fontSize: "0.75rem", fontWeight: 600, color: "#475569" }} onClick={() => setShowReference(true)}>
-            Risk &amp; Definitions
+          <button type="button" className="btn primary" onClick={saveReport} disabled={saving}>
+            <Save size={15} />
+            {saving ? "Saving..." : "Save Report"}
           </button>
         </div>
+      </div>
+
+      <div className="audit-reference-row">
+        <button type="button" className="btn" onClick={() => setShowReference(true)}>
+          Risk &amp; Definitions
+        </button>
+      </div>
+
+      <div className="cols audit-cols">
+        <aside className="side audit-side">
+          <h4>Audit Sections</h4>
+          {auditParts.map(part => {
+            const partCounts = countPart(part)
+            const partLeft = partCounts.total - partCounts.answered
+            return (
+              <div key={part.id}>
+                <button
+                  type="button"
+                  className="navlink"
+                  aria-current={activeOpenPart === part.id}
+                  aria-expanded={activeOpenPart === part.id}
+                  onClick={() => {
+                    setOpenPart(activeOpenPart === part.id ? null : part.id)
+                    scrollToAuditNode(`part-${part.id}`)
+                  }}
+                >
+                  <span className="nid">{part.id}</span>
+                  <span>{part.title}</span>
+                  <span className="npend">{partLeft} left</span>
+                </button>
+                <div className="subnav" hidden={activeOpenPart !== part.id}>
+                  {part.sections.map(section => {
+                    const sectionCounts = countQuestions(section.questions)
+                    const sectionLeft = sectionCounts.total - sectionCounts.answered
+                    return (
+                      <button
+                        type="button"
+                        className="sublink"
+                        aria-current={currentSection === section.id}
+                        key={section.id}
+                        onClick={() => {
+                          setCurrentSection(section.id)
+                          scrollToAuditNode(`sec-${section.id}`)
+                        }}
+                      >
+                        <span className="nid">{section.id}</span>
+                        <span>{section.title}</span>
+                        <span className="npend">{sectionLeft} left</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+        </aside>
 
         <div className="colmain">
             {auditParts.map(part => (
@@ -590,13 +662,18 @@ function AuditChecklistTab({ app }: { app: any }) {
                   const sectionLeft = sectionCounts.total - sectionCounts.answered
                   return (
                     <section className="sec" id={`sec-${section.id}`} key={section.id}>
-                      <div className="sec-hd" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <div className="sec-hd">
                         <span className="sid">{section.id}</span>
                         <h3>{section.title}</h3>
                         <span className="sec-meta">{sectionCounts.answered} / {sectionCounts.total} answered</span>
                         {sectionLeft > 0 && <span className="sec-warn">{sectionLeft} unanswered</span>}
+                        <div className="section-bulk">
+                          <button type="button" className="btn" onClick={() => markSection(section, { answer: "na" })}>Mark all N/A</button>
+                          <button type="button" className="btn" onClick={() => markSection(section, { finding: "nc" })}>Mark all NC</button>
+                          <button type="button" className="btn" onClick={() => markSection(section, { finding: "obs" })}>Mark all Obs</button>
+                        </div>
                       </div>
-                      <div className="sec-body" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px', alignItems: 'start' }}>
+                      <div className="sec-body">
                         <div>
                           {section.questions.map(question => {
                             const key = `${selectedTrack.id}-${question.index}`
@@ -611,25 +688,28 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   <p className="q-t" style={{ fontSize: '13px', lineHeight: '1.4', margin: 0 }}>{question.text}</p>
                                 </div>
                               </div>
-                              <div className="q-ctl" style={{ display: 'flex', flexDirection: 'row', gap: '6px', width: '100%' }}>
-                                <button type="button" data-v="yes" aria-pressed={record.answer === "yes"} onClick={() => updateAnswer(key, { answer: record.answer === "yes" ? "" : "yes" })} style={{ flex: 1, padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'yes' ? '2px solid #2563eb' : '1px solid #e2e8f0', background: record.answer === 'yes' ? '#eff6ff' : '#fff', cursor: 'pointer', fontWeight: record.answer === 'yes' ? 600 : 400 }}>Yes</button>
-                                <button type="button" data-v="no" aria-pressed={record.answer === "no"} onClick={() => updateAnswer(key, { answer: record.answer === "no" ? "" : "no" })} style={{ flex: 1, padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'no' ? '2px solid #d13438' : '1px solid #e2e8f0', background: record.answer === 'no' ? '#fef2f2' : '#fff', cursor: 'pointer', fontWeight: record.answer === 'no' ? 600 : 400 }}>No</button>
-                                <button type="button" data-v="na" aria-pressed={record.answer === "na"} onClick={() => updateAnswer(key, { answer: record.answer === "na" ? "" : "na" })} style={{ flex: 1, padding: '6px 12px', fontSize: '12px', borderRadius: '4px', border: record.answer === 'na' ? '2px solid #f59e0b' : '1px solid #e2e8f0', background: record.answer === 'na' ? '#fffbeb' : '#fff', cursor: 'pointer', fontWeight: record.answer === 'na' ? 600 : 400 }}>N/A</button>
-                                <button type="button" className="findbtn" data-f="nc" aria-pressed={record.finding === "nc"} onClick={() => {
-                                  console.log(`[NC Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
-                                  updateAnswer(key, { finding: record.finding === "nc" ? "" : "nc" })
-                                }} style={{ flex: 1, padding: '6px 12px', fontSize: '12px', borderRadius: '4px', background: record.finding === 'nc' ? '#d13438' : '#fff', color: record.finding === 'nc' ? '#fff' : '#d13438', border: record.finding === 'nc' ? '2px solid #d13438' : '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 }}>NC</button>
-                                <button type="button" className="findbtn" data-f="obs" aria-pressed={record.finding === "obs"} onClick={() => {
-                                  console.log(`[Obs Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
-                                  updateAnswer(key, { finding: record.finding === "obs" ? "" : "obs" })
-                                }} style={{ flex: 1, padding: '6px 12px', fontSize: '12px', borderRadius: '4px', background: record.finding === 'obs' ? '#f59e0b' : '#fff', color: record.finding === 'obs' ? '#fff' : '#f59e0b', border: record.finding === 'obs' ? '2px solid #f59e0b' : '1px solid #e2e8f0', cursor: 'pointer', fontWeight: 600 }}>Obs</button>
+                              <div className="q-ctl">
+                                <div className="seg" aria-label={`Answer for question ${question.label}`}>
+                                  <button type="button" data-v="yes" aria-pressed={record.answer === "yes"} onClick={() => updateAnswer(key, { answer: record.answer === "yes" ? "" : "yes" })}>Yes</button>
+                                  <button type="button" data-v="no" aria-pressed={record.answer === "no"} onClick={() => updateAnswer(key, { answer: record.answer === "no" ? "" : "no" })}>No</button>
+                                  <button type="button" data-v="na" aria-pressed={record.answer === "na"} onClick={() => updateAnswer(key, { answer: record.answer === "na" ? "" : "na" })}>N/A</button>
+                                </div>
+                                <div className="findbtns">
+                                  <button type="button" className="findbtn" data-f="nc" aria-pressed={record.finding === "nc"} onClick={() => {
+                                    console.log(`[NC Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
+                                    updateAnswer(key, { finding: record.finding === "nc" ? "" : "nc" })
+                                  }}>NC</button>
+                                  <button type="button" className="findbtn" data-f="obs" aria-pressed={record.finding === "obs"} onClick={() => {
+                                    console.log(`[Obs Button] Clicked for question ${question.label}, current finding: ${record.finding}`)
+                                    updateAnswer(key, { finding: record.finding === "obs" ? "" : "obs" })
+                                  }}>Obs</button>
+                                </div>
                                 <button
                                   type="button"
                                   className="cmt-btn"
                                   aria-expanded={commentsOpen}
                                   aria-controls={`comments-${key}`}
                                   onClick={() => toggleComments(key)}
-                                  style={{ flex: 1, padding: '6px 12px', fontSize: '12px', background: commentsOpen ? '#e0f2fe' : '#f1f5f9', border: commentsOpen ? '2px solid #0284c7' : '1px solid #e2e8f0', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: commentsOpen ? '#0284c7' : '#475569', fontWeight: commentsOpen ? 600 : 400 }}
                                 >
                                   <MessageSquare size={12} />
                                   <span>{commentsOpen ? "Hide" : "Cmts"}</span>
@@ -782,6 +862,7 @@ function AuditChecklistTab({ app }: { app: any }) {
               </React.Fragment>
             ))}
         </div>
+      </div>
 
         {showReference && (
           <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
@@ -967,7 +1048,6 @@ function AuditChecklistTab({ app }: { app: any }) {
           </div>
         )}
       </div>
-    </div>
   )
 }
 
@@ -1005,11 +1085,27 @@ export default function OfficeApplicationAuditPage() {
     )
   }
 
+  const workflowSteps = [
+    "Application submitted",
+    "Application approved",
+    "Sign agreement",
+    "Payment",
+    "Audit plan",
+    "Submit documents",
+    "F1 audit",
+    "F2 audit",
+    "NC clearance",
+    "Decision making",
+    "Factory certificate",
+    "Issue certificate",
+  ]
+
   return (
     <OfficeLayout title="Audit">
-      <div style={{ display: "flex", flexDirection: "column", gap: 0, height: "100%", background: "#f1f5f9" }}>
+      <div className="audit-page-backdrop">
+      <div className="audit-modal-shell">
         {/* Blue Header Bar */}
-        <div style={{ padding: "14px 20px", background: "#0f2170", borderBottom: "1px solid #0a1650", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+        <div className="audit-modal-bar">
           <span style={{ fontFamily: "monospace", fontSize: "0.8rem", fontWeight: 700, color: "#fff", background: "rgba(255,255,255,0.15)", padding: "3px 10px", borderRadius: 6, flexShrink: 0 }}>
             {viewApp.applicationNumber || viewApp.id}
           </span>
@@ -1024,8 +1120,21 @@ export default function OfficeApplicationAuditPage() {
           </button>
         </div>
 
+        <div className="audit-stepper">
+          {workflowSteps.map((step, index) => {
+            const done = index < 6
+            const active = index === 6
+            return (
+              <div className="audit-step" data-state={done ? "done" : active ? "active" : "todo"} key={step}>
+                <span>{done ? <CheckCircle2 size={17} /> : index + 1}</span>
+                <p>{step}</p>
+              </div>
+            )
+          })}
+        </div>
+
         {/* Tab bar */}
-        <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", overflowX: "auto", scrollbarWidth: "none", background: "#fff", padding: "0 20px" }}>
+        <div className="audit-modal-tabs">
           {["Audit", "NCs", "Products"].map(tab => {
             const isActive = activeTab === tab
             return (
@@ -1038,7 +1147,7 @@ export default function OfficeApplicationAuditPage() {
         </div>
 
         {/* Tab content */}
-        <div style={{ flex: 1, overflowY: "auto", background: "#fff", padding: 0 }}>
+        <div className="audit-modal-content">
           {activeTab === "Audit" && <AuditChecklistTab app={viewApp} />}
           {activeTab === "NCs" && <NcsTab applicationId={viewApp.id} />}
           {activeTab === "Products" && (
@@ -1074,6 +1183,7 @@ export default function OfficeApplicationAuditPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </OfficeLayout>
   )
