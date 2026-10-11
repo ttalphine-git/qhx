@@ -36,15 +36,25 @@ function Sparkline({ points, color }: { points: number[]; color: string }) {
   const max = Math.max(...points)
   const min = Math.min(...points)
   const span = Math.max(1, max - min)
-  const d = points.map((p, i) => {
+  const pathData = points.map((p, i) => {
     const x = (i / (points.length - 1)) * 100
     const y = 46 - ((p - min) / span) * 38
     return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`
   }).join(" ")
 
+  const d = pathData
+  const gradientId = `grad-${Math.random().toString(36).substr(2, 9)}`
+
   return (
     <svg viewBox="0 0 100 52" preserveAspectRatio="none" style={{ width:"100%", height:58, display:"block" }}>
-      <path d={d} fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style={{ stopColor: color, stopOpacity: 0.2 }} />
+          <stop offset="100%" style={{ stopColor: color, stopOpacity: 0.01 }} />
+        </linearGradient>
+      </defs>
+      <path d={d + " L 100 52 L 0 52 Z"} fill={`url(#${gradientId})`} />
+      <path d={d} fill="none" stroke={color} strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
