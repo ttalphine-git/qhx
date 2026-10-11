@@ -682,6 +682,7 @@ function AuditChecklistTab({ app }: { app: any }) {
                             const commentsOpen = !!openComments[key]
                             return (
                               <article className={`q ${record.finding ? "q-with-finding" : ""}`} id={`q-${key}`} key={key} style={{ marginBottom: '12px', padding: '12px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+                              <div className="q-main">
                               <div className="q-top" style={{ marginBottom: '10px' }}>
                                 <span className="q-n" style={record.answer ? { background: "var(--green)", color: "#fff", fontSize: '12px', padding: '2px 8px', borderRadius: '4px' } : { background: '#f1f5f9', color: '#64748b', fontSize: '12px', padding: '2px 8px', borderRadius: '4px' }}>{question.label}</span>
                                 <div style={{ marginTop: '6px' }}>
@@ -715,6 +716,7 @@ function AuditChecklistTab({ app }: { app: any }) {
                                   <span>{commentsOpen ? "Hide" : "Cmts"}</span>
                                   {commentCount > 0 && <span style={{ marginLeft: 'auto', background: '#2563eb', color: '#fff', borderRadius: '2px', padding: '1px 4px', fontSize: '10px', fontWeight: 600 }}>{commentCount}</span>}
                                 </button>
+                              </div>
                               </div>
                               {record.finding && (
                                 <div className="cmts" style={{ marginTop: '10px', padding: '10px', background: '#fafbfc', borderRadius: '4px', borderLeft: `3px solid ${record.finding === 'nc' ? '#d13438' : '#f59e0b'}` }}>

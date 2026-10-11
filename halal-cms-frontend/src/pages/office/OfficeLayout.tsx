@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { Settings, ChevronDown, Power, Menu, X, Bell, Search } from "lucide-react"
+import {
+  Settings, ChevronDown, Power, Menu, X, Bell, Search,
+  LayoutDashboard, Users, ClipboardList, Boxes,
+} from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { C } from "@/lib/utils"
 import { getNotifications, markRead, markAllRead, clearNotifications, type AppNotification } from "@/lib/notifications"
@@ -8,10 +11,10 @@ import OnboardingWizard from "@/components/OnboardingWizard"
 import { isOnboardingComplete } from "@/lib/onboarding"
 
 const NAV_ITEMS = [
-  { label: "Dashboard",              path: "/office/dashboard"              },
-  { label: "Customers",              path: "/office/customers"              },
-  { label: "Factory Applications",   path: "/office/applications"           },
-  { label: "Batch Applications",     path: "/office/batch-applications"     },
+  { label: "Dashboard",              path: "/office/dashboard",            Icon: LayoutDashboard },
+  { label: "Customers",              path: "/office/customers",            Icon: Users           },
+  { label: "Factory Applications",   path: "/office/applications",         Icon: ClipboardList   },
+  { label: "Batch Applications",     path: "/office/batch-applications",   Icon: Boxes           },
 ]
 
 const SETTINGS_ITEMS = [
@@ -141,7 +144,7 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
 
         {/* Desktop nav links */}
         <div className="ol-nav-links">
-          {NAV_ITEMS.map(({ label, path }) => {
+          {NAV_ITEMS.map(({ label, path, Icon }) => {
             const active = path === "/office/dashboard" ? location.pathname === path : location.pathname.startsWith(path)
             const showBadge = label === "Customers" && pendingCount > 0
             return (
@@ -150,6 +153,7 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
                 onMouseOver={e => { if (!active) e.currentTarget.style.background = C.navHover }}
                 onMouseOut={e => { if (!active) e.currentTarget.style.background = "transparent" }}
               >
+                <Icon size={15} strokeWidth={1.9} style={{ opacity: active ? 1 : 0.86 }} />
                 {label}
                 {showBadge && (
                   <span style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", minWidth:18, height:18, padding:"0 5px", borderRadius:99, background:"#f59e0b", color:"#fff", fontSize:"0.6rem", fontWeight:800, lineHeight:1 }}>
@@ -309,11 +313,12 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
         <div style={{ background:C.nav, borderBottom:"1px solid rgba(255,255,255,0.1)", zIndex:99, fontFamily:"'Inter',system-ui,sans-serif" }}>
           {/* Nav links */}
           <div style={{ padding:"0.5rem 1rem" }}>
-            {NAV_ITEMS.map(({ label, path }) => {
+            {NAV_ITEMS.map(({ label, path, Icon }) => {
               const active = path === "/office/dashboard" ? location.pathname === path : location.pathname.startsWith(path)
               return (
                 <button key={path} onClick={() => go(path)}
-                  style={{ display:"block", width:"100%", textAlign:"left", padding:"0.75rem 1rem", borderRadius:8, background:active ? C.navActive : "transparent", color:"#fff", border:"none", cursor:"pointer", fontSize:"0.9375rem", fontWeight:active ? 600 : 400, marginBottom:2, fontFamily:"inherit" }}>
+                  style={{ display:"flex", alignItems:"center", gap:"0.75rem", width:"100%", textAlign:"left", padding:"0.75rem 1rem", borderRadius:8, background:active ? C.navActive : "transparent", color:"#fff", border:"none", cursor:"pointer", fontSize:"0.9375rem", fontWeight:active ? 600 : 400, marginBottom:2, fontFamily:"inherit" }}>
+                  <Icon size={17} strokeWidth={1.9} style={{ opacity: active ? 1 : 0.75 }} />
                   {label}
                 </button>
               )

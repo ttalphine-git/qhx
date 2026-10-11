@@ -4,7 +4,7 @@ import {
   FileText, Award, ClipboardCheck,
   Calendar, ChevronRight, Activity, Clock,
   CheckCircle2, Tag, CreditCard, ArrowUpRight,
-  Users, DollarSign, MessageSquare, Star, Trophy,
+  Users, DollarSign, MessageSquare, Star,
   Download, MoreHorizontal,
 } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
@@ -37,24 +37,24 @@ function Sparkline({ points, color }: { points: number[]; color: string }) {
   const min = Math.min(...points)
   const span = Math.max(1, max - min)
   const pathData = points.map((p, i) => {
-    const x = (i / (points.length - 1)) * 100
-    const y = 46 - ((p - min) / span) * 38
+    const x = 3 + (i / (points.length - 1)) * 114
+    const y = 42 - ((p - min) / span) * 32
     return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`
   }).join(" ")
 
   const d = pathData
-  const gradientId = `grad-${Math.random().toString(36).substr(2, 9)}`
+  const gradientId = `grad-${color.replace(/[^a-z0-9]/gi, "")}`
 
   return (
-    <svg viewBox="0 0 100 52" preserveAspectRatio="none" style={{ width:"100%", height:58, display:"block" }}>
+    <svg viewBox="0 0 120 48" preserveAspectRatio="none" style={{ width:"100%", height:54, display:"block" }}>
       <defs>
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" style={{ stopColor: color, stopOpacity: 0.2 }} />
           <stop offset="100%" style={{ stopColor: color, stopOpacity: 0.01 }} />
         </linearGradient>
       </defs>
-      <path d={d + " L 100 52 L 0 52 Z"} fill={`url(#${gradientId})`} />
-      <path d={d} fill="none" stroke={color} strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={`${d} L 117 48 L 3 48 Z`} fill={`url(#${gradientId})`} />
+      <path d={d} fill="none" stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -118,9 +118,10 @@ export default function OfficeDashboard() {
         .od-avatars     { display:flex; align-items:center; margin-top:12px; }
         .od-avatar      { width:22px; height:22px; border-radius:999px; border:2px solid #fff; margin-left:-6px; display:flex; align-items:center; justify-content:center; font-size:0.58rem; font-weight:800; color:#fff; }
         .od-avatar:first-child { margin-left:0; }
-        .od-rating-arc  { position:relative; height:78px; margin-top:8px; display:flex; align-items:flex-end; justify-content:center; overflow:hidden; }
-        .od-rating-arc svg { position:absolute; bottom:-26px; width:148px; height:96px; }
-        .od-rating-center { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:5px; color:#2563eb; font-size:0.76rem; font-weight:800; }
+        .od-rating-meter { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:12px; margin-top:10px; }
+        .od-rating-badge { width:44px; height:44px; border-radius:12px; display:grid; place-items:center; background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; }
+        .od-rating-track { height:8px; border-radius:999px; background:#e5edf8; overflow:hidden; }
+        .od-rating-fill  { height:100%; width:86%; border-radius:999px; background:#2563eb; }
         .od-split       { display:grid; grid-template-columns:1fr 1fr; }
         .od-bottom      { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
         .od-sidebar     { display:flex; flex-direction:column; gap:14px; }
@@ -294,17 +295,19 @@ export default function OfficeDashboard() {
               <p className="od-snap-sub">+0.1 points from last week.</p>
             </div>
             <div>
-              <div className="od-rating-arc">
-                <svg viewBox="0 0 160 100" aria-hidden="true">
-                  <path d="M20 80 A60 60 0 0 1 140 80" fill="none" stroke="#dbeafe" strokeWidth="7" strokeLinecap="round" />
-                  <path d="M20 80 A60 60 0 0 1 140 80" fill="none" stroke="#3b82f6" strokeWidth="7" strokeLinecap="round" strokeDasharray="164 190" />
-                </svg>
-                <div className="od-rating-center">
-                  <Trophy size={20} strokeWidth={1.8} />
-                  <span>Superb!</span>
+              <div className="od-rating-meter">
+                <div className="od-rating-badge">
+                  <Award size={22} strokeWidth={1.9} />
+                </div>
+                <div>
+                  <div className="od-rating-track"><div className="od-rating-fill" /></div>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginTop:6, fontSize:"0.68rem", color:"#64748b", fontWeight:700 }}>
+                    <span>Superb</span>
+                    <span>86%</span>
+                  </div>
                 </div>
               </div>
-              <p style={{ margin:"7px 0 0", textAlign:"center", fontSize:"0.7rem", color:"#64748b" }}>
+              <p style={{ margin:"10px 0 0", fontSize:"0.7rem", color:"#64748b" }}>
                 <strong style={{ color:"#10b981", fontSize:"1.05rem" }}>86%</strong> of users are satisfied with their purchases.
               </p>
             </div>
