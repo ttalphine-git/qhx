@@ -627,6 +627,28 @@ td input:focus{border-color:var(--blue); background:var(--card)}
   border-radius:7px!important;
   font-size:13px!important;
 }
+@media (min-width:1200px){
+  .audit-workspace .q.q-with-finding{
+    grid-template-columns:minmax(360px,1fr) minmax(340px,42%);
+    column-gap:22px;
+    align-items:start;
+  }
+  .audit-workspace .q.q-with-finding .q-top,
+  .audit-workspace .q.q-with-finding .q-ctl{
+    grid-column:1;
+  }
+  .audit-workspace .q.q-with-finding .cmts[style*="borderLeft"],
+  .audit-workspace .q.q-with-finding .cmts[style*="border-left"]{
+    grid-column:2;
+    grid-row:1 / span 2;
+    margin:0!important;
+    align-self:start;
+  }
+  .audit-workspace .q.q-with-finding .cmts[style*="borderLeft"] textarea,
+  .audit-workspace .q.q-with-finding .cmts[style*="border-left"] textarea{
+    min-height:78px!important;
+  }
+}
 .audit-workspace > div[style*="bottom: 0"]{
   display:none!important;
 }

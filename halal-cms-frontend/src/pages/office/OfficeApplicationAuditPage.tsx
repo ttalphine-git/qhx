@@ -681,7 +681,7 @@ function AuditChecklistTab({ app }: { app: any }) {
                             const commentCount = [record.customerComment, record.auditorComment, record.shariaComment].filter(comment => comment.trim()).length
                             const commentsOpen = !!openComments[key]
                             return (
-                              <article className="q" id={`q-${key}`} key={key} style={{ marginBottom: '12px', padding: '12px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+                              <article className={`q ${record.finding ? "q-with-finding" : ""}`} id={`q-${key}`} key={key} style={{ marginBottom: '12px', padding: '12px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
                               <div className="q-top" style={{ marginBottom: '10px' }}>
                                 <span className="q-n" style={record.answer ? { background: "var(--green)", color: "#fff", fontSize: '12px', padding: '2px 8px', borderRadius: '4px' } : { background: '#f1f5f9', color: '#64748b', fontSize: '12px', padding: '2px 8px', borderRadius: '4px' }}>{question.label}</span>
                                 <div style={{ marginTop: '6px' }}>
