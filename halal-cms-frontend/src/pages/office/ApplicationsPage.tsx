@@ -1494,6 +1494,12 @@ type AuditQuestionAnswer = {
   auditorEvidence: { name: string; data: string; size: number }[]
   shariaEvidence: { name: string; data: string; size: number }[]
 }
+type NCWorkflowQuestionState = {
+  questionId?: string | number
+  questionText?: string
+  description?: string
+  ncEvidence?: { name?: string; size?: number; type?: string }[]
+}
 type AuditQuestionNode = { index: number; label: string; text: string }
 type AuditSectionNode = { id: string; title: string; questions: AuditQuestionNode[] }
 type AuditPartNode = { id: string; title: string; sections: AuditSectionNode[] }
@@ -1608,6 +1614,40 @@ function buildAuditParts(track: AuditTrack): AuditPartNode[] {
   return Array.from(parts.values())
 }
 
+const normalizeEvidenceForAnswer = (files?: { name?: string; size?: number; type?: string }[]) =>
+  files?.map(file => ({
+    name: file.name || "Attachment",
+    data: "",
+    size: file.size || 0,
+    type: file.type || "",
+  })) ?? []
+
+const findQuestionIndexForNc = (
+  nc: NCWorkflowQuestionState,
+  configQuestions: { id?: string | number; questionText?: string }[],
+  trackQuestions: string[],
+) => {
+  const ncQuestionId = nc.questionId != null ? String(nc.questionId) : ""
+  if (ncQuestionId) {
+    const byConfigId = configQuestions.findIndex(question => question.id != null && String(question.id) === ncQuestionId)
+    if (byConfigId >= 0) return byConfigId
+
+    const qIndexMatch = ncQuestionId.match(/^q-(\d+)$/)
+    if (qIndexMatch) {
+      const parsedIndex = Number(qIndexMatch[1])
+      if (Number.isInteger(parsedIndex) && parsedIndex >= 0 && parsedIndex < trackQuestions.length) return parsedIndex
+    }
+  }
+
+  const ncQuestionText = normalizeAuditText(stripQuestionPrefix(nc.questionText || ""))
+  if (!ncQuestionText) return -1
+
+  const byConfigText = configQuestions.findIndex(question => normalizeAuditText(stripQuestionPrefix(question.questionText || "")) === ncQuestionText)
+  if (byConfigText >= 0) return byConfigText
+
+  return trackQuestions.findIndex(question => normalizeAuditText(stripQuestionPrefix(question)) === ncQuestionText)
+}
+
 function AuditChecklistTab({ app }: { app:any }) {
   const numericApplicationId = Number(app.id)
   const canUseDatabase = Number.isFinite(numericApplicationId)
@@ -1631,6 +1671,11 @@ function AuditChecklistTab({ app }: { app:any }) {
   const reportQ = useQuery({
     queryKey: ["application-audit-report", numericApplicationId, activityCategoryKey],
     queryFn: () => getApplicationAuditReport(numericApplicationId, activityCategoryKey),
+    enabled: canUseDatabase,
+  })
+  const ncsQ = useQuery({
+    queryKey: ["ncs", numericApplicationId],
+    queryFn: () => apiClient.get<NCWorkflowQuestionState[]>(`/nc/application/${numericApplicationId}`).then(r => r.data),
     enabled: canUseDatabase,
   })
 
@@ -1672,13 +1717,34 @@ function AuditChecklistTab({ app }: { app:any }) {
       next[`${selectedTrack.id}-${questionIndex >= 0 ? questionIndex : index}`] = {
         answer: answer.answer ?? "",
         finding: answer.finding ?? "",
+        ncDescription: answer.ncDescription ?? "",
+        obsDescription: answer.obsDescription ?? "",
         customerComment: answer.customerComment ?? "",
         auditorComment: answer.auditorComment ?? "",
         shariaComment: answer.shariaComment ?? "",
+        ncEvidence: (answer as any).ncEvidence ?? [],
+        obsEvidence: (answer as any).obsEvidence ?? [],
+        customerEvidence: (answer as any).customerEvidence ?? [],
+        auditorEvidence: (answer as any).auditorEvidence ?? [],
+        shariaEvidence: (answer as any).shariaEvidence ?? [],
       } as any
     })
+    ;(ncsQ.data ?? []).forEach(nc => {
+      const questionIndex = findQuestionIndexForNc(nc, configQuestions, selectedTrack.questions)
+      if (questionIndex < 0) return
+
+      const key = `${selectedTrack.id}-${questionIndex}`
+      const existing = next[key] ?? blankAuditAnswer()
+      const ncEvidence = normalizeEvidenceForAnswer(nc.ncEvidence)
+      next[key] = {
+        ...existing,
+        finding: "nc",
+        ncDescription: nc.description ?? existing.ncDescription,
+        ncEvidence: ncEvidence.length ? ncEvidence : existing.ncEvidence,
+      }
+    })
     setAnswers(next)
-  }, [reportQ.data?.id, selectedTrack?.id])
+  }, [reportQ.data?.id, selectedTrack?.id, ncsQ.data])
 
   const updateAnswer = (key: string, patch: Partial<AuditQuestionAnswer>) => {
     setAnswers(prev => ({ ...prev, [key]: { ...(prev[key] ?? blankAuditAnswer()), ...patch } }))

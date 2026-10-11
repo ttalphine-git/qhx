@@ -237,6 +237,7 @@ public class NCWorkflowService {
 
         return NCWorkflowDto.NCWorkflowStatusResponse.builder()
             .ncId(ncId)
+            .questionId(nc.getQuestionId())
             .questionText(nc.getQuestionText())
             .category(nc.getCategory())
             .description(nc.getDescription())

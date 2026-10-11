@@ -45,6 +45,7 @@ public class NCWorkflowDto {
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     public static class NCWorkflowStatusResponse {
         private Long ncId;
+        private String questionId;
         private String questionText;
         private String category;
         private String description;
