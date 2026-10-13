@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { Building2, Mail, Phone, MapPin, Globe, User, Clock, CheckCircle, XCircle,
@@ -93,6 +93,32 @@ export default function CustomerManagementPage() {
     retry: false,
   })
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      const stats: typeof customerStats = {}
+      for (const company of companiesQ.data?.content ?? []) {
+        try {
+          const response = await fetch(`/api/applications?page=0&size=100&search=${company.id}`)
+          const data = await response.json()
+          const apps = data.content || []
+          let totalProducts = 0
+          let totalCerts = 0
+          apps.forEach((app: any) => {
+            totalProducts += app.productCount || 0
+            if (app.status === "CERTIFIED") totalCerts += 1
+          })
+          stats[company.id] = { products: totalProducts, factCerts: totalCerts, batchCerts: 0 }
+        } catch (err) {
+          stats[company.id] = { products: 0, factCerts: 0, batchCerts: 0 }
+        }
+      }
+      setCustomerStats(stats)
+    }
+    if (companiesQ.data?.content?.length) {
+      fetchStats()
+    }
+  }, [companiesQ.data])
+
   const openSheet  = (p: Profile) => { setSheet(p); setEditForm({ ...p }) }
   const closeSheet = () => { setSheet(null); setEditForm(null) }
   const setF = (k: keyof Profile) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -125,17 +151,21 @@ export default function CustomerManagementPage() {
     toast.success("Request rejected")
   }
 
+  const [customerStats, setCustomerStats] = useState<Record<string, { products: number; factCerts: number; batchCerts: number }>>({})
+
   const allCustomers = (companiesQ.data?.content ?? []).map(c => {
     const profile = companyToProfile(c)
     const pendingRequests = requests.filter(r =>
       r.status === "PENDING" &&
       (r.companyId === c.id || (!r.companyId && (r.companyName === c.name || r.companyName === profile.companyName)))
     )
+    const stats = customerStats[c.id] || { products: 0, factCerts: 0, batchCerts: 0 }
     return {
       id: c.id,
       profile,
       pending: pendingRequests.length,
       pendingRequests,
+      stats,
     }
   })
 
@@ -145,7 +175,6 @@ export default function CustomerManagementPage() {
     c.profile.email.toLowerCase().includes(search.toLowerCase()) ||
     (c.profile.clientId ?? "").toLowerCase().includes(search.toLowerCase())
   )
-  const counts = { factories: 0, products: 0, factCerts: 0, batchCerts: 0 }
 
   const refresh = () => {
     companiesQ.refetch()
@@ -298,29 +327,29 @@ export default function CustomerManagementPage() {
 
                   {/* Factories */}
                   <div>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 9px", borderRadius: 7, background: counts.factories > 0 ? "#eff6ff" : "#f8fafc", color: counts.factories > 0 ? "#1d4ed8" : "#94a3b8", border: `1px solid ${counts.factories > 0 ? "#bfdbfe" : "#e9ecef"}`, fontSize: "0.72rem", fontWeight: 700, fontFamily: F }}>
-                      <Factory size={11} />{counts.factories}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 9px", borderRadius: 7, background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", fontSize: "0.72rem", fontWeight: 700, fontFamily: F }}>
+                      <Factory size={11} />1
                     </span>
                   </div>
 
                   {/* Products */}
                   <div>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 9px", borderRadius: 7, background: counts.products > 0 ? "#f0fdf4" : "#f8fafc", color: counts.products > 0 ? "#15803d" : "#94a3b8", border: `1px solid ${counts.products > 0 ? "#bbf7d0" : "#e9ecef"}`, fontSize: "0.72rem", fontWeight: 700, fontFamily: F }}>
-                      <Package size={11} />{counts.products}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 9px", borderRadius: 7, background: c.stats.products > 0 ? "#f0fdf4" : "#f8fafc", color: c.stats.products > 0 ? "#15803d" : "#94a3b8", border: `1px solid ${c.stats.products > 0 ? "#bbf7d0" : "#e9ecef"}`, fontSize: "0.72rem", fontWeight: 700, fontFamily: F }}>
+                      <Package size={11} />{c.stats.products}
                     </span>
                   </div>
 
                   {/* Factory Certs */}
                   <div>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 9px", borderRadius: 7, background: counts.factCerts > 0 ? "#fdf4ff" : "#f8fafc", color: counts.factCerts > 0 ? "#7e22ce" : "#94a3b8", border: `1px solid ${counts.factCerts > 0 ? "#e9d5ff" : "#e9ecef"}`, fontSize: "0.72rem", fontWeight: 700, fontFamily: F }}>
-                      <ShieldCheck size={11} />{counts.factCerts}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 9px", borderRadius: 7, background: c.stats.factCerts > 0 ? "#fdf4ff" : "#f8fafc", color: c.stats.factCerts > 0 ? "#7e22ce" : "#94a3b8", border: `1px solid ${c.stats.factCerts > 0 ? "#e9d5ff" : "#e9ecef"}`, fontSize: "0.72rem", fontWeight: 700, fontFamily: F }}>
+                      <ShieldCheck size={11} />{c.stats.factCerts}
                     </span>
                   </div>
 
                   {/* Batch Certs */}
                   <div style={{ paddingRight: 14 }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 9px", borderRadius: 7, background: counts.batchCerts > 0 ? "#fffbeb" : "#f8fafc", color: counts.batchCerts > 0 ? "#b45309" : "#94a3b8", border: `1px solid ${counts.batchCerts > 0 ? "#fde68a" : "#e9ecef"}`, fontSize: "0.72rem", fontWeight: 700, fontFamily: F }}>
-                      <Award size={11} />{counts.batchCerts}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 9px", borderRadius: 7, background: "#f8fafc", color: "#94a3b8", border: "1px solid #e9ecef", fontSize: "0.72rem", fontWeight: 700, fontFamily: F }}>
+                      <Award size={11} />0
                     </span>
                   </div>
 
