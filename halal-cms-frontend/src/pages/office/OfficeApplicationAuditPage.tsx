@@ -7,6 +7,7 @@ import { NcsTab } from "@/components/NcsTab"
 import { ProductComplianceTab } from "@/components/ProductComplianceTab"
 import { AssignmentTab } from "@/components/AssignmentTab"
 import { DecisionReviewTab } from "@/components/DecisionReviewTab"
+import { CertificatePreparationTab } from "@/components/CertificatePreparationTab"
 import { useAuthStore } from "@/store/authStore"
 import "@/styles/audit.css"
 import apiClient from "@/api/client"
@@ -1197,7 +1198,14 @@ export default function OfficeApplicationAuditPage() {
           {(() => {
             const baseTabs = ["Audit", "NCs", "Products", "Assignment"]
             const isDecisionMaking = viewApp.status === "DECISION_MAKING"
-            const allTabs = isDecisionMaking ? [...baseTabs, "Decision Making", "Sharia Review"] : baseTabs
+            const isReadyForCert = viewApp.status === "READY_FOR_CERTIFICATE" || viewApp.status === "CERTIFIED"
+            let allTabs = baseTabs
+            if (isDecisionMaking) {
+              allTabs = [...baseTabs, "Decision Making", "Sharia Review"]
+            }
+            if (isReadyForCert) {
+              allTabs = [...allTabs.filter((t: string) => t !== "Products"), "Certificate"]
+            }
             return allTabs.map(tab => {
               const isActive = activeTab === tab
               return (
@@ -1227,6 +1235,17 @@ export default function OfficeApplicationAuditPage() {
               applicationId={viewApp.id}
               roleType="sharia_reviewer"
               questions={[]} // TODO: Fetch audit questions from viewApp
+            />
+          )}
+          {activeTab === "Certificate" && (
+            <CertificatePreparationTab
+              applicationId={viewApp.id}
+              applicationData={{
+                companyName: viewApp.companyName,
+                applicationNumber: viewApp.applicationNumber,
+                products: viewApp.products,
+                country: viewApp.country,
+              }}
             />
           )}
           {activeTab === "Products" && (
