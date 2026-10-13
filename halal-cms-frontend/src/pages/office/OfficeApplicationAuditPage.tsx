@@ -5,6 +5,7 @@ import { X, MessageSquare, Save } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
 import { NcsTab } from "@/components/NcsTab"
 import { ProductComplianceTab } from "@/components/ProductComplianceTab"
+import { AssignmentTab } from "@/components/AssignmentTab"
 import { useAuthStore } from "@/store/authStore"
 import "@/styles/audit.css"
 import apiClient from "@/api/client"
@@ -1192,7 +1193,7 @@ export default function OfficeApplicationAuditPage() {
 
         {/* Tab bar */}
         <div className="audit-modal-tabs">
-          {["Audit", "NCs", "Products"].map(tab => {
+          {["Audit", "NCs", "Products", "Assignment"].map(tab => {
             const isActive = activeTab === tab
             return (
               <button key={tab} onClick={() => setActiveTab(tab)}
@@ -1207,6 +1208,7 @@ export default function OfficeApplicationAuditPage() {
         <div className="audit-modal-content">
           {activeTab === "Audit" && <AuditChecklistTab app={viewApp} />}
           {activeTab === "NCs" && <NcsTab applicationId={viewApp.id} />}
+          {activeTab === "Assignment" && <AssignmentTab applicationId={viewApp.id} currentAssignments={viewApp.assignments} />}
           {activeTab === "Products" && (
             <>
               {allNcsApproved && viewApp.products && viewApp.products.length > 0 ? (
