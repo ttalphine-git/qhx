@@ -8,6 +8,8 @@ import { ProductComplianceTab } from "@/components/ProductComplianceTab"
 import { AssignmentTab } from "@/components/AssignmentTab"
 import { DecisionReviewTab } from "@/components/DecisionReviewTab"
 import { CertificatePreparationTab } from "@/components/CertificatePreparationTab"
+import { ReadinessChecklist } from "@/components/ReadinessChecklist"
+import { ShariaChecklist } from "@/components/ShariaChecklist"
 import { useAuthStore } from "@/store/authStore"
 import "@/styles/audit.css"
 import apiClient from "@/api/client"
@@ -1224,18 +1226,26 @@ export default function OfficeApplicationAuditPage() {
           {activeTab === "NCs" && <NcsTab applicationId={viewApp.id} />}
           {activeTab === "Assignment" && <AssignmentTab applicationId={viewApp.id} currentAssignments={viewApp.assignments} />}
           {activeTab === "Decision Making" && (
-            <DecisionReviewTab
-              applicationId={viewApp.id}
-              roleType="decision_maker"
-              questions={[]} // TODO: Fetch audit questions from viewApp
-            />
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              <ReadinessChecklist applicationId={viewApp.id} applicationData={viewApp} />
+              <div style={{ borderTop: "1px solid #e2e8f0" }} />
+              <DecisionReviewTab
+                applicationId={viewApp.id}
+                roleType="decision_maker"
+                questions={[]} // TODO: Fetch audit questions from viewApp
+              />
+            </div>
           )}
           {activeTab === "Sharia Review" && (
-            <DecisionReviewTab
-              applicationId={viewApp.id}
-              roleType="sharia_reviewer"
-              questions={[]} // TODO: Fetch audit questions from viewApp
-            />
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              <ShariaChecklist applicationId={viewApp.id} />
+              <div style={{ borderTop: "1px solid #e2e8f0" }} />
+              <DecisionReviewTab
+                applicationId={viewApp.id}
+                roleType="sharia_reviewer"
+                questions={[]} // TODO: Fetch audit questions from viewApp
+              />
+            </div>
           )}
           {activeTab === "Certificate" && (
             <CertificatePreparationTab
