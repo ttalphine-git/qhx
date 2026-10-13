@@ -6,6 +6,7 @@ import OfficeLayout from "./OfficeLayout"
 import { NcsTab } from "@/components/NcsTab"
 import { ProductComplianceTab } from "@/components/ProductComplianceTab"
 import { AssignmentTab } from "@/components/AssignmentTab"
+import { DecisionReviewTab } from "@/components/DecisionReviewTab"
 import { useAuthStore } from "@/store/authStore"
 import "@/styles/audit.css"
 import apiClient from "@/api/client"
@@ -1193,15 +1194,20 @@ export default function OfficeApplicationAuditPage() {
 
         {/* Tab bar */}
         <div className="audit-modal-tabs">
-          {["Audit", "NCs", "Products", "Assignment"].map(tab => {
-            const isActive = activeTab === tab
-            return (
-              <button key={tab} onClick={() => setActiveTab(tab)}
-                style={{ padding: "10px 17px", fontSize: "0.77rem", fontWeight: isActive ? 700 : 400, color: isActive ? BLUE : "#64748b", borderBottom: `2px solid ${isActive ? BLUE : "transparent"}`, background: "transparent", border: "none", cursor: "pointer", whiteSpace: "nowrap", fontFamily: F, flexShrink: 0, transition: "color 0.1s" }}>
-                {tab}
-              </button>
-            )
-          })}
+          {(() => {
+            const baseTabs = ["Audit", "NCs", "Products", "Assignment"]
+            const isDecisionMaking = viewApp.status === "DECISION_MAKING"
+            const allTabs = isDecisionMaking ? [...baseTabs, "Decision Making", "Sharia Review"] : baseTabs
+            return allTabs.map(tab => {
+              const isActive = activeTab === tab
+              return (
+                <button key={tab} onClick={() => setActiveTab(tab)}
+                  style={{ padding: "10px 17px", fontSize: "0.77rem", fontWeight: isActive ? 700 : 400, color: isActive ? BLUE : "#64748b", borderBottom: `2px solid ${isActive ? BLUE : "transparent"}`, background: "transparent", border: "none", cursor: "pointer", whiteSpace: "nowrap", fontFamily: F, flexShrink: 0, transition: "color 0.1s" }}>
+                  {tab}
+                </button>
+              )
+            })
+          })()}
         </div>
 
         {/* Tab content */}
@@ -1209,6 +1215,20 @@ export default function OfficeApplicationAuditPage() {
           {activeTab === "Audit" && <AuditChecklistTab app={viewApp} />}
           {activeTab === "NCs" && <NcsTab applicationId={viewApp.id} />}
           {activeTab === "Assignment" && <AssignmentTab applicationId={viewApp.id} currentAssignments={viewApp.assignments} />}
+          {activeTab === "Decision Making" && (
+            <DecisionReviewTab
+              applicationId={viewApp.id}
+              roleType="decision_maker"
+              questions={[]} // TODO: Fetch audit questions from viewApp
+            />
+          )}
+          {activeTab === "Sharia Review" && (
+            <DecisionReviewTab
+              applicationId={viewApp.id}
+              roleType="sharia_reviewer"
+              questions={[]} // TODO: Fetch audit questions from viewApp
+            />
+          )}
           {activeTab === "Products" && (
             <>
               {allNcsApproved && viewApp.products && viewApp.products.length > 0 ? (
