@@ -11,7 +11,7 @@ import {
   Building2, Mail, Phone, Building, Paperclip,
   Hash, CalendarDays, Landmark, Receipt, Briefcase, ChevronDown,
   Check, ArrowRight, Zap,
-  CreditCard, Upload,
+  CreditCard, Upload, Save, AlertTriangle,
   Tags, List, AlignLeft, Shield,
 } from "lucide-react"
 import CustomerLayout from "./CustomerLayout"
@@ -26,6 +26,7 @@ import {
 import {
   getApplicationAuditReport,
   getAuditPlan,
+  getNonConformities,
   saveCustomerAuditComments,
   type ApplicationAuditReportDto,
 } from "@/api/audits"
@@ -164,7 +165,7 @@ const TABS = [
   { label: "Rejected",  value: "REJECTED,SUSPENDED,EXPIRED", badge: false },
 ]
 
-const APP_TABS = ["Application","Agreement","Billing","Audit plan","Check list","Documents","Audit","Logs","Certificate"]
+const APP_TABS = ["Application","Agreement","Billing","Audit plan","Check list","Documents","Audit","NC","Logs","Certificate"]
 
 const normalizeActivityCategory = (key?: string) => {
   const raw = (key ?? "").trim().toLowerCase()
@@ -2022,6 +2023,147 @@ function AgreementTab({ app, user, onUpdate }: { app: LocalApp; user: any; onUpd
   )
 }
 
+function CustomerNCResponseTab({ app }: { app: any }) {
+  const [ncs, setNcs] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [responses, setResponses] = useState<Record<number, { rootCause: string; evidence: File[]; implementationDate: string }>>({})
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    const loadNCs = async () => {
+      try {
+        const data = await getNonConformities(Number(app.id))
+        setNcs(data)
+      } catch (err) {
+        console.error("Error loading NCs:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    if (app.id) loadNCs()
+  }, [app.id])
+
+  const handleEvidenceUpload = (ncId: number, files: File[]) => {
+    setResponses(prev => ({
+      ...prev,
+      [ncId]: { ...prev[ncId], evidence: files, rootCause: prev[ncId]?.rootCause || "", implementationDate: prev[ncId]?.implementationDate || "" }
+    }))
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      for (const [ncId, data] of Object.entries(responses)) {
+        if (data.rootCause || data.evidence.length > 0 || data.implementationDate) {
+          await apiClient.post(`/nc/${ncId}/customer-response`, {
+            rootCause: data.rootCause,
+            implementationDate: data.implementationDate,
+            evidenceCount: data.evidence.length,
+          })
+        }
+      }
+      addNotification("customer", { type: "success", title: "NC Responses Saved", body: "Your root cause descriptions and implementation dates have been submitted to the auditor." })
+    } catch (err) {
+      console.error("Error saving NC responses:", err)
+      addNotification("customer", { type: "error", title: "Error", body: "Failed to save NC responses" })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) return <div style={{ padding: "20px", textAlign: "center", color: "#64748b" }}>Loading NCs...</div>
+  if (ncs.length === 0) return <div style={{ padding: "20px", textAlign: "center", color: "#64748b" }}>No non-conformities found</div>
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <p style={{ fontSize: "0.9rem", color: "#64748b", margin: 0 }}>Provide root cause analysis and planned implementation dates for each non-conformity below.</p>
+      </div>
+
+      {ncs.map((nc) => (
+        <div key={nc.id} style={{ ...card, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
+            <AlertTriangle size={18} color="#dc2626" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: "0.9rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>{nc.category}</p>
+              <p style={{ fontSize: "0.8rem", color: "#475569", margin: "4px 0 0" }}>{nc.description}</p>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 8, fontSize: "0.75rem", fontWeight: 600, color: "#dc2626", background: "#fef2f2", padding: "2px 8px", borderRadius: 4 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#dc2626" }} />
+                {nc.status}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {/* Root Cause */}
+            <div>
+              <label style={lbl}>Root Cause Analysis</label>
+              <textarea
+                placeholder="Describe the root cause of this non-conformity..."
+                value={responses[nc.id]?.rootCause || ""}
+                onChange={(e) => setResponses(prev => ({
+                  ...prev,
+                  [nc.id]: { ...prev[nc.id], rootCause: e.target.value, evidence: prev[nc.id]?.evidence || [], implementationDate: prev[nc.id]?.implementationDate || "" }
+                }))}
+                style={{ width: "100%", minHeight: "80px", padding: "10px", border: "1px solid #e2e8f0", borderRadius: 6, fontFamily: F, fontSize: "0.85rem", resize: "vertical" }}
+              />
+            </div>
+
+            {/* Implementation Date */}
+            <div>
+              <label style={lbl}>Planned Implementation Date</label>
+              <input
+                type="date"
+                value={responses[nc.id]?.implementationDate || ""}
+                onChange={(e) => setResponses(prev => ({
+                  ...prev,
+                  [nc.id]: { ...prev[nc.id], implementationDate: e.target.value, rootCause: prev[nc.id]?.rootCause || "", evidence: prev[nc.id]?.evidence || [] }
+                }))}
+                style={{ width: "100%", padding: "8px 10px", border: "1px solid #e2e8f0", borderRadius: 6, fontFamily: F, fontSize: "0.85rem" }}
+              />
+            </div>
+
+            {/* Evidence Upload */}
+            <div>
+              <label style={lbl}>Upload Evidence (Optional)</label>
+              <input
+                type="file"
+                multiple
+                id={`nc-evidence-${nc.id}`}
+                onChange={(e) => handleEvidenceUpload(nc.id, Array.from(e.target.files || []))}
+                style={{ display: "none" }}
+              />
+              <button
+                onClick={() => document.getElementById(`nc-evidence-${nc.id}`)?.click()}
+                style={{ padding: "8px 16px", border: "1px solid #e2e8f0", background: "#fff", borderRadius: 6, cursor: "pointer", fontSize: "0.85rem", fontWeight: 600, color: BLUE }}
+              >
+                <Upload size={14} style={{ display: "inline", marginRight: 4 }} />
+                Attach Evidence
+              </button>
+              {(responses[nc.id]?.evidence || []).length > 0 && (
+                <div style={{ marginTop: 8, fontSize: "0.8rem", color: "#64748b" }}>
+                  {(responses[nc.id]?.evidence || []).length} file(s) selected
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+        <button
+          onClick={handleSave}
+          disabled={saving || ncs.length === 0}
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px", background: saving ? "#e2e8f0" : "#0f2170", border: "none", borderRadius: 8, fontSize: "0.9rem", fontWeight: 700, color: saving ? "#94a3b8" : "#fff", cursor: saving ? "not-allowed" : "pointer" }}
+        >
+          <Save size={16} />
+          {saving ? "Saving..." : "Save NC Responses"}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // "-" Main page "-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-""-"
 export default function CustomerApplicationsPage() {
   const navigate  = useNavigate()
@@ -2513,6 +2655,7 @@ export default function CustomerApplicationsPage() {
     "Check list":  <CustomerAuditQuestionsTab app={a} />,
     "Documents":   <CustomerDocumentsTab app={a} />,
     "Audit":       <CustomerAuditQuestionsTab app={a} />,
+    "NC":          <CustomerNCResponseTab app={a} />,
     "Certificate": <PlaceholderTab icon="" label="Certificate" />,
     "Logs": (() => {
       const entries = a.logs?.length ? [...a.logs].reverse() : [{
