@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { addNotification } from "@/lib/notifications"
 import { addAuditLog } from "@/lib/auditLog"
 import { useAuthStore } from "@/store/authStore"
+import apiClient from "@/api/client"
 import {
   Search, FileText, ChevronRight, ChevronLeft,
   Award, AlertCircle, RefreshCw,

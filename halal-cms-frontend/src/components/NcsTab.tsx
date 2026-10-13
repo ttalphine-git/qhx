@@ -1,8 +1,9 @@
 import React, { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { ChevronDown, AlertCircle, CheckCircle, Clock, Upload, Send, FileText, Loader } from "lucide-react"
+import { ChevronDown, AlertCircle, CheckCircle, Clock, Upload, Send, FileText, Loader, ThumbsUp } from "lucide-react"
 import toast from "react-hot-toast"
 import apiClient from "@/api/client"
+import { updateApplicationStatus } from "@/api/applications"
 
 const F = "'Inter', system-ui, sans-serif"
 
@@ -161,6 +162,40 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Failed to review")
+    },
+  })
+
+  // Accept corrective action (auditor approval)
+  const acceptCorrectiveActionMutation = useMutation({
+    mutationFn: async (ncId: number) => {
+      return apiClient.post(`/nc/${ncId}/auditor-review`, {
+        decision: "APPROVED",
+        feedback: "Corrective action accepted"
+      }).then(r => r.data)
+    },
+    onSuccess: async () => {
+      toast.success("Corrective action accepted!")
+
+      // Invalidate NC queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ["ncs", applicationId] })
+      await queryClient.invalidateQueries({ queryKey: ["nc-status", activeWorkflowId] })
+
+      // Fetch updated NCs to check if all are approved
+      const updatedNCs = await apiClient.get<NCWorkflowStatus[]>(`/nc/application/${applicationId}`).then(r => r.data)
+      const allApproved = updatedNCs.every(nc => nc.currentStatus === "APPROVED")
+
+      if (allApproved) {
+        try {
+          await updateApplicationStatus(applicationId, "DECISION_MAKING" as any)
+          toast.success("All NCs cleared! Application status updated to Decision Making")
+        } catch (err) {
+          console.error("Failed to update application status:", err)
+          toast.error("NC approved but failed to update application status")
+        }
+      }
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Failed to accept corrective action")
     },
   })
 
@@ -447,7 +482,7 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
                     </div>
                   )}
 
-                  {/* Evidence History */}
+                  {/* Evidence History & Accept Action */}
                   {current.evidenceSubmissions.length > 0 && (
                     <div>
                       <p style={{ margin: "0 0 12px", fontSize: "0.8rem", fontWeight: 700, color: "#0f172a", fontFamily: F }}>
@@ -480,6 +515,33 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
                           )}
                         </div>
                       ))}
+
+                      {/* Accept Corrective Action Button */}
+                      {(nc.currentStatus === "PENDING_AUDITOR_REVIEW" || nc.currentStatus === "PENDING_EVIDENCE") && (
+                        <button
+                          onClick={() => acceptCorrectiveActionMutation.mutate(nc.ncId)}
+                          disabled={acceptCorrectiveActionMutation.isPending}
+                          style={{
+                            marginTop: "12px",
+                            padding: "10px 16px",
+                            background: "#16a34a",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 6,
+                            fontSize: "0.8rem",
+                            fontWeight: 600,
+                            cursor: acceptCorrectiveActionMutation.isPending ? "not-allowed" : "pointer",
+                            fontFamily: F,
+                            opacity: acceptCorrectiveActionMutation.isPending ? 0.6 : 1,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          <ThumbsUp size={14} />
+                          {acceptCorrectiveActionMutation.isPending ? "Accepting..." : "Accept Corrective Action"}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
