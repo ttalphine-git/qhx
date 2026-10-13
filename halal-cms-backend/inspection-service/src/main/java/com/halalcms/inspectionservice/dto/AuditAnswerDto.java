@@ -9,6 +9,8 @@ public class AuditAnswerDto {
     private String questionText;
     private String answer;
     private String finding;
+    private String ncDescription;
+    private String obsDescription;
     private String customerComment;
     private String auditorComment;
     private String shariaComment;

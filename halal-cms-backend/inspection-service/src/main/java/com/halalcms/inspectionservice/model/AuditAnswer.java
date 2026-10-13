@@ -34,6 +34,12 @@ public class AuditAnswer {
     private String finding;
 
     @Column(columnDefinition = "TEXT")
+    private String ncDescription;
+
+    @Column(columnDefinition = "TEXT")
+    private String obsDescription;
+
+    @Column(columnDefinition = "TEXT")
     private String customerComment;
 
     @Column(columnDefinition = "TEXT")
