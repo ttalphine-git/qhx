@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { ChevronDown, AlertCircle, CheckCircle, Clock, Upload, Send, FileText, Loader, ThumbsUp } from "lucide-react"
 import toast from "react-hot-toast"
 import apiClient from "@/api/client"
-import { updateApplicationStatus } from "@/api/applications"
 
 const F = "'Inter', system-ui, sans-serif"
 
@@ -179,20 +178,6 @@ export const NcsTab: React.FC<NcsTabProps> = ({ applicationId }) => {
       // Invalidate NC queries to refresh data
       await queryClient.invalidateQueries({ queryKey: ["ncs", applicationId] })
       await queryClient.invalidateQueries({ queryKey: ["nc-status", activeWorkflowId] })
-
-      // Fetch updated NCs to check if all are approved
-      const updatedNCs = await apiClient.get<NCWorkflowStatus[]>(`/nc/application/${applicationId}`).then(r => r.data)
-      const allApproved = updatedNCs.every(nc => nc.currentStatus === "APPROVED")
-
-      if (allApproved) {
-        try {
-          await updateApplicationStatus(applicationId, "DECISION_MAKING" as any)
-          toast.success("All NCs cleared! Application status updated to Decision Making")
-        } catch (err) {
-          console.error("Failed to update application status:", err)
-          toast.error("NC approved but failed to update application status")
-        }
-      }
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : "Failed to accept corrective action")

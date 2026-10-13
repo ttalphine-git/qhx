@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { X, MessageSquare, Save } from "lucide-react"
 import OfficeLayout from "./OfficeLayout"
 import { NcsTab } from "@/components/NcsTab"
+import { ProductComplianceTab } from "@/components/ProductComplianceTab"
 import { useAuthStore } from "@/store/authStore"
 import "@/styles/audit.css"
 import apiClient from "@/api/client"
@@ -1126,6 +1127,7 @@ function AuditChecklistTab({ app }: { app: any }) {
 export default function OfficeApplicationAuditPage() {
   const { applicationId } = useParams<{ applicationId: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState("Audit")
 
   const { data: applicationsData } = useQuery({
@@ -1134,8 +1136,23 @@ export default function OfficeApplicationAuditPage() {
     retry: false,
   })
 
+  const { data: ncsData = [] } = useQuery({
+    queryKey: ["ncs", applicationId],
+    queryFn: async () => {
+      if (!applicationId) return []
+      try {
+        return await apiClient.get<any[]>(`/nc/application/${applicationId}`).then(r => r.data)
+      } catch {
+        return []
+      }
+    },
+    enabled: !!applicationId,
+  })
+
   const app = applicationsData?.content?.[0]
   const viewApp = app ? hydrateApplication(app) : null
+
+  const allNcsApproved = ncsData.length > 0 && ncsData.every((nc: any) => nc.currentStatus === "APPROVED")
 
   if (!viewApp) {
     return (
@@ -1191,36 +1208,55 @@ export default function OfficeApplicationAuditPage() {
           {activeTab === "Audit" && <AuditChecklistTab app={viewApp} />}
           {activeTab === "NCs" && <NcsTab applicationId={viewApp.id} />}
           {activeTab === "Products" && (
-            <div style={{ padding: "24px", fontFamily: F }}>
-              {viewApp.products && viewApp.products.length > 0 ? (
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                    <span style={{ fontSize: "0.82rem", fontWeight: 700, color: DARK, fontFamily: F }}>Products for Certification</span>
-                    <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#fff", background: BLUE, padding: "1px 10px", borderRadius: 10 }}>{viewApp.products.length}</span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {viewApp.products.map((p: any, i: number) => (
-                      <div key={i} style={{ border: "1px solid #e2e8f0", borderRadius: 10, background: "#fff", padding: "16px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 140px", gap: 12, alignItems: "start" }}>
-                        <div style={{ minWidth: 0 }}>
-                          <p style={{ margin: "0 0 8px", fontSize: "0.76rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Product Name</p>
-                          <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 600, color: "#111827" }}>{p.name || p.productName || "-"}</p>
-                        </div>
-                        <div>
-                          <p style={{ margin: "0 0 8px", fontSize: "0.76rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Category</p>
-                          <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 600, color: "#111827" }}>{p.category || p.productCategory || "-"}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            <>
+              {allNcsApproved && viewApp.products && viewApp.products.length > 0 ? (
+                <ProductComplianceTab
+                  applicationId={viewApp.id}
+                  products={viewApp.products}
+                  onStatusChange={() => {
+                    queryClient.invalidateQueries({ queryKey: ["applications"] })
+                    navigate("/office/applications")
+                  }}
+                />
               ) : (
-                <div style={{ textAlign: "center", padding: "60px 20px", color: "#94a3b8" }}>
-                  <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>📦</div>
-                  <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "#64748b" }}>No products submitted</div>
-                  <div style={{ fontSize: "0.8rem", marginTop: 4 }}>Products added by the customer will appear here.</div>
+                <div style={{ padding: "24px", fontFamily: F }}>
+                  {!allNcsApproved && ncsData.length > 0 && (
+                    <div style={{ padding: "20px", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 8, color: "#92400e", marginBottom: 20 }}>
+                      <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: 600 }}>ℹ️ Complete NC clearance first</p>
+                      <p style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>All non-conformities must be approved before you can review product compliance.</p>
+                    </div>
+                  )}
+                  {viewApp.products && viewApp.products.length > 0 ? (
+                    <div style={{ marginTop: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: DARK, fontFamily: F }}>Products for Certification</span>
+                        <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#fff", background: BLUE, padding: "1px 10px", borderRadius: 10 }}>{viewApp.products.length}</span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {viewApp.products.map((p: any, i: number) => (
+                          <div key={i} style={{ border: "1px solid #e2e8f0", borderRadius: 10, background: "#fff", padding: "16px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 140px", gap: 12, alignItems: "start" }}>
+                            <div style={{ minWidth: 0 }}>
+                              <p style={{ margin: "0 0 8px", fontSize: "0.76rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Product Name</p>
+                              <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 600, color: "#111827" }}>{p.name || p.productName || "-"}</p>
+                            </div>
+                            <div>
+                              <p style={{ margin: "0 0 8px", fontSize: "0.76rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Category</p>
+                              <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 600, color: "#111827" }}>{p.category || p.productCategory || "-"}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: "center", padding: "60px 20px", color: "#94a3b8" }}>
+                      <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>📦</div>
+                      <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "#64748b" }}>No products submitted</div>
+                      <div style={{ fontSize: "0.8rem", marginTop: 4 }}>Products added by the customer will appear here.</div>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>
