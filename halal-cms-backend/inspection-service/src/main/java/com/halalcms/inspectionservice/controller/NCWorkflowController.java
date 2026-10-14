@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/nc")
@@ -92,11 +93,17 @@ public class NCWorkflowController {
 
     private Long extractUserId(Authentication auth) {
         if (auth != null && auth.getPrincipal() instanceof String) {
+            String principal = auth.getPrincipal().toString();
             try {
-                return Long.parseLong(auth.getPrincipal().toString());
+                return Long.parseLong(principal);
             } catch (NumberFormatException ex) {
-                log.warn("Authenticated principal is not numeric: {}", auth.getPrincipal());
-                return null;
+                try {
+                    UUID uuid = UUID.fromString(principal);
+                    return uuid.getMostSignificantBits() & Long.MAX_VALUE;
+                } catch (IllegalArgumentException uuidEx) {
+                    log.warn("Authenticated principal is not numeric or UUID: {}", principal);
+                    return null;
+                }
             }
         }
         return 1L; // Default for development

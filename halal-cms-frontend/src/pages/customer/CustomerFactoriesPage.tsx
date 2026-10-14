@@ -502,7 +502,7 @@ export default function CustomerFactoriesPage(){
       createdAt: new Date().toISOString(),
       organization: "Al-Barakah Food Co.",
     }
-    setAuth(auth.accessToken, account)
+    setAuth(auth.accessToken, account, auth.refreshToken, auth.expiresIn)
     return account
   }
 
