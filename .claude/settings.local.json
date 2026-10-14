@@ -296,7 +296,8 @@
       "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Enlarge factory modal, move activity category to top, add load more for specific activities\")",
       "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Change top bar color to more vibrant blue #0056d8\")",
       "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Remove color settings from both customer and office portals\")",
-      "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Change batch certificates expiring badge from orange to blue\")"
+      "Bash(git -C \"d:\\\\QHXSASS\" commit -m \"Change batch certificates expiring badge from orange to blue\")",
+      "Bash(node \"C:\\\\Users\\\\USER\\\\.claude\\\\skills\\\\browser-automation\\\\browser.mjs\" --session devtest --script /tmp/test_full.mjs)"
     ]
   }
 }

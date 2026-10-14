@@ -166,7 +166,7 @@ const TABS = [
   { label: "Rejected",  value: "REJECTED,SUSPENDED,EXPIRED", badge: false },
 ]
 
-const APP_TABS = ["Application","Agreement","Billing","Audit plan","Check list","Documents","Audit","NC","Logs","Certificate"]
+const APP_TABS = ["Application","Agreement","Billing","Audit plan","Documents","NC","Logs","Certificate"]
 
 const normalizeActivityCategory = (key?: string) => {
   const raw = (key ?? "").trim().toLowerCase()
