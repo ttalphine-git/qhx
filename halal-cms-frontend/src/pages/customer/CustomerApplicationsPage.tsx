@@ -2058,8 +2058,8 @@ function CustomerNCResponseTab({ app }: { app: any }) {
       for (const [ncId, data] of Object.entries(responses)) {
         if (data.rootCause || data.evidence.length > 0 || data.implementationDate) {
           await apiClient.post(`/nc/${ncId}/customer-response`, {
-            rootCause: data.rootCause,
-            implementationDate: data.implementationDate,
+            correctiveAction: data.rootCause,
+            dueDate: data.implementationDate,
             evidenceCount: data.evidence.length,
           })
         }
