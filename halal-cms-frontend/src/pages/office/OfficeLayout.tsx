@@ -276,7 +276,7 @@ export default function OfficeLayout({ children, title }: OfficeLayoutProps) {
               <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.18)", border:"1.5px solid rgba(255,255,255,0.28)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.6875rem", fontWeight:700, color:"#fff", flexShrink:0 }}>{initials}</div>
               <div className="ol-user-text">
                 <div style={{ fontSize:"0.8125rem", fontWeight:600, color:"#fff", lineHeight:1.2 }}>{user?.name ?? "Admin"}</div>
-                <div style={{ fontSize:"0.625rem", color:"rgba(255,255,255,0.45)", lineHeight:1.2 }}>Office Portal v45o</div>
+                <div style={{ fontSize:"0.625rem", color:"rgba(255,255,255,0.45)", lineHeight:1.2 }}>Office Portal v77</div>
               </div>
               <ChevronDown size={12} color="rgba(255,255,255,0.5)" />
             </button>

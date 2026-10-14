@@ -171,7 +171,7 @@ export default function CustomerLayout({ children, title }: CustomerLayoutProps)
               <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,0.18)", border: "1.5px solid rgba(255,255,255,0.28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", flexShrink: 0 }}>{initials}</div>
               <div>
                 <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#fff", lineHeight: 1.2 }}>{user?.name ?? "Customer"}</div>
-                <div style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.2 }}>Customer Portal v45o</div>
+                <div style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.2 }}>Customer Portal v77</div>
               </div>
               <ChevronDown size={12} color="rgba(255,255,255,0.5)" />
             </button>
