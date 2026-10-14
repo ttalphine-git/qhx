@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import toast from "react-hot-toast"
 import { addNotification } from "@/lib/notifications"
 import { addAuditLog } from "@/lib/auditLog"
 import { useAuthStore } from "@/store/authStore"
@@ -2063,10 +2064,10 @@ function CustomerNCResponseTab({ app }: { app: any }) {
           })
         }
       }
-      addNotification("customer", { type: "success", title: "NC Responses Saved", body: "Your root cause descriptions and implementation dates have been submitted to the auditor." })
+      toast.success("NC Responses Saved - Your root cause descriptions and implementation dates have been submitted to the auditor.")
     } catch (err) {
       console.error("Error saving NC responses:", err)
-      addNotification("customer", { type: "error", title: "Error", body: "Failed to save NC responses" })
+      toast.error("Failed to save NC responses")
     } finally {
       setSaving(false)
     }

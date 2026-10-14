@@ -178,7 +178,7 @@ public class DataInitializer implements ApplicationRunner {
             log.info("Seeded super admin: superadmin@halalcms.com");
         });
 
-       // ensureAllUsersEnabled();
+        ensureAllUsersEnabled();
     }
 
     @Transactional
